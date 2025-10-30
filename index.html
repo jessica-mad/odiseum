@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odiseum V2.0 - Refactorizado</title>
+    
+    <!-- CSS Files (in order) -->
+    <link rel="stylesheet" href="styles/1-variables.css">
+    <link rel="stylesheet" href="styles/2-base.css">
+    <link rel="stylesheet" href="styles/3-layout.css">
+    <link rel="stylesheet" href="styles/4-components.css">
+    <link rel="stylesheet" href="styles/5-theme-retro.css">
+</head>
+<body>
+    <!-- Pantalla de Inicio / Login -->
+    <div id="initial-screen" class="initial-screen">
+        <div class="login-box">
+            <h1>ODISEUM V2.0</h1>
+            <p>Sistema de Inteligencia Artificial</p>
+            <div class="login-form">
+                <label for="player-name-input">Identificación de IA:</label>
+                <input type="text" id="player-name-input" placeholder="Ingrese su nombre">
+                <button onclick="namePlayer()">Ese es mi nombre</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escritorio Principal -->
+    <div id="desktop" class="desktop" style="display: none;">
+        <!-- Barra de Título Principal -->
+        <div class="title-bar-main">
+            <span class="title-text">Odiseum V2.0</span>
+            <span class="player-name-display">IA: <span id="playerName">---</span></span>
+        </div>
+
+        <!-- Barra de Detalles / Menú -->
+        <div class="details-bar">
+            <div class="menu-section">
+                <button class="menu-btn">Configuración</button>
+                <button class="menu-btn">Instrucciones</button>
+            </div>
+            <div class="controls-section">
+                <button id="start-button" class="control-btn" onclick="startGame()">Comenzar</button>
+                <button id="pause-button" class="control-btn" onclick="pauseGame()" style="display: none;">Pausar</button>
+                <button id="resume-button" class="control-btn" onclick="resumeGame()" style="display: none;">Reanudar</button>
+                <div class="tranche-timer" id="tranche-timer">01:00</div>
+                <div class="calendar" id="calendar">Año 0</div>
+            </div>
+        </div>
+
+        <!-- Área Principal del Escritorio -->
+        <div class="desktop-main-area">
+            <!-- Iconos del Escritorio -->
+            <div class="desktop-icons">
+                <div class="desktop-icon" id="icon-resources-management" ondblclick="openResourcesPopup()">
+                    <div class="icon-image">📦</div>
+                    <div class="icon-label">Recursos</div>
+                </div>
+                <div class="desktop-icon" id="icon-crews-management" ondblclick="openCrewsPopup()">
+                    <div class="icon-image">👥</div>
+                    <div class="icon-label">Tripulación</div>
+                </div>
+                <div class="desktop-icon" id="icon-trip-management" ondblclick="openTripPopup()">
+                    <div class="icon-image">🚀</div>
+                    <div class="icon-label">Viaje</div>
+                </div>
+                <div class="desktop-icon" id="icon-logbook" ondblclick="openLogbookPopup()">
+                    <div class="icon-image">📖</div>
+                    <div class="icon-label">Bitácora</div>
+                </div>
+            </div>
+
+            <!-- Panel de Notificaciones -->
+            <div id="notifications" class="notifications-panel"></div>
+        </div>
+
+        <!-- Panel Lateral de Tripulación (SIEMPRE VISIBLE) -->
+        <div class="crew-sidebar" id="crew-sidebar">
+            <div class="sidebar-header">
+                <h3>🚀 TRIPULACIÓN</h3>
+            </div>
+            <div class="sidebar-sorting">
+                <label for="crew-sort-select">Ordenar por:</label>
+                <select id="crew-sort-select" onchange="onSortChange()">
+                    <!-- Se genera dinámicamente con JS -->
+                </select>
+            </div>
+            <div class="sidebar-content" id="crew-cards-container">
+                <!-- Se genera dinámicamente con JS -->
+            </div>
+        </div>
+
+        <!-- Popup: Gestión de Recursos -->
+        <div id="resources-management-popup" class="window interface" style="display: none;">
+            <div class="title-bar" id="title-bar-resources">
+                <span class="title">Gestión de Recursos</span>
+                <button class="close-btn" onclick="closeResourcesPopup()">×</button>
+            </div>
+            <div class="window-content">
+                <h3>Reservas de la Nave</h3>
+                <div class="resource-item">
+                    <label>Energía:</label>
+                    <meter id="energy-meter" min="0" max="1000" value="1000"></meter>
+                    <span id="energy-amount">1000/1000</span>
+                </div>
+                <div class="resource-item">
+                    <label>Alimentos:</label>
+                    <meter id="food-meter" min="0" max="500" value="500"></meter>
+                    <span id="food-amount">500/500</span>
+                </div>
+                <div class="resource-item">
+                    <label>Agua:</label>
+                    <meter id="water-meter" min="0" max="300" value="300"></meter>
+                    <span id="water-amount">300/300</span>
+                </div>
+                <div class="resource-item">
+                    <label>Oxígeno:</label>
+                    <meter id="oxygen-meter" min="0" max="400" value="400"></meter>
+                    <span id="oxygen-amount">400/400</span>
+                </div>
+                <div class="resource-item">
+                    <label>Medicinas:</label>
+                    <meter id="medicine-meter" min="0" max="200" value="200"></meter>
+                    <span id="medicine-amount">200/200</span>
+                </div>
+                <div class="resource-item">
+                    <label>Datos/Entret.:</label>
+                    <meter id="data-meter" min="0" max="150" value="150"></meter>
+                    <span id="data-amount">150/150</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup: Gestión del Viaje -->
+        <div id="trip-management-popup" class="window interface" style="display: none;">
+            <div class="title-bar" id="title-bar-trip">
+                <span class="title">Gestión del Viaje</span>
+                <button class="close-btn" onclick="closeTripPopup()">×</button>
+            </div>
+            <div class="window-content">
+                <h3>Progreso del Viaje</h3>
+                <div class="trip-info">
+                    <label>Destino: Nueva Tierra (Kepler-442b)</label>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="trip-progress-bar"></div>
+                    </div>
+                    <p>Distancia: <span id="distance-traveled">0</span> / <span id="total-distance">10000</span> UA</p>
+                </div>
+                <div class="trip-controls">
+                    <h4>Control de Velocidad</h4>
+                    <label>Velocidad: <span id="speed-value">50</span>%</label>
+                    <input type="range" id="speed-control" min="10" max="100" value="50" oninput="updateSpeedDisplay()">
+                    <p class="speed-note">⚠️ Mayor velocidad = Mayor consumo de combustible</p>
+                </div>
+                <div class="fuel-info">
+                    <label>Combustible:</label>
+                    <meter id="fuel-meter" min="0" max="1000" value="1000"></meter>
+                    <span id="fuel-amount">1000/1000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup: Lista de Tripulación -->
+        <div id="crews-management-popup" class="window interface" style="display: none;">
+            <div class="title-bar" id="title-bar-crews">
+                <span class="title">Gestión de Tripulación</span>
+                <button class="close-btn" onclick="closeCrewsPopup()">×</button>
+            </div>
+            <div class="window-content">
+                <h3>Tripulación de la Odiseum</h3>
+                <table class="crew-table">
+                    <thead>
+                        <tr>
+                            <th>Estado</th>
+                            <th>Nombre</th>
+                            <th>Posición</th>
+                            <th>Edad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="crew-list">
+                        <!-- Se genera dinámicamente con JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Popup: Gestión Individual de Tripulante -->
+        <div id="crew-management-popup" class="window interface" style="display: none;">
+            <div class="title-bar" id="title-bar-crew">
+                <span class="title">Gestión de Tripulante</span>
+                <button class="close-btn" onclick="closeCrewManagementPopup()">×</button>
+            </div>
+            <div class="window-content">
+                <div class="crew-header">
+                    <img id="crew-img" src="" alt="Tripulante" class="crew-avatar">
+                    <div class="crew-info">
+                        <h3 id="crew-name">---</h3>
+                        <p>Edad: <span id="crew-age">--</span> años</p>
+                        <p>Edad Biológica: <span id="crew-bio-age">--</span> años</p>
+                        <p>Posición: <span id="crew-position">---</span></p>
+                        <p>Estado: <span id="crew-state">---</span></p>
+                        <p>Actividad: <span id="crew-activity">---</span></p>
+                        <p>Ánimo: <span id="crew-mood">---</span></p>
+                    </div>
+                </div>
+                <div class="crew-needs">
+                    <h4>Necesidades Vitales</h4>
+                    <table class="needs-table" id="needs-list">
+                        <tr>
+                            <td>🍕 Alimentación</td>
+                            <td><span id="food-need-amount">100</span>%</td>
+                            <td><button class="manage-btn" onclick="manageFoodNeed()">Alimentar</button></td>
+                        </tr>
+                        <tr>
+                            <td>❤️ Salud</td>
+                            <td><span id="health-need-amount">100</span>%</td>
+                            <td><button class="manage-btn" onclick="manageHealthNeed()">Curar</button></td>
+                        </tr>
+                        <tr>
+                            <td>🚽 Higiene</td>
+                            <td><span id="waste-need-amount">0</span>%</td>
+                            <td><button class="manage-btn" onclick="manageWasteNeed()">Limpiar</button></td>
+                        </tr>
+                        <tr>
+                            <td>🎮 Entretenimiento</td>
+                            <td><span id="entertainment-need-amount">100</span>%</td>
+                            <td><button class="manage-btn" onclick="manageEntertainmentNeed()">Entretener</button></td>
+                        </tr>
+                        <tr>
+                            <td>😴 Descanso</td>
+                            <td><span id="rest-need-amount">100</span>%</td>
+                            <td><button class="manage-btn" onclick="manageRestNeed()">Descansar</button></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <!-- Información Personal -->
+                <div class="crew-personal-info" id="crew-personal-info">
+                    <!-- Se llena dinámicamente con JS -->
+                </div>
+                
+                <div class="crew-personal-log">
+                    <h4>📝 Reporte Personal</h4>
+                    <div id="crew-personal-log-content" class="personal-log-content">
+                        <!-- Se llenará con JavaScript -->
+                    </div>
+                </div>
+                <div class="crew-actions">
+                    <button id="wake-sleep-btn" onclick="updateWakeSleepFromPopup()">Cambiar Estado</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup: Bitácora del Comandante -->
+        <div id="logbook-popup" class="window interface" style="display: none;">
+            <div class="title-bar" id="title-bar-logbook">
+                <span class="title">📖 Bitácora de Odiseum</span>
+                <button class="close-btn" onclick="closeLogbookPopup()">×</button>
+            </div>
+            <div class="window-content">
+                <div class="logbook-header">
+                    <h3>Registro de Misión</h3>
+                    <p class="mission-objective">Objetivo: Transportar cargamento vital a Nueva Tierra</p>
+                </div>
+                <div class="logbook-entries" id="logbook-entries">
+                    <!-- Se genera dinámicamente con JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files (in order) -->
+    <script src="scripts/0-config.js"></script>
+    <script src="scripts/1-models.js"></script>
+    <script src="scripts/2-systems.js"></script>
+    <script src="scripts/3-ui-managers.js"></script>
+    <script src="scripts/4-crew-data.js"></script>
+    <script src="scripts/5-messages-data.js"></script>
+    <script src="scripts/6-main.js"></script>
+</body>
+</html>

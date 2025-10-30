@@ -1,0 +1,318 @@
+/* ============================================
+   THEME RETRO MAC - ODISEUM V2.0
+   ============================================ */
+
+/* === POPUP DE MENSAJE CUÁNTICO === */
+.quantum-message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    animation: fadeIn var(--transition-normal);
+}
+
+.quantum-message-popup {
+    background: var(--color-white);
+    border: 3px solid var(--border-color);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: fadeIn var(--transition-normal);
+}
+
+.quantum-message-header {
+    background: var(--color-black);
+    color: var(--color-white);
+    padding: 15px;
+    text-align: center;
+    border-bottom: 3px solid var(--border-color);
+}
+
+.quantum-message-header h2 {
+    font-size: var(--font-size-title);
+    margin-bottom: 5px;
+}
+
+.quantum-message-header .year {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+}
+
+.quantum-message-content {
+    padding: var(--spacing-xl);
+}
+
+.message-box {
+    background: #f9f9f9;
+    border: var(--border-width) solid var(--border-color);
+    padding: 15px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.message-box.from-earth {
+    border-left: 5px solid #4a90e2;
+}
+
+.message-box.from-new-earth {
+    border-left: 5px solid #50c878;
+}
+
+.message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.message-icon {
+    font-size: 24px;
+}
+
+.message-to {
+    font-family: var(--font-chicago);
+    font-size: var(--font-size-md);
+    font-weight: bold;
+}
+
+.message-text {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-line;
+}
+
+.quantum-message-footer {
+    padding: var(--spacing-lg);
+    text-align: center;
+    border-top: var(--border-width) solid var(--border-color);
+}
+
+.continue-btn {
+    padding: 10px 30px;
+    font-size: var(--font-size-md);
+    background: var(--color-black);
+    color: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    cursor: pointer;
+    box-shadow: var(--shadow-medium);
+}
+
+.continue-btn:hover {
+    background: #333;
+}
+
+/* === PANTALLA DE VICTORIA === */
+.victory-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    animation: fadeIn 1s;
+}
+
+.victory-popup {
+    background: var(--color-white);
+    border: 3px solid var(--border-color);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.victory-header {
+    padding: var(--spacing-xl);
+    text-align: center;
+    border-bottom: 3px solid var(--border-color);
+}
+
+.victory-rank {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.victory-rank.S-RANK {
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(255, 215, 0, 0.5);
+}
+
+.victory-rank.A-RANK {
+    color: #50c878;
+}
+
+.victory-rank.B-RANK {
+    color: #ff6600;
+}
+
+.victory-rank.GAME-OVER {
+    color: var(--color-alert-red);
+}
+
+.victory-title {
+    font-size: var(--font-size-hero);
+    margin-bottom: 10px;
+}
+
+.victory-stats {
+    padding: var(--spacing-xl);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    background: #f9f9f9;
+    border-left: 3px solid var(--border-color);
+}
+
+.victory-narrative {
+    padding: var(--spacing-xl);
+    background: #f9f9f9;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    line-height: 1.8;
+    white-space: pre-line;
+}
+
+.victory-footer {
+    padding: var(--spacing-xl);
+    text-align: center;
+    border-top: 3px solid var(--border-color);
+}
+
+/* === INTRO BITÁCORA === */
+.logbook-intro {
+    background: var(--color-black);
+    color: var(--color-terminal-green);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    line-height: 1.8;
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    border: 3px solid var(--color-terminal-green);
+    white-space: pre-line;
+}
+
+.logbook-intro h2 {
+    text-align: center;
+    font-size: var(--font-size-title);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-terminal-green);
+    padding-bottom: var(--spacing-sm);
+}
+
+.intro-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.intro-mission-btn {
+    display: block;
+    width: 200px;
+    margin: var(--spacing-xl) auto 0;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-terminal-green);
+    color: var(--color-black);
+    border: var(--border-width) solid var(--color-terminal-green);
+    font-family: var(--font-chicago);
+    font-size: var(--font-size-md);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: var(--shadow-medium);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.intro-mission-btn:hover {
+    background: #00ff00;
+    transform: scale(1.05);
+}
+
+/* === EFECTOS ESPECIALES === */
+.glitch {
+    animation: glitch 0.3s infinite;
+}
+
+@keyframes glitch {
+    0%, 100% { transform: translate(0); }
+    25% { transform: translate(-2px, 2px); }
+    50% { transform: translate(2px, -2px); }
+    75% { transform: translate(-2px, -2px); }
+}
+
+.scanlines::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.1) 2px,
+        rgba(0, 0, 0, 0.1) 4px
+    );
+    pointer-events: none;
+}
+
+.crt-effect {
+    text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.5),
+                -0.025em -0.05em 0 rgba(0, 255, 0, 0.5),
+                 0.025em 0.05em 0 rgba(0, 0, 255, 0.5);
+}
+
+/* === LOADING INDICATOR === */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--color-gray-medium);
+    border-top-color: var(--color-black);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVE ADJUSTMENTS === */
+@media (max-width: 768px) {
+    .quantum-message-popup,
+    .victory-popup {
+        max-width: 95vw;
+        margin: 10px;
+    }
+    
+    .victory-rank {
+        font-size: 36px;
+    }
+    
+    .logbook-intro {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-md);
+    }
+}

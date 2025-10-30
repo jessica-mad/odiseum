@@ -1,0 +1,81 @@
+/* ============================================
+   VARIABLES GLOBALES - ODISEUM V2.0
+   ============================================ */
+
+:root {
+    /* === COLORES BASE === */
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-gray-light: #f0f0f0;
+    --color-gray-medium: #dddddd;
+    --color-gray-dark: #777777;
+    --color-gray-darker: #333333;
+    
+    /* === COLORES DE ESTADO === */
+    --color-ok: #ffffff;
+    --color-warning: #fffacd;
+    --color-critical: #ffe4b3;
+    --color-danger: #ffcccb;
+    --color-dead: #333333;
+    
+    /* === COLORES DE ALERTA === */
+    --color-alert-red: #ff0000;
+    --color-alert-orange: #ffaa00;
+    --color-alert-yellow: #ffff00;
+    --color-alert-green: #00aa00;
+    
+    /* === COLORES DE SISTEMA === */
+    --color-terminal-green: #00ff00;
+    --color-terminal-bg: #000000;
+    
+    /* === COLORES DE BORDE === */
+    --border-color: var(--color-black);
+    --border-width: 2px;
+    
+    /* === SOMBRAS === */
+    --shadow-small: 1px 1px 0 var(--color-black);
+    --shadow-medium: 2px 2px 0 var(--color-black);
+    --shadow-large: 4px 4px 0 var(--color-black);
+    --shadow-inset: inset 2px 2px 0 var(--color-black);
+    
+    /* === ESPACIADO === */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    
+    /* === TAMAÑOS === */
+    --crew-sidebar-width: 280px;
+    --title-bar-height: 42px;
+    --details-bar-height: 42px;
+    --notification-width: 320px;
+    
+    /* === FUENTES === */
+    --font-chicago: 'Chicago', 'Geneva', 'Helvetica', sans-serif;
+    --font-monaco: 'Monaco', 'Courier New', monospace;
+    
+    /* === TAMAÑOS DE FUENTE === */
+    --font-size-xs: 9px;
+    --font-size-sm: 10px;
+    --font-size-base: 11px;
+    --font-size-md: 12px;
+    --font-size-lg: 13px;
+    --font-size-xl: 14px;
+    --font-size-xxl: 16px;
+    --font-size-title: 18px;
+    --font-size-hero: 24px;
+    
+    /* === TRANSICIONES === */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    
+    /* === Z-INDEX === */
+    --z-desktop: 10;
+    --z-window: 100;
+    --z-sidebar: 999;
+    --z-notification: 1000;
+    --z-modal: 5000;
+    --z-loading: 10000;
+}

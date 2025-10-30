@@ -1,0 +1,560 @@
+/* ============================================
+   COMPONENTS - ODISEUM V2.0
+   ============================================ */
+
+/* === MINI-CARDS DE TRIPULACIÓN === */
+.crew-mini-card {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-medium);
+    padding: 10px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.crew-mini-card:hover {
+    transform: translateX(-3px);
+    box-shadow: 3px 3px 0 var(--border-color);
+}
+
+/* Estados de color */
+.crew-mini-card.ok {
+    background: var(--color-ok);
+    border-color: var(--border-color);
+}
+
+.crew-mini-card.warning {
+    background: var(--color-warning);
+    border-color: var(--color-alert-orange);
+}
+
+.crew-mini-card.critical {
+    background: var(--color-critical);
+    border-color: #ff6600;
+}
+
+.crew-mini-card.danger {
+    background: var(--color-danger);
+    border-color: var(--color-alert-red);
+    animation: pulse-red 2s infinite;
+}
+
+.crew-mini-card.dead {
+    background: var(--color-dead);
+    border-color: var(--border-color);
+    color: #999;
+    cursor: default;
+}
+
+.crew-mini-card.dead:hover {
+    transform: none;
+    box-shadow: var(--shadow-medium);
+}
+
+.crew-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.crew-card-name {
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+}
+
+.crew-mini-card.dead .crew-card-name {
+    color: #999;
+    text-decoration: line-through;
+}
+
+.crew-card-status {
+    font-size: 18px;
+}
+
+.crew-card-age {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.crew-card-age.aging {
+    color: var(--color-alert-red);
+    font-weight: bold;
+}
+
+.crew-card-state {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    padding: 2px 6px;
+    background: var(--color-black);
+    color: var(--color-white);
+    display: inline-block;
+    margin-bottom: var(--spacing-sm);
+}
+
+.crew-card-state.awake {
+    background: var(--color-alert-green);
+}
+
+.crew-card-state.capsule {
+    background: #0066cc;
+}
+
+.crew-card-state.deceased {
+    background: #666;
+}
+
+.crew-card-needs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.need-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+}
+
+.need-bar-icon {
+    font-size: var(--font-size-md);
+    width: 16px;
+}
+
+.need-bar-fill {
+    flex: 1;
+    height: 8px;
+    background: #ddd;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.need-bar-progress {
+    height: 100%;
+    background: var(--color-black);
+    transition: width var(--transition-normal);
+}
+
+.need-bar-progress.good {
+    background: var(--color-alert-green);
+}
+
+.need-bar-progress.warning {
+    background: var(--color-alert-orange);
+}
+
+.need-bar-progress.critical {
+    background: var(--color-alert-red);
+}
+
+.need-bar-value {
+    min-width: 30px;
+    text-align: right;
+}
+
+.crew-card-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.crew-card-btn {
+    flex: 1;
+    padding: 4px 6px;
+    font-size: var(--font-size-sm);
+    box-shadow: var(--shadow-small);
+}
+
+.auto-manage-indicator {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-alert-green);
+    text-align: center;
+    margin-top: 4px;
+    padding: 2px;
+    background: rgba(0, 170, 0, 0.1);
+    border-radius: 2px;
+}
+
+/* === VENTANAS (POPUPS) === */
+.window {
+    position: absolute;
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-large);
+    min-width: 400px;
+    max-width: 600px;
+    z-index: var(--z-window);
+}
+
+.interface {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.title-bar {
+    background: var(--color-black);
+    color: var(--color-white);
+    padding: 6px 10px;
+    font-size: var(--font-size-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+    user-select: none;
+}
+
+.close-btn {
+    background: var(--color-white);
+    color: var(--color-black);
+    border: var(--border-width) solid var(--color-white);
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: var(--font-size-xxl);
+    line-height: 1;
+    padding: 0;
+}
+
+.close-btn:hover {
+    background: var(--color-alert-red);
+    color: var(--color-white);
+    border-color: var(--color-alert-red);
+}
+
+.window-content {
+    padding: var(--spacing-xl);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.window-content h3 {
+    font-size: var(--font-size-xxl);
+    margin-bottom: 15px;
+    border-bottom: var(--border-width) solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.window-content h4 {
+    font-size: var(--font-size-xl);
+    margin: 15px 0 10px 0;
+}
+
+/* === NOTIFICACIONES === */
+.notification {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: 3px 3px 0 var(--border-color);
+    padding: var(--spacing-md);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+    animation: slideIn var(--transition-normal);
+}
+
+.notification.alert {
+    background: var(--color-alert-red);
+    color: var(--color-white);
+}
+
+.notification.warning {
+    background: var(--color-alert-yellow);
+    color: var(--color-black);
+}
+
+.notification.info {
+    background: var(--color-white);
+    color: var(--color-black);
+}
+
+/* === TABLAS === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th {
+    background: var(--color-black);
+    color: var(--color-white);
+    padding: var(--spacing-sm);
+    text-align: left;
+    font-size: var(--font-size-md);
+}
+
+table td {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+}
+
+.crew-table button {
+    padding: 4px var(--spacing-sm);
+    font-size: var(--font-size-base);
+}
+
+/* === RECURSOS === */
+.resource-item {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.resource-item label {
+    font-size: var(--font-size-md);
+    min-width: 120px;
+}
+
+.resource-item meter {
+    flex: 1;
+}
+
+.resource-item span {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+    min-width: 80px;
+}
+
+/* === VIAJE === */
+.trip-info {
+    margin-bottom: var(--spacing-xl);
+}
+
+.trip-info label {
+    font-size: var(--font-size-md);
+    display: block;
+    margin-bottom: 10px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 25px;
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    margin: 10px 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--color-black);
+    width: 0%;
+    transition: width var(--transition-normal);
+}
+
+.trip-controls {
+    margin: var(--spacing-xl) 0;
+    padding: 15px;
+    border: var(--border-width) solid var(--border-color);
+    background: #f9f9f9;
+}
+
+.speed-note {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    margin-top: 10px;
+    color: var(--color-alert-red);
+}
+
+/* === BITÁCORA === */
+.logbook-header {
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: 10px;
+    border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.logbook-header h3 {
+    font-size: var(--font-size-xxl);
+    margin-bottom: var(--spacing-sm);
+}
+
+.mission-objective {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+    font-style: italic;
+    color: #666;
+}
+
+.logbook-entries {
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+}
+
+.logbook-entry {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-left: 3px solid var(--color-black);
+}
+
+.logbook-entry.event {
+    border-left-color: var(--color-alert-orange);
+    background: #fffef0;
+}
+
+.logbook-entry.critical {
+    border-left-color: var(--color-alert-red);
+    background: #fff0f0;
+}
+
+.logbook-entry.success {
+    border-left-color: var(--color-alert-green);
+    background: #f0fff0;
+}
+
+.logbook-entry.message {
+    border-left-color: #0066cc;
+    background: #f0f8ff;
+}
+
+.logbook-entry-date {
+    font-weight: bold;
+    color: var(--color-black);
+    margin-bottom: 4px;
+}
+
+.logbook-entry-text {
+    color: #333;
+}
+
+.logbook-entry-icon {
+    margin-right: 4px;
+}
+
+/* === LOG PERSONAL === */
+.crew-personal-log {
+    margin-top: var(--spacing-xl);
+    padding-top: 15px;
+    border-top: var(--border-width) solid var(--border-color);
+}
+
+.personal-log-content {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    background: #f9f9f9;
+    padding: 10px;
+    border: var(--border-width) solid var(--border-color);
+}
+
+.personal-log-entry {
+    margin-bottom: 10px;
+    padding: 6px;
+    background: var(--color-white);
+    border-left: var(--border-width) solid #666;
+}
+
+.personal-log-entry .log-day {
+    font-weight: bold;
+    color: var(--color-black);
+    font-size: var(--font-size-xs);
+}
+
+.personal-log-entry .log-text {
+    color: #333;
+    margin-top: 2px;
+}
+
+.personal-log-entry.ai-generated {
+    border-left-color: #0066cc;
+    background: #f0f8ff;
+}
+
+.personal-log-entry .log-metadata {
+    font-size: var(--font-size-xs);
+    color: #999;
+    margin-top: 3px;
+}
+
+/* === INFORMACIÓN PERSONAL === */
+.crew-personal-info {
+    margin-top: var(--spacing-xl);
+    padding: 15px;
+    background: #f9f9f9;
+    border: var(--border-width) solid var(--border-color);
+}
+
+.crew-personal-info h4 {
+    margin-bottom: var(--spacing-md);
+}
+
+.personal-info-item {
+    margin-bottom: var(--spacing-md);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+}
+
+.personal-info-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--color-black);
+}
+
+.personal-info-item p {
+    color: #333;
+    padding-left: var(--spacing-md);
+}
+
+/* === DETALLE DE TRIPULANTE === */
+.crew-header {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    align-items: center;
+}
+
+.crew-avatar {
+    width: 80px;
+    height: 80px;
+    border: var(--border-width) solid var(--border-color);
+    object-fit: cover;
+}
+
+.crew-info {
+    flex: 1;
+}
+
+.crew-info h3 {
+    font-size: var(--font-size-title);
+    border: none;
+    margin: 0 0 10px 0;
+    padding: 0;
+}
+
+.crew-info p {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    margin-bottom: 5px;
+}
+
+.needs-table {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.needs-table td {
+    padding: 10px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+}
+
+.needs-table td:first-child {
+    font-family: var(--font-chicago);
+}
+
+.manage-btn {
+    padding: 6px var(--spacing-md);
+    font-size: var(--font-size-base);
+    box-shadow: var(--shadow-small);
+    width: 100%;
+}
