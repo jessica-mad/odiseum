@@ -43,28 +43,30 @@ class GameLoop {
         this.gameLoopInterval = null;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.currentSpeed = 50;
+        this.missionStarted = false;
     }
     
     start() {
-        if (this.gameState !== GAME_STATES.PAUSED) return;
-        
+        if (this.gameState !== GAME_STATES.PAUSED &&
+            this.gameState !== GAME_STATES.AWAITING_START) return;
+
         this.gameState = GAME_STATES.IN_TRANCHE;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
-        
+
         // Actualizar UI de botones
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
-        
+
         // Bloquear slider de velocidad
         document.getElementById('speed-control').disabled = true;
-        
+
         // Obtener velocidad actual
         this.currentSpeed = parseInt(document.getElementById('speed-control').value);
-        
+
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
-        
+
         // Iniciar bucle de simulación
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
     }

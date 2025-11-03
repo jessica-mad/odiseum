@@ -177,9 +177,15 @@ function initializeSortingDropdown() {
 /* === CONTROL DEL JUEGO === */
 function updateStartButtonText() {
     const startButton = document.getElementById('start-button');
-    if (timeSystem.getCurrentTranche() === 0) {
+
+    if (!gameLoop.missionStarted) {
+        // Antes de iniciar la misión
         startButton.textContent = 'Comenzar';
+    } else if (timeSystem.getCurrentTranche() === 0) {
+        // Misión iniciada, primer tramo
+        startButton.textContent = 'Iniciar tramo';
     } else {
+        // Tramos siguientes
         startButton.textContent = 'Avanzar tramo';
     }
 }
@@ -219,9 +225,22 @@ function showIntroLogbook() {
 function startFirstTranche() {
     // Cerrar bitácora
     closeLogbookPopup();
-    
-    // Iniciar primer tramo
-    gameLoop.start();
+
+    // Marcar la misión como iniciada
+    gameLoop.missionStarted = true;
+
+    // Actualizar estado del juego a PAUSED (listo para iniciar tramo)
+    gameLoop.gameState = GAME_STATES.PAUSED;
+
+    // Actualizar texto del botón a "Iniciar tramo"
+    updateStartButtonText();
+
+    // Mostrar el botón de inicio de tramo
+    document.getElementById('start-button').style.display = 'inline-block';
+
+    // Registro en bitácora
+    logbook.addEntry('Misión iniciada. Preparado para comenzar el primer tramo de viaje.', LOG_TYPES.SUCCESS);
+    new Notification('Misión iniciada. Presiona "Iniciar tramo" para comenzar el viaje.', NOTIFICATION_TYPES.INFO);
 }
 
 function pauseGame() {
