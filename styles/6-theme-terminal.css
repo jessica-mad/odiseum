@@ -1073,21 +1073,197 @@
 
 /* === RESPONSIVE ADJUSTMENTS === */
 @media (max-width: 768px) {
+    /* === AJUSTES GENERALES === */
+    body {
+        font-size: 14px;
+    }
+
+    /* === BARRA DE TÍTULO === */
+    .title-bar-main {
+        font-size: var(--font-size-md);
+        padding: 4px 8px;
+        height: 40px;
+    }
+
+    .player-name-display {
+        font-size: var(--font-size-sm);
+    }
+
+    /* === BARRA DE DETALLES === */
+    .details-bar {
+        padding: 4px 8px;
+        height: auto;
+        min-height: 40px;
+        flex-wrap: wrap;
+    }
+
+    .menu-section {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .menu-btn {
+        padding: 3px 8px;
+        font-size: var(--font-size-sm);
+    }
+
+    /* === ICONOS DEL ESCRITORIO === */
+    .desktop-icons {
+        flex-direction: row;
+        left: 10px;
+        top: 10px;
+        gap: 8px;
+        z-index: var(--z-notification);
+    }
+
+    .desktop-icon {
+        width: 60px;
+        padding: 4px;
+    }
+
+    .icon-image {
+        font-size: 32px;
+    }
+
+    .icon-label {
+        font-size: 10px;
+    }
+
+    /* === SIDEBAR DE TRIPULACIÓN === */
+    .crew-sidebar {
+        position: fixed;
+        right: 0;
+        top: 80px;
+        bottom: auto;
+        width: 100%;
+        max-height: 40vh;
+        border-left: none;
+        border-top: 3px solid var(--color-terminal-green);
+        border-bottom: 3px solid var(--color-terminal-green);
+        z-index: var(--z-modal);
+        transform: translateY(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .crew-sidebar.mobile-visible {
+        transform: translateY(0);
+    }
+
+    .sidebar-header {
+        padding: 6px;
+    }
+
+    .sidebar-header h3 {
+        font-size: var(--font-size-md);
+    }
+
+    .crew-mini-card {
+        padding: 6px;
+        font-size: var(--font-size-sm);
+    }
+
+    /* === ÁREA DE NOTIFICACIONES TERMINAL === */
+    .terminal-notification-area {
+        left: 10px;
+        right: 10px;
+        top: 80px;
+        bottom: auto;
+        height: calc(100vh - 360px);
+        max-height: 50vh;
+    }
+
+    .terminal-header {
+        padding: 6px;
+        font-size: var(--font-size-sm);
+    }
+
+    .terminal-content {
+        padding: 8px;
+        font-size: var(--font-size-sm);
+    }
+
+    .terminal-line {
+        font-size: 11px;
+        padding: 2px 0;
+    }
+
+    /* === VISUALIZADOR DE VIAJE === */
     .voyage-visualizer {
         right: 0;
+        left: 0;
+        width: 100%;
         height: auto;
-        min-height: 200px;
+        min-height: 150px;
+        max-height: 200px;
     }
 
-    .terminal-notification-area {
-        left: 20px;
-        right: 20px;
-        top: 80px;
-        bottom: calc(200px + 20px);
+    .voyage-map {
+        padding: 8px;
     }
 
+    .planet-node {
+        width: 30px;
+        height: 30px;
+    }
+
+    .planet-icon {
+        font-size: 20px;
+    }
+
+    .planet-label {
+        font-size: 10px;
+    }
+
+    /* === CONTROLES DE NAVEGACIÓN === */
     .nav-controls-section {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .nav-control-group {
+        min-width: auto;
+    }
+
+    .nav-label {
+        font-size: 10px;
+    }
+
+    .nav-speed-display,
+    .tranche-timer,
+    .calendar {
+        font-size: var(--font-size-md);
+        padding: 4px 8px;
+    }
+
+    .nav-slider {
+        height: 30px;
+    }
+
+    .nav-control-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .nav-btn {
+        padding: 8px;
+        font-size: var(--font-size-sm);
+        width: 100%;
+    }
+
+    /* === VENTANAS POPUP === */
+    .window {
+        max-width: 95vw;
+        max-height: 85vh;
+        width: 95vw;
+        left: 2.5vw !important;
+        top: 5vh !important;
+    }
+
+    .window-content {
+        font-size: var(--font-size-sm);
+        max-height: 70vh;
     }
 
     .quantum-message-popup,
@@ -1103,5 +1279,101 @@
     .logbook-intro {
         font-size: var(--font-size-sm);
         padding: var(--spacing-md);
+    }
+
+    /* === TABLAS === */
+    table {
+        font-size: var(--font-size-sm);
+    }
+
+    .needs-table td,
+    .needs-table th {
+        padding: 4px;
+    }
+
+    .manage-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    /* === BITÁCORA === */
+    .logbook-entry {
+        padding: 8px;
+        font-size: var(--font-size-sm);
+    }
+
+    .logbook-entry-date {
+        font-size: 10px;
+    }
+
+    /* === BOTÓN TOGGLE PARA SIDEBAR EN MÓVIL === */
+    .mobile-crew-toggle {
+        display: block;
+        position: fixed;
+        top: 85px;
+        right: 10px;
+        z-index: calc(var(--z-modal) + 1);
+        padding: 8px 12px;
+        background: var(--color-terminal-bg-light);
+        border: 2px solid var(--color-terminal-green);
+        color: var(--color-terminal-green);
+        font-family: var(--font-monaco);
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    }
+
+    .mobile-crew-toggle:hover {
+        background: var(--color-terminal-green);
+        color: var(--color-terminal-bg);
+    }
+
+    /* === AJUSTES DE ESPACIADO === */
+    .desktop-main-area {
+        padding-bottom: 320px;
+    }
+}
+
+/* === ESTILOS PARA PANTALLAS MUY PEQUEÑAS === */
+@media (max-width: 480px) {
+    .title-bar-main {
+        font-size: 12px;
+        height: 35px;
+    }
+
+    .nav-label {
+        font-size: 9px;
+    }
+
+    .nav-speed-display,
+    .tranche-timer,
+    .calendar {
+        font-size: 14px;
+        padding: 3px 6px;
+    }
+
+    .terminal-line {
+        font-size: 10px;
+    }
+
+    .desktop-icon {
+        width: 50px;
+    }
+
+    .icon-image {
+        font-size: 24px;
+    }
+
+    .icon-label {
+        font-size: 9px;
+    }
+
+    .planet-node {
+        width: 25px;
+        height: 25px;
+    }
+
+    .planet-icon {
+        font-size: 16px;
     }
 }

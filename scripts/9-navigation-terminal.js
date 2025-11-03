@@ -99,7 +99,67 @@ let navControls = null;
 // Inicializar controles cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     navControls = new NavigationControls();
+    setupMobileControls();
 });
+
+/* === CONTROLES MÓVILES === */
+function setupMobileControls() {
+    const mobileToggle = document.getElementById('mobile-crew-toggle');
+    const crewSidebar = document.getElementById('crew-sidebar');
+
+    // Mostrar/ocultar botón toggle según tamaño de pantalla
+    function checkScreenSize() {
+        if (window.innerWidth <= 768) {
+            if (mobileToggle) mobileToggle.style.display = 'block';
+        } else {
+            if (mobileToggle) mobileToggle.style.display = 'none';
+            if (crewSidebar) crewSidebar.classList.remove('mobile-visible');
+        }
+    }
+
+    // Verificar al cargar y al redimensionar
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+}
+
+function toggleMobileCrew() {
+    const crewSidebar = document.getElementById('crew-sidebar');
+    const mobileToggle = document.getElementById('mobile-crew-toggle');
+
+    if (crewSidebar) {
+        const isVisible = crewSidebar.classList.toggle('mobile-visible');
+
+        // Actualizar texto del botón
+        if (mobileToggle) {
+            mobileToggle.textContent = isVisible ? '❌ CERRAR' : '👥 TRIPULACIÓN';
+        }
+    }
+}
+
+// Hacer función globalmente accesible
+window.toggleMobileCrew = toggleMobileCrew;
+
+/* === INTEGRACIÓN CON LOGBOOK === */
+// Función para agregar entradas del logbook al terminal
+function addLogbookEntryToTerminal(message, logType) {
+    if (!terminal) return;
+
+    let type = 'info';
+
+    // Mapear tipos de log a tipos de terminal
+    if (logType === LOG_TYPES.CRITICAL || logType === LOG_TYPES.EVENT_CRITICAL || logType === LOG_TYPES.DEATH) {
+        type = 'alert';
+    } else if (logType === LOG_TYPES.WARNING || logType === LOG_TYPES.EVENT) {
+        type = 'warning';
+    } else if (logType === LOG_TYPES.SUCCESS) {
+        type = 'success';
+    }
+
+    terminal.addLine(message, type);
+}
+
+// Hacer la función globalmente accesible
+window.addLogbookEntryToTerminal = addLogbookEntryToTerminal;
 
 /* === INTEGRACIÓN CON NOTIFICACIONES === */
 // Override del sistema de notificaciones para usar el terminal

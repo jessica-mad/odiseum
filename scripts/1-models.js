@@ -604,6 +604,11 @@ class Logbook {
         };
         this.entries.push(entry);
         this.updateUI();
+
+        // Enviar también al terminal de consola
+        if (typeof window.addLogbookEntryToTerminal === 'function') {
+            window.addLogbookEntryToTerminal(text, type);
+        }
     }
     
     updateUI() {

@@ -524,15 +524,25 @@ function enableInteractionsBetweenTranches() {
         speedControl.style.opacity = '1';
         speedControl.style.cursor = 'pointer';
     }
+
+    // NUEVO: Habilitar slider de navegación
+    const navSpeedSlider = document.getElementById('nav-speed-slider');
+    if (navSpeedSlider) {
+        navSpeedSlider.disabled = false;
+        navSpeedSlider.style.opacity = '1';
+        navSpeedSlider.style.cursor = 'pointer';
+    }
 }
 
 function enableAllInteractions() {
     // Habilitar todos los botones de gestión de necesidades
     const manageButtons = document.querySelectorAll('.manage-btn');
+    console.log(`[enableAllInteractions] Habilitando ${manageButtons.length} botones de gestión`);
     manageButtons.forEach(btn => {
         btn.disabled = false;
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
+        btn.style.pointerEvents = 'auto'; // Asegurar que los eventos de puntero funcionen
     });
 
     setCrewCardButtonsState(false);
@@ -543,6 +553,7 @@ function enableAllInteractions() {
         wakeSleeepBtn.disabled = false;
         wakeSleeepBtn.style.opacity = '1';
         wakeSleeepBtn.style.cursor = 'pointer';
+        wakeSleeepBtn.style.pointerEvents = 'auto';
     }
 
     // Deshabilitar slider de velocidad (NO se puede cambiar durante el tramo)
@@ -551,6 +562,14 @@ function enableAllInteractions() {
         speedControl.disabled = true;
         speedControl.style.opacity = '0.5';
         speedControl.style.cursor = 'not-allowed';
+    }
+
+    // NUEVO: Deshabilitar slider de navegación durante tramo
+    const navSpeedSlider = document.getElementById('nav-speed-slider');
+    if (navSpeedSlider) {
+        navSpeedSlider.disabled = true;
+        navSpeedSlider.style.opacity = '0.5';
+        navSpeedSlider.style.cursor = 'not-allowed';
     }
 }
 
