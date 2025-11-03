@@ -41,11 +41,12 @@ class GameLoop {
     constructor() {
         this.gameState = GAME_STATES.PAUSED;
         this.gameLoopInterval = null;
+        this.timerInterval = null;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.currentSpeed = 50;
         this.missionStarted = false;
     }
-    
+
     start() {
         if (this.gameState !== GAME_STATES.PAUSED &&
             this.gameState !== GAME_STATES.AWAITING_START) return;
@@ -72,15 +73,25 @@ class GameLoop {
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
 
-        // Iniciar bucle de simulación
+        // Iniciar bucle de simulación (cada 2 segundos)
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+
+        // Iniciar actualización del temporizador visual (cada 1 segundo)
+        this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
     }
-    
-    tick() {
-        // Reducir tiempo del tramo
-        this.trancheTimeRemaining -= SIMULATION_TICK_RATE;
+
+    updateTimerTick() {
+        // Reducir tiempo del tramo (1 segundo)
+        this.trancheTimeRemaining -= 1000;
         this.updateTimerUI();
-        
+
+        // Verificar si el tramo terminó
+        if (this.trancheTimeRemaining <= 0) {
+            this.endTranche();
+        }
+    }
+
+    tick() {
         // Actualizar progreso del viaje
         this.updateTripProgress();
         
@@ -139,16 +150,15 @@ class GameLoop {
         
         // Actualizar popup de tripulante si está abierto
         this.updateCrewPopupIfOpen();
-        
-        // Verificar fin del tramo
-        if (this.trancheTimeRemaining <= 0) {
-            this.endTranche();
-        }
     }
-    
+
     endTranche() {
+        // Detener ambos intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+
         this.gameState = GAME_STATES.PAUSED;
 
         // Reiniciar temporizador
@@ -189,8 +199,12 @@ class GameLoop {
     pause() {
         if (this.gameState !== GAME_STATES.IN_TRANCHE) return;
 
+        // Detener ambos intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
 
         document.getElementById('pause-button').style.display = 'none';
@@ -208,7 +222,10 @@ class GameLoop {
         if (this.gameState !== GAME_STATES.TRANCHE_PAUSED) return;
 
         this.gameState = GAME_STATES.IN_TRANCHE;
+
+        // Reiniciar ambos intervalos
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+        this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
 
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
