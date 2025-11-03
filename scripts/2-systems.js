@@ -50,6 +50,7 @@ class AwakeBenefitSystem {
         this.isChefAwake = false;
         this.awakeCrewCount = 0;
         this.nextMedicalIndex = 0;
+        this.currentPatientName = null;
     }
 
     refreshState(crewMembers) {
@@ -66,6 +67,12 @@ class AwakeBenefitSystem {
 
         if (!this.isDoctorAwake) {
             this.nextMedicalIndex = 0;
+            this.currentPatientName = null;
+            const doctor = crewMembers.find(crew => crew.role === 'doctor');
+            if (doctor) {
+                doctor.currentActivity = doctor.state === 'Despierto' ? 'en guardia' : doctor.currentActivity;
+                doctor.updateMiniCard();
+            }
         }
     }
 
@@ -79,6 +86,12 @@ class AwakeBenefitSystem {
 
         if (patients.length === 0) {
             this.nextMedicalIndex = 0;
+            this.currentPatientName = null;
+            const doctor = crewMembers.find(crew => crew.role === 'doctor');
+            if (doctor) {
+                doctor.currentActivity = 'en guardia';
+                doctor.updateMiniCard();
+            }
             return;
         }
 
@@ -93,7 +106,18 @@ class AwakeBenefitSystem {
         patient.updateConsoleCrewState();
         patient.updateMiniCard();
 
+        this.currentPatientName = patient.name;
+        const doctor = crewMembers.find(crew => crew.role === 'doctor');
+        if (doctor) {
+            doctor.currentActivity = `Atendiendo a ${patient.name}`;
+            doctor.updateMiniCard();
+        }
+
         this.nextMedicalIndex = (this.nextMedicalIndex + 1) % patients.length;
+
+        if (typeof gameLoop !== 'undefined' && gameLoop) {
+            gameLoop.updateCrewPopupIfOpen();
+        }
     }
 
     getCrewEfficiencyMultiplier(crew, baseMultiplier = 1) {
@@ -129,6 +153,35 @@ class AwakeBenefitSystem {
 
         const reduction = this.isCaptainAwake ? 0.07 : 0.05;
         return Math.max(0, amount * (1 - reduction));
+    }
+
+    describeBenefitForCrew(crew) {
+        if (!crew || crew.state !== 'Despierto') return '';
+
+        switch (crew.role) {
+            case 'commander':
+                return 'Liderazgo activo: +10% eficiencia para la tripulación despierta.';
+            case 'doctor': {
+                const rate = this.isCaptainAwake ? 'x1.2' : 'x1.0';
+                const target = this.currentPatientName || 'en espera de pacientes';
+                return `Atención médica ${rate} • ${target}`;
+            }
+            case 'engineer': {
+                const reduction = Math.round(this.getEngineerDamageReduction() * 100);
+                return `Mantenimiento preventivo: -${reduction}% probabilidad de daños.`;
+            }
+            case 'scientist':
+            case 'navigator': {
+                const boost = Math.round((this.getNavigatorSpeedMultiplier() - 1) * 100);
+                return `Trayectoria optimizada: +${boost}% a la velocidad de crucero.`;
+            }
+            case 'cook': {
+                const savings = Math.round((this.isCaptainAwake ? 0.07 : 0.05) * 100);
+                return `Raciones eficientes: ahorro del ${savings}% en comida despierta.`;
+            }
+            default:
+                return '';
+        }
     }
 }
 
@@ -428,24 +481,32 @@ class GameLoop {
         const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         document.getElementById('tranche-timer').textContent = display;
     }
-    
+
     updateTripProgress() {
-        let distancePerTick = (this.currentSpeed / 100) * 20;
+        const inTranche = this.gameState === GAME_STATES.IN_TRANCHE;
+        const speedControl = document.getElementById('speed-control');
+        const referenceSpeed = inTranche
+            ? this.currentSpeed
+            : (speedControl ? parseInt(speedControl.value, 10) : this.currentSpeed);
+
+        let distancePerTick = (referenceSpeed / 100) * 20;
 
         if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
             distancePerTick *= awakeBenefitSystem.getNavigatorSpeedMultiplier();
         }
 
-        distanceTraveled += distancePerTick;
+        if (inTranche) {
+            distanceTraveled += distancePerTick;
 
-        const fuelConsumption = (this.currentSpeed / 100) * RESOURCES_CONFIG.fuel.consumeRate;
-        Fuel.consume(fuelConsumption);
-        Fuel.updateResourceUI();
+            const fuelConsumption = (this.currentSpeed / 100) * RESOURCES_CONFIG.fuel.consumeRate;
+            Fuel.consume(fuelConsumption);
+            Fuel.updateResourceUI();
 
-        // GAME OVER: Sin combustible
-        if (Fuel.quantity <= 0) {
-            this.gameOverNoFuel();
-            return;
+            // GAME OVER: Sin combustible
+            if (Fuel.quantity <= 0) {
+                this.gameOverNoFuel();
+                return;
+            }
         }
 
         const progress = (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100;
@@ -459,7 +520,11 @@ class GameLoop {
         if (distanceTraveledEl) distanceTraveledEl.textContent = Math.round(distanceTraveled);
         if (totalDistanceEl) totalDistanceEl.textContent = TOTAL_MISSION_DISTANCE;
 
-        if (distanceTraveled >= TOTAL_MISSION_DISTANCE) {
+        if (typeof updateVoyageVisualizer === 'function') {
+            updateVoyageVisualizer();
+        }
+
+        if (inTranche && distanceTraveled >= TOTAL_MISSION_DISTANCE) {
             this.endMission();
         }
     }
@@ -518,6 +583,16 @@ class GameLoop {
                 document.getElementById('waste-need-amount').textContent = Math.round(crewMember.wasteNeed);
                 document.getElementById('entertainment-need-amount').textContent = Math.round(crewMember.entertainmentNeed);
                 document.getElementById('rest-need-amount').textContent = Math.round(crewMember.restNeed);
+                const activityElement = document.getElementById('crew-activity');
+                if (activityElement) {
+                    activityElement.textContent = crewMember.currentActivity;
+                }
+
+                const benefitReadout = document.getElementById('crew-benefit-readout');
+                if (benefitReadout) {
+                    const benefitText = crewMember.getAwakeBenefitDescription();
+                    benefitReadout.textContent = benefitText || 'Beneficio inactivo (encapsulado).';
+                }
             }
         }
     }

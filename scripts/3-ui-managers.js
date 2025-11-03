@@ -98,7 +98,13 @@ function openCrewManagementPopup(name) {
     document.getElementById('waste-need-amount').textContent = Math.round(crewMember.wasteNeed);
     document.getElementById('entertainment-need-amount').textContent = Math.round(crewMember.entertainmentNeed);
     document.getElementById('rest-need-amount').textContent = Math.round(crewMember.restNeed);
-    
+
+    const benefitReadout = document.getElementById('crew-benefit-readout');
+    if (benefitReadout) {
+        const benefitText = crewMember.getAwakeBenefitDescription();
+        benefitReadout.textContent = benefitText || 'Beneficio inactivo (encapsulado).';
+    }
+
     // Mostrar información personal
     const personalInfoContainer = document.getElementById('crew-personal-info');
     if (personalInfoContainer && crewMember.leftBehind) {
@@ -266,10 +272,23 @@ function generateAIStory(crewMember) {
 }
 
 /* === GESTIÓN DE TRIPULACIÓN === */
+function crewControlsAvailable() {
+    if (typeof gameLoop === 'undefined' || !gameLoop) return false;
+    if (gameLoop.gameState !== GAME_STATES.IN_TRANCHE) return false;
+
+    if (typeof eventSystem !== 'undefined' && eventSystem && eventSystem.activeEvent) {
+        return false;
+    }
+
+    return true;
+}
+
 function manageFoodNeed() {
+    if (!crewControlsAvailable()) return;
+
     const crewName = document.getElementById('crew-name').textContent;
     const crewMember = crewMembers.find(c => c.name === crewName);
-    
+
     if (!crewMember || !crewMember.isAlive) return;
     
     if (Food.quantity >= 10) {
@@ -285,9 +304,11 @@ function manageFoodNeed() {
 }
 
 function manageHealthNeed() {
+    if (!crewControlsAvailable()) return;
+
     const crewName = document.getElementById('crew-name').textContent;
     const crewMember = crewMembers.find(c => c.name === crewName);
-    
+
     if (!crewMember || !crewMember.isAlive) return;
     
     if (Medicine.quantity >= 5) {
@@ -303,9 +324,11 @@ function manageHealthNeed() {
 }
 
 function manageWasteNeed() {
+    if (!crewControlsAvailable()) return;
+
     const crewName = document.getElementById('crew-name').textContent;
     const crewMember = crewMembers.find(c => c.name === crewName);
-    
+
     if (!crewMember || !crewMember.isAlive) return;
     
     if (Water.quantity >= 3) {
@@ -321,9 +344,11 @@ function manageWasteNeed() {
 }
 
 function manageEntertainmentNeed() {
+    if (!crewControlsAvailable()) return;
+
     const crewName = document.getElementById('crew-name').textContent;
     const crewMember = crewMembers.find(c => c.name === crewName);
-    
+
     if (!crewMember || !crewMember.isAlive) return;
     
     if (Data.quantity >= 5) {
@@ -339,9 +364,11 @@ function manageEntertainmentNeed() {
 }
 
 function manageRestNeed() {
+    if (!crewControlsAvailable()) return;
+
     const crewName = document.getElementById('crew-name').textContent;
     const crewMember = crewMembers.find(c => c.name === crewName);
-    
+
     if (!crewMember || !crewMember.isAlive) return;
     
     crewMember.restNeed = Math.min(100, crewMember.restNeed + 50);
@@ -351,9 +378,11 @@ function manageRestNeed() {
 }
 
 function updateWakeSleep(name) {
+    if (!crewControlsAvailable()) return;
+
     const crewMember = crewMembers.find(c => c.name === name);
     if (!crewMember || !crewMember.isAlive) return;
-    
+
     const oldState = crewMember.state;
     crewMember.state = crewMember.state === 'Despierto' ? 'Encapsulado' : 'Despierto';
     crewMember.updateConsoleCrewState();
@@ -361,6 +390,9 @@ function updateWakeSleep(name) {
 
     if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
         awakeBenefitSystem.refreshState(crewMembers);
+        if (typeof updateVoyageVisualizer === 'function') {
+            updateVoyageVisualizer();
+        }
     }
 
     logbook.addEntry(
@@ -383,15 +415,20 @@ function updateWakeSleepFromPopup() {
 
 /* === GESTIÓN RÁPIDA DESDE MINI-CARDS === */
 function quickManage(crewName, type) {
+    if (!crewControlsAvailable()) return;
+
     const crewMember = crewMembers.find(c => c.name === crewName);
     if (!crewMember || !crewMember.isAlive) return;
-    
+
     if (type === 'food') {
         if (Food.quantity >= 10) {
             Food.consume(10);
             crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
             Food.updateResourceUI();
             crewMember.updateMiniCard();
+            if (typeof gameLoop !== 'undefined' && gameLoop) {
+                gameLoop.updateCrewPopupIfOpen();
+            }
         } else {
             new Notification('No hay suficiente comida', NOTIFICATION_TYPES.ALERT);
         }
@@ -401,6 +438,9 @@ function quickManage(crewName, type) {
             crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
             Medicine.updateResourceUI();
             crewMember.updateMiniCard();
+            if (typeof gameLoop !== 'undefined' && gameLoop) {
+                gameLoop.updateCrewPopupIfOpen();
+            }
         } else {
             new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
         }
@@ -411,6 +451,8 @@ function quickManage(crewName, type) {
 function updateSpeedDisplay() {
     const speedValue = document.getElementById('speed-control').value;
     document.getElementById('speed-value').textContent = speedValue;
+
+    updateVoyageForecastDisplay();
 }
 
 /* === MENSAJES CUÁNTICOS === */
@@ -436,6 +478,8 @@ function disableAllInteractions() {
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
     });
+
+    setCrewCardButtonsState(true);
 
     // Deshabilitar botón de cambiar estado
     const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
@@ -463,6 +507,8 @@ function enableInteractionsBetweenTranches() {
         btn.style.cursor = 'not-allowed';
     });
 
+    setCrewCardButtonsState(true);
+
     // Deshabilitar botón de cambiar estado (NO se puede usar entre tramos)
     const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
     if (wakeSleeepBtn) {
@@ -489,6 +535,8 @@ function enableAllInteractions() {
         btn.style.cursor = 'pointer';
     });
 
+    setCrewCardButtonsState(false);
+
     // Habilitar botón de cambiar estado
     const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
     if (wakeSleeepBtn) {
@@ -504,4 +552,126 @@ function enableAllInteractions() {
         speedControl.style.opacity = '0.5';
         speedControl.style.cursor = 'not-allowed';
     }
+}
+
+function setCrewCardButtonsState(disabled) {
+    const quickButtons = document.querySelectorAll('.crew-card-btn');
+    quickButtons.forEach(btn => {
+        btn.disabled = disabled;
+        btn.classList.toggle('disabled', disabled);
+    });
+}
+
+function computeVoyageForecast(speedValue) {
+    const speed = Number(speedValue) || 0;
+    const navigatorAwake =
+        typeof awakeBenefitSystem !== 'undefined' &&
+        awakeBenefitSystem &&
+        awakeBenefitSystem.isNavigatorAwake;
+
+    const multiplier = navigatorAwake
+        ? awakeBenefitSystem.getNavigatorSpeedMultiplier()
+        : 1;
+
+    const distancePerTick = (speed / 100) * 20 * multiplier;
+    const distancePerTranche = distancePerTick * TICKS_PER_TRANCHE;
+    const remainingDistance = Math.max(0, TOTAL_MISSION_DISTANCE - distanceTraveled);
+    const estimatedTranches = distancePerTranche > 0
+        ? Math.ceil(remainingDistance / distancePerTranche)
+        : 0;
+
+    return {
+        navigatorAwake,
+        multiplier,
+        distancePerTranche,
+        estimatedTranches
+    };
+}
+
+function updateVoyageForecastDisplay() {
+    const speedControl = document.getElementById('speed-control');
+    const speedValue = speedControl
+        ? parseInt(speedControl.value, 10)
+        : (gameLoop ? gameLoop.currentSpeed : 0);
+
+    const speedReadout = document.getElementById('voyage-speed-value');
+    if (speedReadout) {
+        speedReadout.textContent = `${Number.isFinite(speedValue) ? speedValue : 0}%`;
+    }
+
+    const forecastElement = document.getElementById('voyage-forecast');
+    const nodesContainer = document.getElementById('voyage-node-container');
+    if (!forecastElement && !nodesContainer) {
+        return;
+    }
+
+    const { navigatorAwake, distancePerTranche, estimatedTranches } = computeVoyageForecast(speedValue);
+
+    const completedTranches = typeof timeSystem !== 'undefined'
+        ? timeSystem.getCurrentTranche()
+        : 0;
+    const missionActive = gameLoop && gameLoop.missionStarted;
+    const inTranche = gameLoop && gameLoop.gameState === GAME_STATES.IN_TRANCHE;
+
+    const nodes = [];
+
+    for (let i = 1; i <= completedTranches; i++) {
+        nodes.push(`<div class="voyage-node completed"><span class="voyage-node-label">T${i}</span></div>`);
+    }
+
+    if (missionActive) {
+        const label = inTranche
+            ? `T${completedTranches + 1}`
+            : (completedTranches > 0 ? `T${completedTranches}` : 'Listo');
+        const stateClass = inTranche ? 'active' : 'standby';
+        nodes.push(`<div class="voyage-node ${stateClass}"><span class="voyage-node-label">${label}</span></div>`);
+    }
+
+    if (navigatorAwake && estimatedTranches > 0) {
+        const forecastCount = Math.min(estimatedTranches, 6);
+        for (let i = 1; i <= forecastCount; i++) {
+            nodes.push(`<div class="voyage-node forecast"><span class="voyage-node-label">+${i}</span></div>`);
+        }
+    }
+
+    if (nodes.length === 0) {
+        nodes.push('<div class="voyage-node standby"><span class="voyage-node-label">Inicio</span></div>');
+    }
+
+    if (nodesContainer) {
+        nodesContainer.innerHTML = nodes.join('');
+    }
+
+    if (forecastElement) {
+        if (!navigatorAwake) {
+            forecastElement.textContent = 'Activa a Lt. Johnson para obtener proyección de tramos.';
+            forecastElement.classList.add('inactive');
+        } else {
+            const uaPerTranche = Math.max(0, Math.round(distancePerTranche));
+            forecastElement.textContent = `Próximos ${estimatedTranches} tramos estimados • ${uaPerTranche} UA/tramo`;
+            forecastElement.classList.remove('inactive');
+        }
+    }
+}
+
+function updateVoyageVisualizer() {
+    const progressFill = document.getElementById('voyage-progress-fill');
+    if (progressFill) {
+        const progressPercent = TOTAL_MISSION_DISTANCE > 0
+            ? Math.min(100, (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100)
+            : 0;
+        progressFill.style.width = `${progressPercent}%`;
+    }
+
+    const distanceCurrent = document.getElementById('voyage-distance-current');
+    if (distanceCurrent) {
+        distanceCurrent.textContent = Math.round(distanceTraveled);
+    }
+
+    const distanceTotal = document.getElementById('voyage-distance-total');
+    if (distanceTotal) {
+        distanceTotal.textContent = TOTAL_MISSION_DISTANCE;
+    }
+
+    updateVoyageForecastDisplay();
 }

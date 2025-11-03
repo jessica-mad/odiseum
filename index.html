@@ -100,6 +100,30 @@
             </div>
         </div>
 
+        <div class="voyage-visualizer" id="voyage-visualizer">
+            <div class="voyage-panels">
+                <div class="voyage-endpoint">
+                    <div class="planet-icon old-earth">🌍</div>
+                    <span class="planet-label">Tierra Vieja</span>
+                </div>
+                <div class="voyage-track">
+                    <div class="voyage-track-line">
+                        <div class="voyage-progress-fill" id="voyage-progress-fill"></div>
+                    </div>
+                    <div class="voyage-nodes" id="voyage-node-container"></div>
+                </div>
+                <div class="voyage-endpoint">
+                    <div class="planet-icon new-earth">🪐</div>
+                    <span class="planet-label">Nueva Tierra</span>
+                </div>
+            </div>
+            <div class="voyage-readouts">
+                <div class="voyage-speed">Velocidad actual: <span id="voyage-speed-value">0%</span></div>
+                <div class="voyage-distance">Distancia: <span id="voyage-distance-current">0</span> / <span id="voyage-distance-total">0</span> UA</div>
+                <div class="voyage-forecast inactive" id="voyage-forecast">Activa a Lt. Johnson para obtener proyección de tramos.</div>
+            </div>
+        </div>
+
         <!-- Área Principal del Escritorio -->
         <div class="desktop-main-area">
             <!-- Iconos del Escritorio -->
@@ -255,6 +279,7 @@
                         <p>Estado: <span id="crew-state">---</span></p>
                         <p>Actividad: <span id="crew-activity">---</span></p>
                         <p>Ánimo: <span id="crew-mood">---</span></p>
+                        <p class="crew-benefit-line">Beneficio activo: <span id="crew-benefit-readout">Beneficio inactivo (encapsulado).</span></p>
                     </div>
                 </div>
 

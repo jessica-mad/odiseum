@@ -358,14 +358,29 @@ class Crew {
                     ${this.state === 'Despierto' ? '💤' : '👁️'}
                 </button>
             </div>
+            <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: none;"></div>
             <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: none;">
                 🤖 Auto-gestionando
             </div>
         `;
-        
+
         return card;
     }
-    
+
+    getAwakeBenefitDescription() {
+        if (!this.isAlive) return '';
+
+        if (this.state !== 'Despierto') {
+            return '';
+        }
+
+        if (typeof awakeBenefitSystem === 'undefined' || !awakeBenefitSystem) {
+            return '';
+        }
+
+        return awakeBenefitSystem.describeBenefitForCrew(this);
+    }
+
     generateNeedBars() {
         const needs = [
             { icon: '🍕', value: this.foodNeed, max: 100 },
@@ -445,6 +460,18 @@ class Crew {
         const autoIndicator = document.getElementById(`auto-manage-${this.id}`);
         if (autoIndicator) {
             autoIndicator.style.display = this.autoManaging ? 'block' : 'none';
+        }
+
+        const benefitElement = document.getElementById(`crew-benefit-${this.id}`);
+        if (benefitElement) {
+            const benefitText = this.getAwakeBenefitDescription();
+            if (benefitText) {
+                benefitElement.textContent = benefitText;
+                benefitElement.style.display = 'block';
+            } else {
+                benefitElement.textContent = '';
+                benefitElement.style.display = 'none';
+            }
         }
     }
 }
