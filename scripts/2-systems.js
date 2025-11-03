@@ -143,28 +143,33 @@ class GameLoop {
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
         this.gameState = GAME_STATES.PAUSED;
-        
+
         // Reiniciar temporizador
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.updateTimerUI();
-        
+
         // Actualizar UI de botones
-        document.getElementById('start-button').style.display = 'inline-block';
+        const startButton = document.getElementById('start-button');
+        startButton.style.display = 'inline-block';
+        // Asegurar que el botón tenga el texto correcto después del primer tramo
+        if (timeSystem.getCurrentTranche() >= 1) {
+            startButton.textContent = 'Avanzar Tramo';
+        }
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'none';
-        
+
         // Desbloquear slider de velocidad
         document.getElementById('speed-control').disabled = false;
-        
+
         // Avanzar tramo
         timeSystem.advanceTranche();
-        
+
         // Registrar en bitácora
         const aliveCrew = crewMembers.filter(c => c.isAlive).length;
         logbook.addEntry(`Tramo completado. Tripulantes vivos: ${aliveCrew}/5`, LOG_TYPES.SUCCESS);
-        
+
         new Notification('Tramo completado. Preparando para el siguiente tramo.', NOTIFICATION_TYPES.INFO);
-        
+
         // Mostrar mensajes cuánticos si hay
         messageSystem.showMessagesForTranche(timeSystem.getCurrentTranche());
     }

@@ -210,7 +210,11 @@ function showIntroLogbook() {
 function startFirstTranche() {
     // Cerrar bitácora
     closeLogbookPopup();
-    
+
+    // Cambiar el botón "Comenzar" a "Avanzar Tramo"
+    const startButton = document.getElementById('start-button');
+    startButton.textContent = 'Avanzar Tramo';
+
     // Iniciar primer tramo
     gameLoop.start();
 }
