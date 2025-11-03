@@ -158,22 +158,34 @@ function ensureIntroEntryInLogbook(includeButton = false) {
 function initializeGame() {
     // Inicializar bitácora
     logbook = new Logbook();
-    
+
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.reset();
+    }
+
+    if (typeof shipIntegritySystem !== 'undefined' && shipIntegritySystem) {
+        shipIntegritySystem.reset();
+    }
+
     // Crear recursos
-    Energy = new Resource('Energía', 1000, 1000, 'energy-meter', 'energy-amount');
-    Food = new Resource('Alimentos', 500, 500, 'food-meter', 'food-amount');
-    Water = new Resource('Agua', 300, 300, 'water-meter', 'water-amount');
-    Oxygen = new Resource('Oxígeno', 400, 400, 'oxygen-meter', 'oxygen-amount');
-    Medicine = new Resource('Medicinas', 200, 200, 'medicine-meter', 'medicine-amount');
-    Data = new Resource('Datos/Entret.', 150, 150, 'data-meter', 'data-amount');
-    Fuel = new Resource('Combustible', 1000, 1000, 'fuel-meter', 'fuel-amount');
+    Energy = new Resource('Energía', 1000, 1000, 'energy-meter', 'energy-amount', 'resource-strip-energy');
+    Food = new Resource('Alimentos', 500, 500, 'food-meter', 'food-amount', 'resource-strip-food');
+    Water = new Resource('Agua', 300, 300, 'water-meter', 'water-amount', 'resource-strip-water');
+    Oxygen = new Resource('Oxígeno', 400, 400, 'oxygen-meter', 'oxygen-amount', 'resource-strip-oxygen');
+    Medicine = new Resource('Medicinas', 200, 200, 'medicine-meter', 'medicine-amount', 'resource-strip-medicine');
+    Data = new Resource('Datos/Entret.', 150, 150, 'data-meter', 'data-amount', 'resource-strip-data');
+    Fuel = new Resource('Combustible', 1000, 1000, 'fuel-meter', 'fuel-amount', 'resource-strip-fuel');
 
     // Inicializar sistema de eventos
     eventSystem = new EventSystem();
 
     // Crear tripulación desde datos
     crewMembers = createCrewFromData();
-    
+
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+    }
+
     // Generar lista de tripulación (tabla completa)
     crewMembers.forEach(crew => crew.addRow());
     

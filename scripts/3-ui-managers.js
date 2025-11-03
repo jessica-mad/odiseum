@@ -358,7 +358,11 @@ function updateWakeSleep(name) {
     crewMember.state = crewMember.state === 'Despierto' ? 'Encapsulado' : 'Despierto';
     crewMember.updateConsoleCrewState();
     crewMember.updateMiniCard();
-    
+
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+    }
+
     logbook.addEntry(
         `${name} cambió de ${oldState} a ${crewMember.state}`,
         LOG_TYPES.EVENT

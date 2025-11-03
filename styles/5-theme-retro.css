@@ -2,6 +2,50 @@
    THEME RETRO MAC - ODISEUM V2.0
    ============================================ */
 
+/* === BARRA GLOBAL DE RECURSOS === */
+.resource-strip {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    row-gap: var(--spacing-md);
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #3b0b0b 0%, #651414 100%);
+    border-top: 3px solid #000;
+    border-bottom: 3px solid #000;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+    font-family: var(--font-chicago);
+    color: var(--color-white);
+}
+
+.resource-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    min-width: 150px;
+    justify-content: space-between;
+}
+
+.resource-icon {
+    font-size: 18px;
+}
+
+.resource-label {
+    font-size: var(--font-size-sm);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.resource-value {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+}
+
 /* === POPUP DE MENSAJE CUÁNTICO === */
 .quantum-message-overlay {
     position: fixed;

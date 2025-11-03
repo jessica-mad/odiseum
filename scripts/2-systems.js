@@ -36,6 +36,150 @@ class TimeSystem {
     }
 }
 
+/* === SISTEMA DE BENEFICIOS POR TRIPULANTES DESPIERTOS === */
+class AwakeBenefitSystem {
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.isCaptainAwake = false;
+        this.isDoctorAwake = false;
+        this.isEngineerAwake = false;
+        this.isNavigatorAwake = false;
+        this.isChefAwake = false;
+        this.awakeCrewCount = 0;
+        this.nextMedicalIndex = 0;
+    }
+
+    refreshState(crewMembers) {
+        if (!Array.isArray(crewMembers)) return;
+
+        const awakeCrew = crewMembers.filter(crew => crew.isAlive && crew.state === 'Despierto');
+
+        this.awakeCrewCount = awakeCrew.length;
+        this.isCaptainAwake = awakeCrew.some(crew => crew.role === 'commander');
+        this.isDoctorAwake = awakeCrew.some(crew => crew.role === 'doctor');
+        this.isEngineerAwake = awakeCrew.some(crew => crew.role === 'engineer');
+        this.isNavigatorAwake = awakeCrew.some(crew => crew.role === 'scientist' || /johnson/i.test(crew.name));
+        this.isChefAwake = awakeCrew.some(crew => crew.role === 'cook');
+
+        if (!this.isDoctorAwake) {
+            this.nextMedicalIndex = 0;
+        }
+    }
+
+    applyTickBenefits(crewMembers) {
+        if (!this.isDoctorAwake) return;
+        this.applyMedicalSupport(crewMembers);
+    }
+
+    applyMedicalSupport(crewMembers) {
+        const patients = crewMembers.filter(crew => crew.isAlive && crew.healthNeed < 100);
+
+        if (patients.length === 0) {
+            this.nextMedicalIndex = 0;
+            return;
+        }
+
+        if (this.nextMedicalIndex >= patients.length) {
+            this.nextMedicalIndex = 0;
+        }
+
+        const healRate = this.isCaptainAwake ? 1.2 : 1.0;
+        const patient = patients[this.nextMedicalIndex];
+
+        patient.healthNeed = Math.min(100, patient.healthNeed + healRate);
+        patient.updateConsoleCrewState();
+        patient.updateMiniCard();
+
+        this.nextMedicalIndex = (this.nextMedicalIndex + 1) % patients.length;
+    }
+
+    getCrewEfficiencyMultiplier(crew, baseMultiplier = 1) {
+        let multiplier = baseMultiplier || 1;
+
+        if (
+            crew &&
+            crew.isAlive &&
+            crew.state === 'Despierto' &&
+            this.isCaptainAwake &&
+            crew.role !== 'commander'
+        ) {
+            multiplier *= 1.1;
+        }
+
+        return multiplier;
+    }
+
+    getNavigatorSpeedMultiplier() {
+        if (!this.isNavigatorAwake) return 1;
+        return this.isCaptainAwake ? 1.05 : 1.02;
+    }
+
+    getEngineerDamageReduction() {
+        if (!this.isEngineerAwake) return 0;
+        return this.isCaptainAwake ? 0.25 : 0.2;
+    }
+
+    modifyFoodConsumption(amount) {
+        if (!this.isChefAwake || this.awakeCrewCount <= 1) {
+            return amount;
+        }
+
+        const reduction = this.isCaptainAwake ? 0.07 : 0.05;
+        return Math.max(0, amount * (1 - reduction));
+    }
+}
+
+/* === SISTEMA DE INTEGRIDAD DE LA NAVE === */
+class ShipIntegritySystem {
+    constructor() {
+        this.baseDamageProbability = 0.12;
+        this.cooldownTicks = 0;
+        this.damageMessages = [
+            'Análisis detecta microfracturas en el casco externo. Equipos de reparación en marcha.',
+            'Sistemas secundarios reportan vibraciones inusuales. Ajustando amortiguadores.',
+            'Los sensores térmicos indican sobrecarga en el núcleo auxiliar. Redirigiendo energía.',
+            'Pequeños impactos de micrometeoritos registrados. Revisando placas protectoras.'
+        ];
+    }
+
+    reset() {
+        this.cooldownTicks = 0;
+    }
+
+    tick(benefitSystem) {
+        if (this.cooldownTicks > 0) {
+            this.cooldownTicks--;
+            return;
+        }
+
+        if (benefitSystem && benefitSystem.awakeCrewCount === 0) {
+            return;
+        }
+
+        let probability = this.baseDamageProbability;
+        const reduction = benefitSystem ? benefitSystem.getEngineerDamageReduction() : 0;
+        probability = Math.max(0, probability * (1 - reduction));
+
+        if (Math.random() < probability) {
+            this.raiseDamageAlert();
+            this.cooldownTicks = 5;
+        }
+    }
+
+    raiseDamageAlert() {
+        if (!Array.isArray(this.damageMessages) || this.damageMessages.length === 0) {
+            return;
+        }
+
+        const message = this.damageMessages[Math.floor(Math.random() * this.damageMessages.length)];
+        new Notification(`⚙️ ${message}`, NOTIFICATION_TYPES.ALERT);
+        logbook.addEntry(`Alerta de daños: ${message}`, LOG_TYPES.WARNING);
+    }
+}
+
 /* === SISTEMA DE BUCLE DE JUEGO === */
 class GameLoop {
     constructor() {
@@ -111,7 +255,11 @@ class GameLoop {
         
         // Auto-gestión y sistema social
         const awakeCrew = crewMembers.filter(c => c.isAlive && c.state === 'Despierto');
-        
+
+        if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+            awakeBenefitSystem.refreshState(crewMembers);
+        }
+
         awakeCrew.forEach(crew => {
             crew.tryAutoManage();
         });
@@ -138,6 +286,10 @@ class GameLoop {
             crew.updateMiniCard();
         });
 
+        if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+            awakeBenefitSystem.applyTickBenefits(crewMembers);
+        }
+
         // Intentar disparar evento crítico
         if (
             typeof eventSystem !== 'undefined' &&
@@ -146,6 +298,10 @@ class GameLoop {
             !eventSystem.activeEvent
         ) {
             eventSystem.tryTriggerEvent();
+        }
+
+        if (typeof shipIntegritySystem !== 'undefined' && shipIntegritySystem) {
+            shipIntegritySystem.tick(awakeBenefitSystem);
         }
 
         // Actualizar recursos
@@ -274,7 +430,12 @@ class GameLoop {
     }
     
     updateTripProgress() {
-        const distancePerTick = (this.currentSpeed / 100) * 20;
+        let distancePerTick = (this.currentSpeed / 100) * 20;
+
+        if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+            distancePerTick *= awakeBenefitSystem.getNavigatorSpeedMultiplier();
+        }
+
         distanceTraveled += distancePerTick;
 
         const fuelConsumption = (this.currentSpeed / 100) * RESOURCES_CONFIG.fuel.consumeRate;
@@ -1074,6 +1235,8 @@ class VictorySystem {
 
 // Instancias globales de los sistemas
 let timeSystem = new TimeSystem();
+let awakeBenefitSystem = new AwakeBenefitSystem();
+let shipIntegritySystem = new ShipIntegritySystem();
 let gameLoop = new GameLoop();
 let messageSystem = new MessageSystem();
 let sortingSystem = new SortingSystem();
