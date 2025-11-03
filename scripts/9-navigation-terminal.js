@@ -71,18 +71,8 @@ class NavigationControls {
     constructor() {
         this.speedSlider = document.getElementById('nav-speed-slider');
         this.speedDisplay = document.getElementById('nav-speed-display');
-        this.trancheNumber = document.getElementById('nav-tranche-number');
-        this.trancheTime = document.getElementById('nav-tranche-time');
-        this.totalTime = document.getElementById('nav-total-time');
-        this.prevBtn = document.getElementById('nav-prev-tranche');
-        this.nextBtn = document.getElementById('nav-next-tranche');
-
-        this.currentTranche = 0;
-        this.totalTranches = 0;
-        this.totalElapsedSeconds = 0;
 
         this.setupEventListeners();
-        this.startTimeCounter();
     }
 
     setupEventListeners() {
@@ -101,46 +91,6 @@ class NavigationControls {
             terminal.info(`Velocidad de nave ajustada a ${speed}%`);
         }
     }
-
-    setTrancheInfo(current, total) {
-        this.currentTranche = current;
-        this.totalTranches = total;
-        if (this.trancheNumber) {
-            this.trancheNumber.textContent = `${current} / ${total}`;
-        }
-
-        // Habilitar/deshabilitar botones
-        if (this.prevBtn) {
-            this.prevBtn.disabled = current <= 1;
-        }
-        if (this.nextBtn) {
-            this.nextBtn.disabled = current >= total;
-        }
-    }
-
-    updateTrancheTime(seconds) {
-        if (this.trancheTime) {
-            const minutes = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            this.trancheTime.textContent = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-    }
-
-    startTimeCounter() {
-        setInterval(() => {
-            this.totalElapsedSeconds++;
-            this.updateTotalTime();
-        }, 1000);
-    }
-
-    updateTotalTime() {
-        if (this.totalTime) {
-            const hours = Math.floor(this.totalElapsedSeconds / 3600);
-            const minutes = Math.floor((this.totalElapsedSeconds % 3600) / 60);
-            const seconds = this.totalElapsedSeconds % 60;
-            this.totalTime.textContent = `${String(hours).padStart(3, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-    }
 }
 
 // Instancia global de controles de navegación
@@ -150,25 +100,6 @@ let navControls = null;
 document.addEventListener('DOMContentLoaded', () => {
     navControls = new NavigationControls();
 });
-
-/* === FUNCIONES DE TRAMOS === */
-function previousTranche() {
-    if (navControls && navControls.currentTranche > 1) {
-        if (terminal) {
-            terminal.info('Navegación: No se puede retroceder en el tiempo');
-            terminal.warning('Función de tramo anterior no disponible durante el viaje');
-        }
-    }
-}
-
-function nextTranche() {
-    if (navControls) {
-        if (terminal) {
-            terminal.info('Avanzando al siguiente tramo...');
-        }
-        // Esta función será implementada en el sistema de game loop
-    }
-}
 
 /* === INTEGRACIÓN CON NOTIFICACIONES === */
 // Override del sistema de notificaciones para usar el terminal

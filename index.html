@@ -51,13 +51,6 @@
             <div class="menu-section">
                 <span class="mission-title">PROYECTO GÉNESIS - NUEVA TIERRA</span>
             </div>
-            <div class="controls-section">
-                <button id="start-button" class="control-btn" onclick="startGame()">INICIAR MISIÓN</button>
-                <button id="pause-button" class="control-btn" onclick="pauseGame()" style="display: none;">PAUSAR</button>
-                <button id="resume-button" class="control-btn" onclick="resumeGame()" style="display: none;">REANUDAR</button>
-                <div class="tranche-timer" id="tranche-timer">00:00</div>
-                <div class="calendar" id="calendar">AÑO 0</div>
-            </div>
         </div>
 
         <!-- Barra de Recursos Permanente -->
@@ -108,19 +101,17 @@
                     <input type="range" id="nav-speed-slider" min="0" max="100" value="100" class="nav-slider">
                 </div>
                 <div class="nav-control-group">
-                    <label class="nav-label">TRAMO ACTUAL</label>
-                    <div class="nav-tranche-info">
-                        <span class="nav-tranche-number" id="nav-tranche-number">0 / 0</span>
-                        <span class="nav-tranche-time" id="nav-tranche-time">00:00</span>
-                    </div>
+                    <label class="nav-label">TIEMPO TRAMO</label>
+                    <div class="tranche-timer" id="tranche-timer">00:00</div>
                 </div>
                 <div class="nav-control-group">
-                    <label class="nav-label">TIEMPO TOTAL</label>
-                    <div class="nav-total-time" id="nav-total-time">000:00:00</div>
+                    <label class="nav-label">AÑOS VIAJE</label>
+                    <div class="calendar" id="calendar">AÑO 0</div>
                 </div>
                 <div class="nav-control-buttons">
-                    <button class="nav-btn" id="nav-prev-tranche" onclick="previousTranche()" disabled>&lt; ANTERIOR</button>
-                    <button class="nav-btn" id="nav-next-tranche" onclick="nextTranche()">SIGUIENTE &gt;</button>
+                    <button id="start-button" class="nav-btn primary" onclick="startGame()">INICIAR TRAMO</button>
+                    <button id="pause-button" class="nav-btn" onclick="pauseGame()" style="display: none;">PAUSAR</button>
+                    <button id="resume-button" class="nav-btn" onclick="resumeGame()" style="display: none;">REANUDAR</button>
                 </div>
             </div>
 

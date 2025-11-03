@@ -77,7 +77,7 @@
 /* === CONTROLES DE NAVEGACIÓN === */
 .nav-controls-section {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr 1fr 1fr 1.5fr;
     gap: 12px;
     padding: 8px;
     background: var(--color-terminal-bg-light);
@@ -172,6 +172,13 @@
     transition: all 0.2s ease;
 }
 
+.nav-btn.primary {
+    background: var(--color-terminal-green-dark);
+    color: var(--color-terminal-green);
+    border-color: var(--color-terminal-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
 .nav-btn:hover:not(:disabled) {
     background: var(--color-terminal-green);
     color: var(--color-terminal-bg);
@@ -182,6 +189,20 @@
     opacity: 0.3;
     cursor: not-allowed;
     border-color: var(--color-terminal-green-dark);
+}
+
+/* Estilos para timer y calendar en consola de navegación */
+.nav-controls-section .tranche-timer,
+.nav-controls-section .calendar {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xl);
+    color: var(--color-terminal-green);
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+    font-weight: bold;
+    text-align: center;
+    padding: 4px 0;
+    background: transparent;
+    border: none;
 }
 
 .voyage-panels {
