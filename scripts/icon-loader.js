@@ -11,7 +11,7 @@
  */
 function createIcon(iconName, size = 24, color = null) {
     const img = document.createElement('img');
-    img.src = `node_modules/pixelarticons/svg/${iconName}.svg`;
+    img.src = `assets/icons/${iconName}.svg`;
     img.width = size;
     img.height = size;
     img.alt = iconName;
