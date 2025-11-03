@@ -64,11 +64,13 @@ class GameLoop {
             updateVoyageStatus();
         }
 
-        // Bloquear slider de velocidad
-        document.getElementById('speed-control').disabled = true;
-
-        // Obtener velocidad actual
+        // Obtener velocidad actual (antes de deshabilitar el control)
         this.currentSpeed = parseInt(document.getElementById('speed-control').value);
+
+        // Habilitar interacciones durante el tramo (deshabilita velocidad, habilita recursos)
+        if (typeof enableAllInteractions === 'function') {
+            enableAllInteractions();
+        }
 
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
@@ -183,8 +185,10 @@ class GameLoop {
             updateVoyageStatus();
         }
 
-        // Desbloquear slider de velocidad
-        document.getElementById('speed-control').disabled = false;
+        // Habilitar solo slider de velocidad entre tramos
+        if (typeof enableInteractionsBetweenTranches === 'function') {
+            enableInteractionsBetweenTranches();
+        }
 
         // Registrar en bitácora
         const aliveCrew = crewMembers.filter(c => c.isAlive).length;
@@ -215,6 +219,11 @@ class GameLoop {
             updateVoyageStatus();
         }
 
+        // Deshabilitar TODAS las interacciones cuando se pausa
+        if (typeof disableAllInteractions === 'function') {
+            disableAllInteractions();
+        }
+
         logbook.addEntry('Tramo pausado', LOG_TYPES.INFO);
     }
 
@@ -233,6 +242,11 @@ class GameLoop {
         // Actualizar estado del viaje
         if (typeof updateVoyageStatus === 'function') {
             updateVoyageStatus();
+        }
+
+        // Habilitar interacciones durante el tramo (deshabilita velocidad, habilita recursos)
+        if (typeof enableAllInteractions === 'function') {
+            enableAllInteractions();
         }
 
         logbook.addEntry('Tramo reanudado', LOG_TYPES.INFO);

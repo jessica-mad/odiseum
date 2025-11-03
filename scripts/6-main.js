@@ -156,7 +156,12 @@ function initializeGame() {
     logbook.addEntry(`Comandante IA: ${playerName}`, LOG_TYPES.INFO);
     logbook.addEntry(`Destino: ${DESTINATION_NAME}`, LOG_TYPES.INFO);
     logbook.addEntry('Sistema de auto-gestión activado para tripulantes despiertos.', LOG_TYPES.INFO);
-    
+
+    // Configurar estado inicial de interacciones (antes de iniciar misión, solo velocidad)
+    if (typeof enableInteractionsBetweenTranches === 'function') {
+        enableInteractionsBetweenTranches();
+    }
+
     new Notification('Sistema inicializado. Listo para comenzar el viaje.', NOTIFICATION_TYPES.INFO);
 }
 
@@ -273,6 +278,11 @@ function startFirstTranche() {
 
     // Actualizar estado del viaje
     updateVoyageStatus();
+
+    // Configurar interacciones entre tramos (solo velocidad habilitado)
+    if (typeof enableInteractionsBetweenTranches === 'function') {
+        enableInteractionsBetweenTranches();
+    }
 
     // Mostrar el botón de inicio de tramo
     document.getElementById('start-button').style.display = 'inline-block';
