@@ -517,17 +517,28 @@ class Notification {
     constructor(message, type = NOTIFICATION_TYPES.INFO) {
         this.message = message;
         this.type = type;
+        if (Notification.activeMessages.has(this.message)) {
+            return;
+        }
         this.display();
     }
-    
+
     display() {
         const notificationsPanel = document.getElementById('notifications');
+        if (!notificationsPanel) {
+            return;
+        }
+
+        Notification.activeMessages.add(this.message);
+
         const notifDiv = document.createElement('div');
         notifDiv.className = `notification ${this.type}`;
         notifDiv.textContent = this.message;
+        notifDiv.dataset.message = this.message;
         notificationsPanel.appendChild(notifDiv);
-        
+
         setTimeout(() => {
+            Notification.activeMessages.delete(this.message);
             notifDiv.remove();
         }, 5000);
     }
@@ -544,3 +555,5 @@ class ResourceNotification extends Notification {
         super(`📦 ${message}`, type);
     }
 }
+
+Notification.activeMessages = new Set();
