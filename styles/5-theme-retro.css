@@ -382,6 +382,35 @@
     50% { opacity: 0.7; }
 }
 
+/* === INTRO OVERLAY === */
+.intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    z-index: 9999;
+    animation: eventFadeIn 0.6s ease;
+}
+
+.intro-window {
+    width: min(960px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-large);
+}
+
+.intro-overlay .logbook-intro {
+    margin: 0;
+    width: 100%;
+}
+
+.intro-overlay pre {
+    white-space: pre-line;
+}
+
 .intro-mission-btn:hover {
     background: #00ff00;
     transform: scale(1.05);

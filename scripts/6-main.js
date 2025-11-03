@@ -87,18 +87,71 @@ Que tu sacrificio no sea en vano.
 function namePlayer() {
     const input = document.getElementById('player-name-input');
     const name = input.value.trim();
-    
+
     if (name === '') {
         alert('Por favor, ingrese un nombre válido');
         return;
     }
-    
+
     playerName = name;
     document.getElementById('playerName').textContent = playerName;
     document.getElementById('initial-screen').style.display = 'none';
-    document.getElementById('desktop').style.display = 'flex';
-    
+
+    showIntroOverlay();
+}
+
+function showIntroOverlay() {
+    const overlay = document.getElementById('intro-overlay');
+    if (!overlay) return;
+
+    const introText = document.getElementById('intro-text-content');
+    if (introText) {
+        introText.textContent = INTRO_TEXT.replace('{PLAYER_NAME}', playerName);
+    }
+
+    overlay.style.display = 'flex';
+}
+
+function startMissionFromIntro() {
+    if (typeof gameLoop !== 'undefined' && gameLoop.missionStarted) {
+        return;
+    }
+
+    const overlay = document.getElementById('intro-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+
+    const desktop = document.getElementById('desktop');
+    if (desktop) {
+        desktop.style.display = 'flex';
+    }
+
     initializeGame();
+    ensureIntroEntryInLogbook(false);
+    startFirstTranche();
+}
+
+function ensureIntroEntryInLogbook(includeButton = false) {
+    const logbookEntries = document.getElementById('logbook-entries');
+    if (!logbookEntries) return;
+
+    let introDiv = logbookEntries.querySelector('.logbook-intro');
+    if (!introDiv) {
+        introDiv = document.createElement('div');
+        introDiv.className = 'logbook-intro';
+        logbookEntries.insertBefore(introDiv, logbookEntries.firstChild);
+    }
+
+    const buttonHtml = includeButton
+        ? '<button class="intro-mission-btn" onclick="startFirstTranche()">INICIAR MISIÓN</button>'
+        : '';
+
+    introDiv.innerHTML = `
+        <h2>PROYECTO GÉNESIS</h2>
+        <pre>${INTRO_TEXT.replace('{PLAYER_NAME}', playerName)}</pre>
+        ${buttonHtml}
+    `;
 }
 
 /* === INICIALIZACIÓN DEL JUEGO === */
@@ -249,20 +302,9 @@ function startGame() {
 function showIntroLogbook() {
     // Abrir bitácora
     openLogbookPopup();
-    
-    // Crear elemento con texto introductorio
-    const logbookEntries = document.getElementById('logbook-entries');
-    const introDiv = document.createElement('div');
-    introDiv.className = 'logbook-intro';
-    introDiv.innerHTML = `
-        <h2>PROYECTO GÉNESIS</h2>
-        <pre>${INTRO_TEXT.replace('{PLAYER_NAME}', playerName)}</pre>
-        <button class="intro-mission-btn" onclick="startFirstTranche()">INICIAR MISIÓN</button>
-    `;
-    
-    // Insertar al principio
-    logbookEntries.insertBefore(introDiv, logbookEntries.firstChild);
-    
+
+    ensureIntroEntryInLogbook(true);
+
     gameLoop.gameState = GAME_STATES.AWAITING_START;
 }
 
