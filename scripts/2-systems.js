@@ -43,7 +43,7 @@ class GameLoop {
         this.gameLoopInterval = null;
         this.timerInterval = null;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
-        this.currentSpeed = 50;
+        this.currentSpeed = 65;
         this.missionStarted = false;
     }
 
@@ -260,37 +260,62 @@ class GameLoop {
     }
     
     updateTripProgress() {
-        const distancePerTick = (this.currentSpeed / 100) * 10;
+        const distancePerTick = (this.currentSpeed / 100) * 20;
         distanceTraveled += distancePerTick;
-        
+
         const fuelConsumption = (this.currentSpeed / 100) * RESOURCES_CONFIG.fuel.consumeRate;
         Fuel.consume(fuelConsumption);
         Fuel.updateResourceUI();
-        
+
+        // GAME OVER: Sin combustible
+        if (Fuel.quantity <= 0) {
+            this.gameOverNoFuel();
+            return;
+        }
+
         const progress = (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100;
         const progressBar = document.getElementById('trip-progress-bar');
         if (progressBar) {
             progressBar.style.width = `${Math.min(progress, 100)}%`;
         }
-        
+
         const distanceTraveledEl = document.getElementById('distance-traveled');
         const totalDistanceEl = document.getElementById('total-distance');
         if (distanceTraveledEl) distanceTraveledEl.textContent = Math.round(distanceTraveled);
         if (totalDistanceEl) totalDistanceEl.textContent = TOTAL_MISSION_DISTANCE;
-        
+
         if (distanceTraveled >= TOTAL_MISSION_DISTANCE) {
             this.endMission();
         }
     }
     
+    gameOverNoFuel() {
+        // Detener ambos intervalos
+        clearInterval(this.gameLoopInterval);
+        this.gameLoopInterval = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+
+        this.gameState = GAME_STATES.PAUSED;
+
+        logbook.addEntry('COMBUSTIBLE AGOTADO. La nave deriva sin control.', LOG_TYPES.CRITICAL);
+        logbook.addEntry('Los sistemas de soporte vital fallan. La tripulación no puede sobrevivir.', LOG_TYPES.DEATH);
+        logbook.addEntry('GAME OVER: La misión ha fracasado.', LOG_TYPES.CRITICAL);
+
+        new Notification('COMBUSTIBLE AGOTADO - GAME OVER', NOTIFICATION_TYPES.ALERT);
+
+        // Mostrar pantalla de Game Over (0 sobrevivientes)
+        victorySystem.showVictoryScreen(0);
+    }
+
     endMission() {
         clearInterval(this.gameLoopInterval);
         this.gameState = GAME_STATES.PAUSED;
-        
+
         const aliveCrew = crewMembers.filter(c => c.isAlive).length;
         logbook.addEntry(`¡MISIÓN COMPLETADA! Llegada a ${DESTINATION_NAME}.`, LOG_TYPES.SUCCESS);
         logbook.addEntry(`Tripulantes sobrevivientes: ${aliveCrew}/5`, LOG_TYPES.SUCCESS);
-        
+
         // Mostrar pantalla de victoria
         victorySystem.showVictoryScreen(aliveCrew);
     }

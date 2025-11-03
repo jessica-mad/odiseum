@@ -33,12 +33,12 @@ Son el futuro de la humanidad.
 ───────────────────────────────────────────────────────────
 
 DESTINO: Nueva Tierra (Kepler-442b)
-DISTANCIA: 10,000 unidades astronómicas
+DISTANCIA: 3,000 unidades astronómicas
 TIEMPO ESTIMADO: 50 años
 
-Hace 100 años, la Primera Expedición estableció la Colonia 
-Esperanza en Nueva Tierra. Un planeta casi idéntico a la 
-Tierra original. Nos esperan. Esperan a los nuevos humanos 
+Hace 100 años, la Primera Expedición estableció la Colonia
+Esperanza en Nueva Tierra. Un planeta casi idéntico a la
+Tierra original. Nos esperan. Esperan a los nuevos humanos
 que traes en tus bodegas.
 
 ───────────────────────────────────────────────────────────
