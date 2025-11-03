@@ -87,37 +87,105 @@ Que tu sacrificio no sea en vano.
 function namePlayer() {
     const input = document.getElementById('player-name-input');
     const name = input.value.trim();
-    
+
     if (name === '') {
         alert('Por favor, ingrese un nombre válido');
         return;
     }
-    
+
     playerName = name;
     document.getElementById('playerName').textContent = playerName;
     document.getElementById('initial-screen').style.display = 'none';
-    document.getElementById('desktop').style.display = 'flex';
-    
+
+    showIntroOverlay();
+}
+
+function showIntroOverlay() {
+    const overlay = document.getElementById('intro-overlay');
+    if (!overlay) return;
+
+    const introText = document.getElementById('intro-text-content');
+    if (introText) {
+        introText.textContent = INTRO_TEXT.replace('{PLAYER_NAME}', playerName);
+    }
+
+    overlay.style.display = 'flex';
+}
+
+function startMissionFromIntro() {
+    if (typeof gameLoop !== 'undefined' && gameLoop.missionStarted) {
+        return;
+    }
+
+    const overlay = document.getElementById('intro-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+
+    const desktop = document.getElementById('desktop');
+    if (desktop) {
+        desktop.style.display = 'flex';
+    }
+
     initializeGame();
+    ensureIntroEntryInLogbook(false);
+    startFirstTranche();
+}
+
+function ensureIntroEntryInLogbook(includeButton = false) {
+    const logbookEntries = document.getElementById('logbook-entries');
+    if (!logbookEntries) return;
+
+    let introDiv = logbookEntries.querySelector('.logbook-intro');
+    if (!introDiv) {
+        introDiv = document.createElement('div');
+        introDiv.className = 'logbook-intro';
+        logbookEntries.insertBefore(introDiv, logbookEntries.firstChild);
+    }
+
+    const buttonHtml = includeButton
+        ? '<button class="intro-mission-btn" onclick="startFirstTranche()">INICIAR MISIÓN</button>'
+        : '';
+
+    introDiv.innerHTML = `
+        <h2>PROYECTO GÉNESIS</h2>
+        <pre>${INTRO_TEXT.replace('{PLAYER_NAME}', playerName)}</pre>
+        ${buttonHtml}
+    `;
 }
 
 /* === INICIALIZACIÓN DEL JUEGO === */
 function initializeGame() {
     // Inicializar bitácora
     logbook = new Logbook();
-    
+
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.reset();
+    }
+
+    if (typeof shipIntegritySystem !== 'undefined' && shipIntegritySystem) {
+        shipIntegritySystem.reset();
+    }
+
     // Crear recursos
-    Energy = new Resource('Energía', 1000, 1000, 'energy-meter', 'energy-amount');
-    Food = new Resource('Alimentos', 500, 500, 'food-meter', 'food-amount');
-    Water = new Resource('Agua', 300, 300, 'water-meter', 'water-amount');
-    Oxygen = new Resource('Oxígeno', 400, 400, 'oxygen-meter', 'oxygen-amount');
-    Medicine = new Resource('Medicinas', 200, 200, 'medicine-meter', 'medicine-amount');
-    Data = new Resource('Datos/Entret.', 150, 150, 'data-meter', 'data-amount');
-    Fuel = new Resource('Combustible', 1000, 1000, 'fuel-meter', 'fuel-amount');
-    
+    Energy = new Resource('Energía', 1000, 1000, 'energy-meter', 'energy-amount', 'resource-strip-energy');
+    Food = new Resource('Alimentos', 500, 500, 'food-meter', 'food-amount', 'resource-strip-food');
+    Water = new Resource('Agua', 300, 300, 'water-meter', 'water-amount', 'resource-strip-water');
+    Oxygen = new Resource('Oxígeno', 400, 400, 'oxygen-meter', 'oxygen-amount', 'resource-strip-oxygen');
+    Medicine = new Resource('Medicinas', 200, 200, 'medicine-meter', 'medicine-amount', 'resource-strip-medicine');
+    Data = new Resource('Datos/Entret.', 150, 150, 'data-meter', 'data-amount', 'resource-strip-data');
+    Fuel = new Resource('Combustible', 1000, 1000, 'fuel-meter', 'fuel-amount', 'resource-strip-fuel');
+
+    // Inicializar sistema de eventos
+    eventSystem = new EventSystem();
+
     // Crear tripulación desde datos
     crewMembers = createCrewFromData();
-    
+
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+    }
+
     // Generar lista de tripulación (tabla completa)
     crewMembers.forEach(crew => crew.addRow());
     
@@ -246,20 +314,9 @@ function startGame() {
 function showIntroLogbook() {
     // Abrir bitácora
     openLogbookPopup();
-    
-    // Crear elemento con texto introductorio
-    const logbookEntries = document.getElementById('logbook-entries');
-    const introDiv = document.createElement('div');
-    introDiv.className = 'logbook-intro';
-    introDiv.innerHTML = `
-        <h2>PROYECTO GÉNESIS</h2>
-        <pre>${INTRO_TEXT.replace('{PLAYER_NAME}', playerName)}</pre>
-        <button class="intro-mission-btn" onclick="startFirstTranche()">INICIAR MISIÓN</button>
-    `;
-    
-    // Insertar al principio
-    logbookEntries.insertBefore(introDiv, logbookEntries.firstChild);
-    
+
+    ensureIntroEntryInLogbook(true);
+
     gameLoop.gameState = GAME_STATES.AWAITING_START;
 }
 

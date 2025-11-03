@@ -13,6 +13,53 @@
     <link rel="stylesheet" href="styles/5-theme-retro.css">
 </head>
 <body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;" id="pixelarticons-sprite">
+        <symbol id="icon-energy" viewBox="0 0 16 16">
+            <path d="M6 1h4v4h3L6 15v-4H3z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-food" viewBox="0 0 16 16">
+            <path d="M2 2h2v12H2zM6 2h2v12H6zM10 2h1v5h1V2h1v5h1V2h1v12h-2v-5h-1v5h-1v-5h-1v5h-1z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-water" viewBox="0 0 16 16">
+            <path d="M8 1l4 6v3a4 4 0 11-8 0V7z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-oxygen" viewBox="0 0 16 16">
+            <path d="M3 5h10v2H3zM1 8h14v2H1zM4 11h8v2H4z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-medicine" viewBox="0 0 16 16">
+            <path d="M6 1h4v4h4v4h-4v4H6v-4H2V5h4z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-data" viewBox="0 0 16 16">
+            <path d="M2 3h12v2H2zM2 7h12v2H2zM2 11h12v2H2z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-fuel" viewBox="0 0 16 16">
+            <path d="M5 1h6v14H5zM11 4h2l2 3v6h-2V8h-2z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-crate" viewBox="0 0 16 16">
+            <path d="M2 2h12v12H2zM4 4v8h8V4zM4 7h8v2H4z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-crew" viewBox="0 0 16 16">
+            <path d="M5 4a3 3 0 116 0 3 3 0 11-6 0zm-3 9a5 5 0 0110 0v2H2zM10 10h2l4 2v3h-2v-2l-2-1z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-rocket" viewBox="0 0 16 16">
+            <path d="M8 0l3 4v6l-3 6-3-6V4zM5 5H1l3 3H5zm6 0h4l-3 3h-1zM7 6h2v2H7z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-logbook" viewBox="0 0 16 16">
+            <path d="M3 1h9l2 2v12H3zM5 3v10h7V4H9V1zM2 3h2v10H2z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-earth-old" viewBox="0 0 16 16">
+            <path d="M8 1a7 7 0 110 14A7 7 0 018 1zm-1 2H5l-2 3 2 1v2l2 1 1-1V6zM9 3l2 1-1 2 2 1-1 4h-2l-1-2V5z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-earth-new" viewBox="0 0 16 16">
+            <path d="M8 1a7 7 0 110 14A7 7 0 018 1zm3 2H7l-1 3 1 2 1 1 1 3h2l1-3-1-2h2l1-1zM4 5H3l-1 2 1 3 2 1V6z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-ship" viewBox="0 0 16 16">
+            <path d="M7 1h2l3 5v4l-3 5H7l-3-5V6zM4 6H1v2h3zm11 0h-3v2h3z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+        <symbol id="icon-warning" viewBox="0 0 16 16">
+            <path d="M1 14h14L8 2zM7 6h2v4H7zm0 5h2v2H7z" fill="currentColor" shape-rendering="crispEdges" />
+        </symbol>
+    </svg>
     <!-- Pantalla de Inicio / Login -->
     <div id="initial-screen" class="initial-screen">
         <div class="login-box">
@@ -22,6 +69,17 @@
                 <label for="player-name-input">Identificación de IA:</label>
                 <input type="text" id="player-name-input" placeholder="Ingrese su nombre">
                 <button onclick="namePlayer()">Ese es mi nombre</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Introducción Proyecto Génesis -->
+    <div id="intro-overlay" class="intro-overlay" style="display: none;">
+        <div class="intro-window">
+            <div class="logbook-intro">
+                <h2>PROYECTO GÉNESIS</h2>
+                <pre id="intro-text-content"></pre>
+                <button class="intro-mission-btn" onclick="startMissionFromIntro()">INICIAR MISIÓN</button>
             </div>
         </div>
     </div>
@@ -50,24 +108,93 @@
             </div>
         </div>
 
+        <!-- Barra de Recursos Permanente -->
+        <div class="resource-strip" id="resource-strip">
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-energy"></use>
+                </svg>
+                <span class="resource-label">Energía</span>
+                <span class="resource-value" id="resource-strip-energy">0/0</span>
+            </div>
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-food"></use>
+                </svg>
+                <span class="resource-label">Alimentos</span>
+                <span class="resource-value" id="resource-strip-food">0/0</span>
+            </div>
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-water"></use>
+                </svg>
+                <span class="resource-label">Agua</span>
+                <span class="resource-value" id="resource-strip-water">0/0</span>
+            </div>
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-oxygen"></use>
+                </svg>
+                <span class="resource-label">Oxígeno</span>
+                <span class="resource-value" id="resource-strip-oxygen">0/0</span>
+            </div>
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-medicine"></use>
+                </svg>
+                <span class="resource-label">Medicinas</span>
+                <span class="resource-value" id="resource-strip-medicine">0/0</span>
+            </div>
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-data"></use>
+                </svg>
+                <span class="resource-label">Datos</span>
+                <span class="resource-value" id="resource-strip-data">0/0</span>
+            </div>
+            <div class="resource-chip">
+                <svg class="resource-icon pixel-icon" aria-hidden="true">
+                    <use href="#icon-fuel"></use>
+                </svg>
+                <span class="resource-label">Combustible</span>
+                <span class="resource-value" id="resource-strip-fuel">0/0</span>
+            </div>
+        </div>
+
         <!-- Área Principal del Escritorio -->
         <div class="desktop-main-area">
             <!-- Iconos del Escritorio -->
             <div class="desktop-icons">
                 <div class="desktop-icon" id="icon-resources-management" ondblclick="openResourcesPopup()">
-                    <div class="icon-image">📦</div>
+                    <div class="icon-image">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-crate"></use>
+                        </svg>
+                    </div>
                     <div class="icon-label">Recursos</div>
                 </div>
                 <div class="desktop-icon" id="icon-crews-management" ondblclick="openCrewsPopup()">
-                    <div class="icon-image">👥</div>
+                    <div class="icon-image">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-crew"></use>
+                        </svg>
+                    </div>
                     <div class="icon-label">Tripulación</div>
                 </div>
                 <div class="desktop-icon" id="icon-trip-management" ondblclick="openTripPopup()">
-                    <div class="icon-image">🚀</div>
+                    <div class="icon-image">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-rocket"></use>
+                        </svg>
+                    </div>
                     <div class="icon-label">Viaje</div>
                 </div>
                 <div class="desktop-icon" id="icon-logbook" ondblclick="openLogbookPopup()">
-                    <div class="icon-image">📖</div>
+                    <div class="icon-image">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-logbook"></use>
+                        </svg>
+                    </div>
                     <div class="icon-label">Bitácora</div>
                 </div>
             </div>
@@ -76,10 +203,54 @@
             <div id="notifications" class="notifications-panel"></div>
         </div>
 
+        <div class="voyage-console" id="voyage-visualizer">
+            <div class="voyage-console-header">CONSOLA DE NAVEGACIÓN</div>
+            <div class="voyage-panels">
+                <div class="voyage-endpoint">
+                    <div class="planet-icon old-earth">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-earth-old"></use>
+                        </svg>
+                    </div>
+                    <span class="planet-label">Tierra Vieja</span>
+                </div>
+                <div class="voyage-track">
+                    <div class="voyage-track-line">
+                        <div class="voyage-future-line"></div>
+                        <div class="voyage-progress-fill" id="voyage-progress-fill"></div>
+                        <div class="voyage-ship" id="voyage-ship">
+                            <svg class="pixel-icon" aria-hidden="true">
+                                <use href="#icon-ship"></use>
+                            </svg>
+                        </div>
+                        <div class="voyage-nodes" id="voyage-node-container"></div>
+                    </div>
+                </div>
+                <div class="voyage-endpoint">
+                    <div class="planet-icon new-earth">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-earth-new"></use>
+                        </svg>
+                    </div>
+                    <span class="planet-label">Nueva Tierra</span>
+                </div>
+            </div>
+            <div class="voyage-readouts">
+                <div class="voyage-speed">Velocidad actual: <span id="voyage-speed-value">0%</span></div>
+                <div class="voyage-distance">Distancia: <span id="voyage-distance-current">0</span> / <span id="voyage-distance-total">0</span> UA</div>
+                <div class="voyage-forecast inactive" id="voyage-forecast">Activa a Lt. Johnson para obtener proyección de tramos.</div>
+            </div>
+        </div>
+
         <!-- Panel Lateral de Tripulación (SIEMPRE VISIBLE) -->
         <div class="crew-sidebar" id="crew-sidebar">
             <div class="sidebar-header">
-                <h3>🚀 TRIPULACIÓN</h3>
+                <h3>
+                    <svg class="pixel-icon" aria-hidden="true">
+                        <use href="#icon-rocket"></use>
+                    </svg>
+                    TRIPULACIÓN
+                </h3>
             </div>
             <div class="sidebar-sorting">
                 <label for="crew-sort-select">Ordenar por:</label>
@@ -152,7 +323,12 @@
                     <h4>Control de Velocidad</h4>
                     <label>Velocidad: <span id="speed-value">65</span>%</label>
                     <input type="range" id="speed-control" min="50" max="100" value="65" oninput="updateSpeedDisplay()">
-                    <p class="speed-note">⚠️ Mayor velocidad = Mayor consumo de combustible</p>
+                    <p class="speed-note">
+                        <svg class="pixel-icon" aria-hidden="true">
+                            <use href="#icon-warning"></use>
+                        </svg>
+                        Mayor velocidad = Mayor consumo de combustible
+                    </p>
                 </div>
                 <div class="fuel-info">
                     <label>Combustible:</label>
@@ -205,6 +381,7 @@
                         <p>Estado: <span id="crew-state">---</span></p>
                         <p>Actividad: <span id="crew-activity">---</span></p>
                         <p>Ánimo: <span id="crew-mood">---</span></p>
+                        <p class="crew-benefit-line">Beneficio activo: <span id="crew-benefit-readout">Beneficio inactivo (encapsulado).</span></p>
                     </div>
                 </div>
 
@@ -308,6 +485,7 @@
     <script src="scripts/3-ui-managers.js"></script>
     <script src="scripts/4-crew-data.js"></script>
     <script src="scripts/5-messages-data.js"></script>
+    <script src="scripts/7-events-data.js"></script>
     <script src="scripts/6-main.js"></script>
 </body>
 </html>
