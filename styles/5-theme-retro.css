@@ -2,6 +2,195 @@
    THEME RETRO MAC - ODISEUM V2.0
    ============================================ */
 
+/* === BARRA GLOBAL DE RECURSOS === */
+.resource-strip {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    row-gap: var(--spacing-md);
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #3b0b0b 0%, #651414 100%);
+    border-top: 3px solid #000;
+    border-bottom: 3px solid #000;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+    font-family: var(--font-chicago);
+    color: var(--color-white);
+}
+
+.resource-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    min-width: 150px;
+    justify-content: space-between;
+}
+
+.resource-icon {
+    font-size: 18px;
+}
+
+.resource-label {
+    font-size: var(--font-size-sm);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.resource-value {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+}
+
+/* === VISUALIZADOR DE VIAJE === */
+.voyage-visualizer {
+    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent 65%), #1a0f1f;
+    border-bottom: 3px solid #000;
+    box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
+    padding: 18px 24px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--color-white);
+}
+
+.voyage-panels {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px;
+    align-items: center;
+    gap: 24px;
+}
+
+.voyage-endpoint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-chicago);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.planet-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+}
+
+.planet-icon.old-earth {
+    background: linear-gradient(135deg, #123c69, #1e6f5c);
+}
+
+.planet-icon.new-earth {
+    background: linear-gradient(135deg, #511845, #900c3f);
+}
+
+.planet-label {
+    font-size: var(--font-size-sm);
+}
+
+.voyage-track {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.voyage-track-line {
+    position: relative;
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.voyage-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff6f00);
+    box-shadow: 0 0 10px rgba(255, 223, 0, 0.6);
+    transition: width 0.6s ease-out;
+}
+
+.voyage-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--font-monaco);
+}
+
+.voyage-node {
+    min-width: 52px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    text-align: center;
+    font-size: var(--font-size-xs);
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.voyage-node.completed {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: rgba(46, 204, 113, 0.6);
+    color: #2ecc71;
+}
+
+.voyage-node.active {
+    background: rgba(255, 223, 0, 0.25);
+    border-color: rgba(255, 223, 0, 0.8);
+    color: #ffd700;
+}
+
+.voyage-node.standby {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: rgba(52, 152, 219, 0.6);
+    color: #73c1ff;
+}
+
+.voyage-node.forecast {
+    background: rgba(155, 89, 182, 0.2);
+    border-color: rgba(155, 89, 182, 0.6);
+    color: #d7a4ff;
+}
+
+.voyage-node-label {
+    display: block;
+}
+
+.voyage-readouts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+}
+
+.voyage-forecast {
+    flex: 1 1 240px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.voyage-forecast.inactive {
+    color: rgba(255, 255, 255, 0.55);
+    font-style: italic;
+}
+
 /* === POPUP DE MENSAJE CUÁNTICO === */
 .quantum-message-overlay {
     position: fixed;
@@ -110,6 +299,144 @@
 
 .continue-btn:hover {
     background: #333;
+}
+
+/* === EVENTOS CRÍTICOS === */
+.event-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(120, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: calc(var(--z-modal) + 10);
+    animation: urgentPulse 2s infinite;
+    pointer-events: all;
+}
+
+.event-popup {
+    background: var(--color-white);
+    border: 4px solid #8b0000;
+    box-shadow: 0 0 40px rgba(139, 0, 0, 0.6);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: eventFadeIn 0.4s ease-out;
+    font-family: var(--font-monaco);
+}
+
+.event-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, #2b0000, #a50000);
+    color: var(--color-white);
+    border-bottom: 4px solid #5c0000;
+}
+
+.event-header-icon {
+    font-size: 36px;
+}
+
+.event-header-meta h2 {
+    margin: 0;
+    font-size: 20px;
+    font-family: var(--font-chicago);
+}
+
+.event-header-details {
+    font-size: 12px;
+    opacity: 0.85;
+}
+
+.event-description {
+    background: var(--color-white);
+    padding: var(--spacing-xl);
+    font-family: var(--font-monaco);
+    font-size: 12px;
+    line-height: 1.5;
+    color: #330000;
+    border-bottom: 1px solid rgba(139, 0, 0, 0.25);
+}
+
+.event-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+}
+
+.event-option-button {
+    padding: var(--spacing-md);
+    font-size: 14px;
+    font-family: var(--font-chicago);
+    background: #ffe4e1;
+    border: 2px solid #000;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    text-align: center;
+}
+
+.event-option-button:hover {
+    background: #fff4a3;
+    transform: translateY(-2px);
+}
+
+.event-option-button.disabled {
+    background: #ccc;
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #666;
+}
+
+.event-result {
+    padding: var(--spacing-xl);
+    font-family: var(--font-monaco);
+    font-size: 12px;
+    color: #330000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.event-result.good {
+    border-left: 6px solid #2e8b57;
+    background: rgba(46, 139, 87, 0.1);
+}
+
+.event-result.bad {
+    border-left: 6px solid #8b0000;
+    background: rgba(139, 0, 0, 0.1);
+}
+
+.event-result-changes {
+    list-style: square;
+    margin: 0;
+    padding-left: 20px;
+}
+
+@keyframes urgentPulse {
+    0%, 100% {
+        background: rgba(120, 0, 0, 0.75);
+    }
+    50% {
+        background: rgba(180, 0, 0, 0.9);
+    }
+}
+
+@keyframes eventFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* === PANTALLA DE VICTORIA === */
@@ -244,9 +571,66 @@
     50% { opacity: 0.7; }
 }
 
+/* === INTRO OVERLAY === */
+.intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    z-index: 9999;
+    animation: eventFadeIn 0.6s ease;
+}
+
+.intro-window {
+    width: min(960px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-large);
+}
+
+.intro-overlay .logbook-intro {
+    margin: 0;
+    width: 100%;
+}
+
+.intro-overlay pre {
+    white-space: pre-line;
+}
+
 .intro-mission-btn:hover {
     background: #00ff00;
     transform: scale(1.05);
+}
+
+/* === BENEFICIOS DE TRIPULACIÓN === */
+.crew-card-benefit {
+    margin-top: 6px;
+    padding: 4px 6px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    background: rgba(0, 0, 0, 0.25);
+    border-left: 3px solid rgba(255, 223, 0, 0.8);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.crew-benefit-line {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+}
+
+.crew-benefit-line span {
+    color: var(--color-white);
+}
+
+.crew-card-btn.disabled,
+.crew-card-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(40%);
 }
 
 /* === EFECTOS ESPECIALES === */

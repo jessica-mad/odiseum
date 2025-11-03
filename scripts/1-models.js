@@ -36,8 +36,25 @@ class Crew {
         this.personalLog = [];
         this.lastInteraction = null;
         this.autoManaging = false;
+
+        // Sistema de eventos
+        this.eventFlags = [];
+        this.trauma = null;
+        this.emotionalState = 'stable';
+        this.skillModifier = 1.0;
+        this.eventMemories = [];
     }
-    
+
+    getEffectiveSkillMultiplier() {
+        let multiplier = this.skillModifier || 1;
+
+        if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+            multiplier = awakeBenefitSystem.getCrewEfficiencyMultiplier(this, multiplier);
+        }
+
+        return multiplier;
+    }
+
     /* === SISTEMA DE EDAD === */
     age(years) {
         if (this.state === 'Despierto' && this.isAlive) {
@@ -152,32 +169,36 @@ class Crew {
     /* === SISTEMA DE AUTO-GESTIÓN === */
     tryAutoManage() {
         if (!this.isAlive || this.state !== 'Despierto') return;
-        
+
         this.autoManaging = false;
         const autoManageActions = [];
-        
+        const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
+
         // Auto-gestionar comida
         if (this.foodNeed < AUTO_MANAGE_CONFIG.food.threshold && Food.quantity >= AUTO_MANAGE_CONFIG.food.cost) {
             Food.consume(AUTO_MANAGE_CONFIG.food.cost);
-            this.foodNeed = Math.min(100, this.foodNeed + AUTO_MANAGE_CONFIG.food.recovery);
+            const recovery = AUTO_MANAGE_CONFIG.food.recovery * efficiencyMultiplier;
+            this.foodNeed = Math.min(100, this.foodNeed + recovery);
             autoManageActions.push('comió');
             this.currentActivity = 'eating';
         }
-        
+
         // Auto-gestionar higiene
         if (this.wasteNeed > AUTO_MANAGE_CONFIG.hygiene.threshold && Water.quantity >= AUTO_MANAGE_CONFIG.hygiene.cost) {
             Water.consume(AUTO_MANAGE_CONFIG.hygiene.cost);
-            this.wasteNeed = Math.max(0, this.wasteNeed - AUTO_MANAGE_CONFIG.hygiene.recovery);
+            const recovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
+            this.wasteNeed = Math.max(0, this.wasteNeed - recovery);
             autoManageActions.push('se aseó');
             this.currentActivity = 'resting';
         }
-        
+
         // Auto-gestionar entretenimiento
-        if (this.entertainmentNeed < AUTO_MANAGE_CONFIG.entertainment.threshold && 
-            Data.quantity >= AUTO_MANAGE_CONFIG.entertainment.cost && 
-            Math.random() < AUTO_MANAGE_CONFIG.entertainment.probability) {
+        if (this.entertainmentNeed < AUTO_MANAGE_CONFIG.entertainment.threshold &&
+            Data.quantity >= AUTO_MANAGE_CONFIG.entertainment.cost &&
+            Math.random() < Math.min(1, AUTO_MANAGE_CONFIG.entertainment.probability * efficiencyMultiplier)) {
             Data.consume(AUTO_MANAGE_CONFIG.entertainment.cost);
-            this.entertainmentNeed = Math.min(100, this.entertainmentNeed + AUTO_MANAGE_CONFIG.entertainment.recovery);
+            const recovery = AUTO_MANAGE_CONFIG.entertainment.recovery * efficiencyMultiplier;
+            this.entertainmentNeed = Math.min(100, this.entertainmentNeed + recovery);
             autoManageActions.push('se entretuvo');
             this.currentActivity = 'socializing';
         }
@@ -337,14 +358,29 @@ class Crew {
                     ${this.state === 'Despierto' ? '💤' : '👁️'}
                 </button>
             </div>
+            <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: none;"></div>
             <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: none;">
                 🤖 Auto-gestionando
             </div>
         `;
-        
+
         return card;
     }
-    
+
+    getAwakeBenefitDescription() {
+        if (!this.isAlive) return '';
+
+        if (this.state !== 'Despierto') {
+            return '';
+        }
+
+        if (typeof awakeBenefitSystem === 'undefined' || !awakeBenefitSystem) {
+            return '';
+        }
+
+        return awakeBenefitSystem.describeBenefitForCrew(this);
+    }
+
     generateNeedBars() {
         const needs = [
             { icon: '🍕', value: this.foodNeed, max: 100 },
@@ -425,21 +461,48 @@ class Crew {
         if (autoIndicator) {
             autoIndicator.style.display = this.autoManaging ? 'block' : 'none';
         }
+
+        const benefitElement = document.getElementById(`crew-benefit-${this.id}`);
+        if (benefitElement) {
+            const benefitText = this.getAwakeBenefitDescription();
+            if (benefitText) {
+                benefitElement.textContent = benefitText;
+                benefitElement.style.display = 'block';
+            } else {
+                benefitElement.textContent = '';
+                benefitElement.style.display = 'none';
+            }
+        }
     }
 }
 
 /* === CLASE RECURSO === */
 class Resource {
-    constructor(resourceName, quantity, limiteStock, id, amount) {
+    constructor(resourceName, quantity, limiteStock, id, amount, stripId = null) {
         this.resourceName = resourceName;
         this.quantity = quantity;
         this.limiteStock = limiteStock;
         this.id = id;
         this.amount = amount;
+        this.stripId = stripId;
     }
-    
+
     consume(amount) {
-        this.quantity = Math.max(0, this.quantity - amount);
+        if (typeof amount !== 'number' || amount <= 0) {
+            return;
+        }
+
+        let effectiveAmount = amount;
+
+        if (
+            this.resourceName === 'Alimentos' &&
+            typeof awakeBenefitSystem !== 'undefined' &&
+            awakeBenefitSystem
+        ) {
+            effectiveAmount = awakeBenefitSystem.modifyFoodConsumption(amount);
+        }
+
+        this.quantity = Math.max(0, this.quantity - effectiveAmount);
     }
     
     checkQuantity() {
@@ -460,6 +523,13 @@ class Resource {
         
         if (amountSpan) {
             amountSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
+        }
+
+        if (this.stripId) {
+            const stripSpan = document.getElementById(this.stripId);
+            if (stripSpan) {
+                stripSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
+            }
         }
     }
 }
@@ -510,17 +580,28 @@ class Notification {
     constructor(message, type = NOTIFICATION_TYPES.INFO) {
         this.message = message;
         this.type = type;
+        if (Notification.activeMessages.has(this.message)) {
+            return;
+        }
         this.display();
     }
-    
+
     display() {
         const notificationsPanel = document.getElementById('notifications');
+        if (!notificationsPanel) {
+            return;
+        }
+
+        Notification.activeMessages.add(this.message);
+
         const notifDiv = document.createElement('div');
         notifDiv.className = `notification ${this.type}`;
         notifDiv.textContent = this.message;
+        notifDiv.dataset.message = this.message;
         notificationsPanel.appendChild(notifDiv);
-        
+
         setTimeout(() => {
+            Notification.activeMessages.delete(this.message);
             notifDiv.remove();
         }, 5000);
     }
@@ -537,3 +618,5 @@ class ResourceNotification extends Notification {
         super(`📦 ${message}`, type);
     }
 }
+
+Notification.activeMessages = new Set();
