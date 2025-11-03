@@ -206,50 +206,78 @@
                         <p>Ánimo: <span id="crew-mood">---</span></p>
                     </div>
                 </div>
-                <div class="crew-needs">
-                    <h4>Necesidades Vitales</h4>
-                    <table class="needs-table" id="needs-list">
-                        <tr>
-                            <td>🍕 Alimentación</td>
-                            <td><span id="food-need-amount">100</span>%</td>
-                            <td><button class="manage-btn" onclick="manageFoodNeed()">Alimentar</button></td>
-                        </tr>
-                        <tr>
-                            <td>❤️ Salud</td>
-                            <td><span id="health-need-amount">100</span>%</td>
-                            <td><button class="manage-btn" onclick="manageHealthNeed()">Curar</button></td>
-                        </tr>
-                        <tr>
-                            <td>🚽 Higiene</td>
-                            <td><span id="waste-need-amount">0</span>%</td>
-                            <td><button class="manage-btn" onclick="manageWasteNeed()">Limpiar</button></td>
-                        </tr>
-                        <tr>
-                            <td>🎮 Entretenimiento</td>
-                            <td><span id="entertainment-need-amount">100</span>%</td>
-                            <td><button class="manage-btn" onclick="manageEntertainmentNeed()">Entretener</button></td>
-                        </tr>
-                        <tr>
-                            <td>😴 Descanso</td>
-                            <td><span id="rest-need-amount">100</span>%</td>
-                            <td><button class="manage-btn" onclick="manageRestNeed()">Descansar</button></td>
-                        </tr>
-                    </table>
+
+                <!-- Sistema de Tabs -->
+                <div class="crew-tabs">
+                    <button class="crew-tab-btn active" onclick="switchCrewTab('needs')">Necesidades Vitales</button>
+                    <button class="crew-tab-btn" onclick="switchCrewTab('personal')">Información Personal</button>
+                    <button class="crew-tab-btn" onclick="switchCrewTab('report')">Reporte</button>
+                    <button class="crew-tab-btn" onclick="switchCrewTab('story')">Historia IA</button>
                 </div>
-                
-                <!-- Información Personal -->
-                <div class="crew-personal-info" id="crew-personal-info">
-                    <!-- Se llena dinámicamente con JS -->
-                </div>
-                
-                <div class="crew-personal-log">
-                    <h4>📝 Reporte Personal</h4>
-                    <div id="crew-personal-log-content" class="personal-log-content">
-                        <!-- Se llenará con JavaScript -->
+
+                <!-- Tab: Necesidades Vitales -->
+                <div id="crew-tab-needs" class="crew-tab-content active">
+                    <div class="crew-needs">
+                        <h4>Necesidades Vitales</h4>
+                        <table class="needs-table" id="needs-list">
+                            <tr>
+                                <td>🍕 Alimentación</td>
+                                <td><span id="food-need-amount">100</span>%</td>
+                                <td><button class="manage-btn" onclick="manageFoodNeed()">Alimentar</button></td>
+                            </tr>
+                            <tr>
+                                <td>❤️ Salud</td>
+                                <td><span id="health-need-amount">100</span>%</td>
+                                <td><button class="manage-btn" onclick="manageHealthNeed()">Curar</button></td>
+                            </tr>
+                            <tr>
+                                <td>🚽 Higiene</td>
+                                <td><span id="waste-need-amount">0</span>%</td>
+                                <td><button class="manage-btn" onclick="manageWasteNeed()">Limpiar</button></td>
+                            </tr>
+                            <tr>
+                                <td>🎮 Entretenimiento</td>
+                                <td><span id="entertainment-need-amount">100</span>%</td>
+                                <td><button class="manage-btn" onclick="manageEntertainmentNeed()">Entretener</button></td>
+                            </tr>
+                            <tr>
+                                <td>😴 Descanso</td>
+                                <td><span id="rest-need-amount">100</span>%</td>
+                                <td><button class="manage-btn" onclick="manageRestNeed()">Descansar</button></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="crew-actions">
+                        <button id="wake-sleep-btn" onclick="updateWakeSleepFromPopup()">Cambiar Estado</button>
                     </div>
                 </div>
-                <div class="crew-actions">
-                    <button id="wake-sleep-btn" onclick="updateWakeSleepFromPopup()">Cambiar Estado</button>
+
+                <!-- Tab: Información Personal -->
+                <div id="crew-tab-personal" class="crew-tab-content">
+                    <div class="crew-personal-info" id="crew-personal-info">
+                        <!-- Se llena dinámicamente con JS -->
+                    </div>
+                </div>
+
+                <!-- Tab: Reporte Personal -->
+                <div id="crew-tab-report" class="crew-tab-content">
+                    <div class="crew-personal-log">
+                        <h4>📝 Reporte Personal</h4>
+                        <div id="crew-personal-log-content" class="personal-log-content">
+                            <!-- Se llenará con JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Historia IA -->
+                <div id="crew-tab-story" class="crew-tab-content">
+                    <div class="crew-ai-story">
+                        <h4>📖 Historia del Personaje</h4>
+                        <div id="crew-ai-story-content" class="ai-story-content">
+                            <p style="color: #999; font-style: italic;">Cargando historia...</p>
+                        </div>
+                        <button class="action-btn" onclick="generateCrewStory()">Generar Historia con IA</button>
+                    </div>
                 </div>
             </div>
         </div>

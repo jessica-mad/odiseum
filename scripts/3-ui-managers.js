@@ -155,6 +155,116 @@ function closeCrewManagementPopup() {
     document.getElementById('crew-management-popup').style.display = 'none';
 }
 
+/* === SISTEMA DE TABS === */
+function switchCrewTab(tabName) {
+    // Ocultar todos los contenidos de tabs
+    const allTabs = document.querySelectorAll('.crew-tab-content');
+    allTabs.forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Desactivar todos los botones de tabs
+    const allButtons = document.querySelectorAll('.crew-tab-btn');
+    allButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Activar el tab seleccionado
+    const selectedTab = document.getElementById(`crew-tab-${tabName}`);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+
+    // Activar el botón correspondiente
+    const buttons = document.querySelectorAll('.crew-tab-btn');
+    buttons.forEach(btn => {
+        if (btn.textContent.includes('Necesidades Vitales') && tabName === 'needs') {
+            btn.classList.add('active');
+        } else if (btn.textContent.includes('Información Personal') && tabName === 'personal') {
+            btn.classList.add('active');
+        } else if (btn.textContent.includes('Reporte') && tabName === 'report') {
+            btn.classList.add('active');
+        } else if (btn.textContent.includes('Historia IA') && tabName === 'story') {
+            btn.classList.add('active');
+        }
+    });
+}
+
+/* === GENERACIÓN DE HISTORIA CON IA === */
+function generateCrewStory() {
+    const crewName = document.getElementById('crew-name').textContent;
+    const crewMember = crewMembers.find(c => c.name === crewName);
+    if (!crewMember) return;
+
+    const storyContainer = document.getElementById('crew-ai-story-content');
+
+    // Mostrar mensaje de carga
+    storyContainer.innerHTML = '<p style="color: #666; font-style: italic;">Generando historia...</p>';
+
+    // Simular generación con delay
+    setTimeout(() => {
+        const story = generateAIStory(crewMember);
+        storyContainer.innerHTML = `<p>${story}</p>`;
+
+        // Agregar al log personal
+        crewMember.addToPersonalLog(`[IA] Historia generada: ${story.substring(0, 100)}...`);
+    }, 1500);
+}
+
+function generateAIStory(crewMember) {
+    // Aquí se generará la historia basada en los datos del tripulante
+    const stories = {
+        intro: [
+            `${crewMember.name} recuerda el día en que tomó la decisión de unirse a la misión Odiseum.`,
+            `La vida de ${crewMember.name} cambió para siempre cuando aceptó formar parte de este viaje interestelar.`,
+            `${crewMember.name} nunca imaginó que su destino estaría entre las estrellas.`,
+        ],
+        background: [
+            `Nacido(a) en una época de grandes cambios, ${crewMember.name} siempre sintió la llamada de lo desconocido.`,
+            `Desde joven, ${crewMember.name} mostró una determinación inquebrantable.`,
+            `La familia de ${crewMember.name} nunca entendió completamente su vocación.`,
+        ],
+        sacrifice: [
+            `Dejó atrás ${crewMember.leftBehind?.family || 'todo lo que conocía'}, sabiendo que probablemente nunca volvería a verlos.`,
+            `El sacrificio fue inmenso: ${crewMember.leftBehind?.lastWords || 'las últimas palabras aún resuenan en su mente'}.`,
+            `A veces, en las noches silenciosas de la nave, piensa en lo que dejó atrás.`,
+        ],
+        mission: [
+            `Como ${crewMember.position}, su papel es crucial para la supervivencia de toda la tripulación.`,
+            `Cada día en la nave es un desafío nuevo, pero ${crewMember.name} nunca ha dudado de su misión.`,
+            `La responsabilidad pesa sobre sus hombros, pero también le da propósito.`,
+        ],
+        dreams: [
+            `Su mayor sueño es ${crewMember.leftBehind?.dream || 'ver Nueva Tierra con sus propios ojos'}.`,
+            `A pesar de las dificultades, mantiene viva la esperanza de un futuro mejor.`,
+            `${crewMember.fearOfDeath ? `Su actitud ante la muerte refleja: ${crewMember.fearOfDeath}` : 'Ha hecho las paces con su mortalidad.'}`,
+        ],
+        present: [
+            `Actualmente, ${crewMember.name} se encuentra ${crewMember.state === 'Despierto' ? 'activo(a) y cumpliendo con sus deberes' : 'en criostasis, soñando con el futuro'}.`,
+            `Su estado de ánimo es ${crewMember.mood}, lo que refleja el peso del viaje.`,
+            `Día tras día, ${crewMember.name} contribuye al éxito de la misión con dedicación incansable.`,
+        ],
+        conclusion: [
+            `La historia de ${crewMember.name} es una de sacrificio, esperanza y determinación inquebrantable.`,
+            `En este viaje hacia lo desconocido, ${crewMember.name} representa lo mejor de la humanidad.`,
+            `El legado de ${crewMember.name} vivirá en las generaciones que alcancen Nueva Tierra.`,
+        ]
+    };
+
+    // Construir la historia seleccionando elementos aleatorios de cada categoría
+    const storyParts = [
+        stories.intro[Math.floor(Math.random() * stories.intro.length)],
+        stories.background[Math.floor(Math.random() * stories.background.length)],
+        stories.sacrifice[Math.floor(Math.random() * stories.sacrifice.length)],
+        stories.mission[Math.floor(Math.random() * stories.mission.length)],
+        stories.dreams[Math.floor(Math.random() * stories.dreams.length)],
+        stories.present[Math.floor(Math.random() * stories.present.length)],
+        stories.conclusion[Math.floor(Math.random() * stories.conclusion.length)]
+    ];
+
+    return storyParts.join('\n\n');
+}
+
 /* === GESTIÓN DE TRIPULACIÓN === */
 function manageFoodNeed() {
     const crewName = document.getElementById('crew-name').textContent;
