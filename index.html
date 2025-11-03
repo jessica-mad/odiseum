@@ -44,6 +44,7 @@
                 <button id="start-button" class="control-btn" onclick="startGame()">Comenzar</button>
                 <button id="pause-button" class="control-btn" onclick="pauseGame()" style="display: none;">Pausar</button>
                 <button id="resume-button" class="control-btn" onclick="resumeGame()" style="display: none;">Reanudar</button>
+                <div class="voyage-status" id="voyage-status" style="display: none;"></div>
                 <div class="tranche-timer" id="tranche-timer">01:00</div>
                 <div class="calendar" id="calendar">Año 0</div>
             </div>
@@ -145,12 +146,12 @@
                     <div class="progress-bar-container">
                         <div class="progress-bar" id="trip-progress-bar"></div>
                     </div>
-                    <p>Distancia: <span id="distance-traveled">0</span> / <span id="total-distance">10000</span> UA</p>
+                    <p>Distancia: <span id="distance-traveled">0</span> / <span id="total-distance">3000</span> UA</p>
                 </div>
                 <div class="trip-controls">
                     <h4>Control de Velocidad</h4>
-                    <label>Velocidad: <span id="speed-value">50</span>%</label>
-                    <input type="range" id="speed-control" min="10" max="100" value="50" oninput="updateSpeedDisplay()">
+                    <label>Velocidad: <span id="speed-value">65</span>%</label>
+                    <input type="range" id="speed-control" min="50" max="100" value="65" oninput="updateSpeedDisplay()">
                     <p class="speed-note">⚠️ Mayor velocidad = Mayor consumo de combustible</p>
                 </div>
                 <div class="fuel-info">

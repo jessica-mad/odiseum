@@ -33,12 +33,12 @@ Son el futuro de la humanidad.
 ───────────────────────────────────────────────────────────
 
 DESTINO: Nueva Tierra (Kepler-442b)
-DISTANCIA: 10,000 unidades astronómicas
+DISTANCIA: 3,000 unidades astronómicas
 TIEMPO ESTIMADO: 50 años
 
-Hace 100 años, la Primera Expedición estableció la Colonia 
-Esperanza en Nueva Tierra. Un planeta casi idéntico a la 
-Tierra original. Nos esperan. Esperan a los nuevos humanos 
+Hace 100 años, la Primera Expedición estableció la Colonia
+Esperanza en Nueva Tierra. Un planeta casi idéntico a la
+Tierra original. Nos esperan. Esperan a los nuevos humanos
 que traes en tus bodegas.
 
 ───────────────────────────────────────────────────────────
@@ -156,7 +156,12 @@ function initializeGame() {
     logbook.addEntry(`Comandante IA: ${playerName}`, LOG_TYPES.INFO);
     logbook.addEntry(`Destino: ${DESTINATION_NAME}`, LOG_TYPES.INFO);
     logbook.addEntry('Sistema de auto-gestión activado para tripulantes despiertos.', LOG_TYPES.INFO);
-    
+
+    // Configurar estado inicial de interacciones (antes de iniciar misión, solo velocidad)
+    if (typeof enableInteractionsBetweenTranches === 'function') {
+        enableInteractionsBetweenTranches();
+    }
+
     new Notification('Sistema inicializado. Listo para comenzar el viaje.', NOTIFICATION_TYPES.INFO);
 }
 
@@ -175,14 +180,65 @@ function initializeSortingDropdown() {
 }
 
 /* === CONTROL DEL JUEGO === */
+function isLastTranche() {
+    // Calcular distancia restante
+    const remainingDistance = TOTAL_MISSION_DISTANCE - distanceTraveled;
+
+    // Estimar distancia que se recorrerá en el próximo tramo
+    // (asumimos velocidad actual)
+    const currentSpeed = parseInt(document.getElementById('speed-control').value);
+    const distancePerTick = (currentSpeed / 100) * 10;
+    const distancePerTranche = distancePerTick * TICKS_PER_TRANCHE;
+
+    // Si la distancia restante es menor o igual a la distancia de un tramo, es el último
+    return remainingDistance <= distancePerTranche;
+}
+
+function updateStartButtonText() {
+    const startButton = document.getElementById('start-button');
+
+    if (!gameLoop.missionStarted) {
+        // Antes de iniciar la misión
+        startButton.textContent = 'Comenzar';
+    } else if (timeSystem.getCurrentTranche() === 0) {
+        // Misión iniciada, primer tramo
+        startButton.textContent = 'Iniciar tramo';
+    } else if (isLastTranche()) {
+        // Último tramo
+        startButton.textContent = 'Iniciar último tramo';
+    } else {
+        // Tramos siguientes
+        startButton.textContent = 'Iniciar siguiente tramo';
+    }
+}
+
+function updateVoyageStatus() {
+    const voyageStatus = document.getElementById('voyage-status');
+    const currentTranche = timeSystem.getCurrentTranche();
+
+    if (gameLoop.gameState === GAME_STATES.IN_TRANCHE) {
+        voyageStatus.style.display = 'block';
+        voyageStatus.textContent = `Estamos viajando tramo ${currentTranche}`;
+    } else if (gameLoop.gameState === GAME_STATES.TRANCHE_PAUSED) {
+        voyageStatus.style.display = 'block';
+        voyageStatus.textContent = `Estamos viajando tramo ${currentTranche}`;
+    } else if (gameLoop.missionStarted && currentTranche > 0) {
+        voyageStatus.style.display = 'block';
+        voyageStatus.textContent = `Hemos viajado el tramo ${currentTranche - 1}`;
+    } else {
+        voyageStatus.style.display = 'none';
+    }
+}
+
 function startGame() {
-    if (gameLoop.gameState !== GAME_STATES.PAUSED && 
+    if (gameLoop.gameState !== GAME_STATES.PAUSED &&
         gameLoop.gameState !== GAME_STATES.AWAITING_START) return;
-    
-    // Si es el primer inicio, mostrar bitácora introductoria
-    if (timeSystem.getCurrentTranche() === 0) {
+
+    // Si la misión NO ha sido iniciada y es el tramo 0, mostrar bitácora introductoria
+    if (!gameLoop.missionStarted && timeSystem.getCurrentTranche() === 0) {
         showIntroLogbook();
     } else {
+        // En cualquier otro caso, iniciar el tramo
         gameLoop.start();
     }
 }
@@ -210,9 +266,30 @@ function showIntroLogbook() {
 function startFirstTranche() {
     // Cerrar bitácora
     closeLogbookPopup();
-    
-    // Iniciar primer tramo
-    gameLoop.start();
+
+    // Marcar la misión como iniciada
+    gameLoop.missionStarted = true;
+
+    // Actualizar estado del juego a PAUSED (listo para iniciar tramo)
+    gameLoop.gameState = GAME_STATES.PAUSED;
+
+    // Actualizar texto del botón a "Iniciar tramo"
+    updateStartButtonText();
+
+    // Actualizar estado del viaje
+    updateVoyageStatus();
+
+    // Configurar interacciones entre tramos (solo velocidad habilitado)
+    if (typeof enableInteractionsBetweenTranches === 'function') {
+        enableInteractionsBetweenTranches();
+    }
+
+    // Mostrar el botón de inicio de tramo
+    document.getElementById('start-button').style.display = 'inline-block';
+
+    // Registro en bitácora
+    logbook.addEntry('Misión iniciada. Preparado para comenzar el primer tramo de viaje.', LOG_TYPES.SUCCESS);
+    new Notification('Misión iniciada. Presiona "Iniciar tramo" para comenzar el viaje.', NOTIFICATION_TYPES.INFO);
 }
 
 function pauseGame() {

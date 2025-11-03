@@ -422,3 +422,82 @@ function onSortChange() {
     const select = document.getElementById('crew-sort-select');
     sortingSystem.applySorting(select.value);
 }
+
+/* === CONTROL DE INTERACCIONES SEGÚN ESTADO DEL JUEGO === */
+function disableAllInteractions() {
+    // Deshabilitar todos los botones de gestión de necesidades
+    const manageButtons = document.querySelectorAll('.manage-btn');
+    manageButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    });
+
+    // Deshabilitar botón de cambiar estado
+    const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
+    if (wakeSleeepBtn) {
+        wakeSleeepBtn.disabled = true;
+        wakeSleeepBtn.style.opacity = '0.5';
+        wakeSleeepBtn.style.cursor = 'not-allowed';
+    }
+
+    // Deshabilitar slider de velocidad
+    const speedControl = document.getElementById('speed-control');
+    if (speedControl) {
+        speedControl.disabled = true;
+        speedControl.style.opacity = '0.5';
+        speedControl.style.cursor = 'not-allowed';
+    }
+}
+
+function enableInteractionsBetweenTranches() {
+    // Deshabilitar botones de gestión de necesidades (NO se pueden usar entre tramos)
+    const manageButtons = document.querySelectorAll('.manage-btn');
+    manageButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    });
+
+    // Deshabilitar botón de cambiar estado (NO se puede usar entre tramos)
+    const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
+    if (wakeSleeepBtn) {
+        wakeSleeepBtn.disabled = true;
+        wakeSleeepBtn.style.opacity = '0.5';
+        wakeSleeepBtn.style.cursor = 'not-allowed';
+    }
+
+    // HABILITAR slider de velocidad (SÍ se puede usar entre tramos)
+    const speedControl = document.getElementById('speed-control');
+    if (speedControl) {
+        speedControl.disabled = false;
+        speedControl.style.opacity = '1';
+        speedControl.style.cursor = 'pointer';
+    }
+}
+
+function enableAllInteractions() {
+    // Habilitar todos los botones de gestión de necesidades
+    const manageButtons = document.querySelectorAll('.manage-btn');
+    manageButtons.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    });
+
+    // Habilitar botón de cambiar estado
+    const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
+    if (wakeSleeepBtn) {
+        wakeSleeepBtn.disabled = false;
+        wakeSleeepBtn.style.opacity = '1';
+        wakeSleeepBtn.style.cursor = 'pointer';
+    }
+
+    // Deshabilitar slider de velocidad (NO se puede cambiar durante el tramo)
+    const speedControl = document.getElementById('speed-control');
+    if (speedControl) {
+        speedControl.disabled = true;
+        speedControl.style.opacity = '0.5';
+        speedControl.style.cursor = 'not-allowed';
+    }
+}

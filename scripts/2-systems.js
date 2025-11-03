@@ -41,39 +41,59 @@ class GameLoop {
     constructor() {
         this.gameState = GAME_STATES.PAUSED;
         this.gameLoopInterval = null;
+        this.timerInterval = null;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
-        this.currentSpeed = 50;
+        this.currentSpeed = 65;
+        this.missionStarted = false;
     }
-    
+
     start() {
-        if (this.gameState !== GAME_STATES.PAUSED) return;
-        
+        if (this.gameState !== GAME_STATES.PAUSED &&
+            this.gameState !== GAME_STATES.AWAITING_START) return;
+
         this.gameState = GAME_STATES.IN_TRANCHE;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
-        
+
         // Actualizar UI de botones
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
-        
-        // Bloquear slider de velocidad
-        document.getElementById('speed-control').disabled = true;
-        
-        // Obtener velocidad actual
+
+        // Actualizar estado del viaje
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
+        // Obtener velocidad actual (antes de deshabilitar el control)
         this.currentSpeed = parseInt(document.getElementById('speed-control').value);
-        
+
+        // Habilitar interacciones durante el tramo (deshabilita velocidad, habilita recursos)
+        if (typeof enableAllInteractions === 'function') {
+            enableAllInteractions();
+        }
+
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
-        
-        // Iniciar bucle de simulación
+
+        // Iniciar bucle de simulación (cada 2 segundos)
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+
+        // Iniciar actualización del temporizador visual (cada 1 segundo)
+        this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
     }
-    
-    tick() {
-        // Reducir tiempo del tramo
-        this.trancheTimeRemaining -= SIMULATION_TICK_RATE;
+
+    updateTimerTick() {
+        // Reducir tiempo del tramo (1 segundo)
+        this.trancheTimeRemaining -= 1000;
         this.updateTimerUI();
-        
+
+        // Verificar si el tramo terminó
+        if (this.trancheTimeRemaining <= 0) {
+            this.endTranche();
+        }
+    }
+
+    tick() {
         // Actualizar progreso del viaje
         this.updateTripProgress();
         
@@ -132,65 +152,103 @@ class GameLoop {
         
         // Actualizar popup de tripulante si está abierto
         this.updateCrewPopupIfOpen();
-        
-        // Verificar fin del tramo
-        if (this.trancheTimeRemaining <= 0) {
-            this.endTranche();
-        }
     }
-    
+
     endTranche() {
+        // Detener ambos intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+
         this.gameState = GAME_STATES.PAUSED;
-        
+
         // Reiniciar temporizador
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.updateTimerUI();
-        
+
+        // Avanzar tramo
+        timeSystem.advanceTranche();
+
         // Actualizar UI de botones
         document.getElementById('start-button').style.display = 'inline-block';
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'none';
-        
-        // Desbloquear slider de velocidad
-        document.getElementById('speed-control').disabled = false;
-        
-        // Avanzar tramo
-        timeSystem.advanceTranche();
-        
+
+        // Actualizar texto del botón según el tramo
+        if (typeof updateStartButtonText === 'function') {
+            updateStartButtonText();
+        }
+
+        // Actualizar estado del viaje
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
+        // Habilitar solo slider de velocidad entre tramos
+        if (typeof enableInteractionsBetweenTranches === 'function') {
+            enableInteractionsBetweenTranches();
+        }
+
         // Registrar en bitácora
         const aliveCrew = crewMembers.filter(c => c.isAlive).length;
         logbook.addEntry(`Tramo completado. Tripulantes vivos: ${aliveCrew}/5`, LOG_TYPES.SUCCESS);
-        
+
         new Notification('Tramo completado. Preparando para el siguiente tramo.', NOTIFICATION_TYPES.INFO);
-        
+
         // Mostrar mensajes cuánticos si hay
         messageSystem.showMessagesForTranche(timeSystem.getCurrentTranche());
     }
     
     pause() {
         if (this.gameState !== GAME_STATES.IN_TRANCHE) return;
-        
+
+        // Detener ambos intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
-        
+
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'inline-block';
-        
+
+        // Actualizar estado del viaje (sigue mostrando que estamos viajando)
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
+        // Deshabilitar TODAS las interacciones cuando se pausa
+        if (typeof disableAllInteractions === 'function') {
+            disableAllInteractions();
+        }
+
         logbook.addEntry('Tramo pausado', LOG_TYPES.INFO);
     }
-    
+
     resume() {
         if (this.gameState !== GAME_STATES.TRANCHE_PAUSED) return;
-        
+
         this.gameState = GAME_STATES.IN_TRANCHE;
+
+        // Reiniciar ambos intervalos
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
-        
+        this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
+
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
-        
+
+        // Actualizar estado del viaje
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
+        // Habilitar interacciones durante el tramo (deshabilita velocidad, habilita recursos)
+        if (typeof enableAllInteractions === 'function') {
+            enableAllInteractions();
+        }
+
         logbook.addEntry('Tramo reanudado', LOG_TYPES.INFO);
     }
     
@@ -202,37 +260,62 @@ class GameLoop {
     }
     
     updateTripProgress() {
-        const distancePerTick = (this.currentSpeed / 100) * 10;
+        const distancePerTick = (this.currentSpeed / 100) * 20;
         distanceTraveled += distancePerTick;
-        
+
         const fuelConsumption = (this.currentSpeed / 100) * RESOURCES_CONFIG.fuel.consumeRate;
         Fuel.consume(fuelConsumption);
         Fuel.updateResourceUI();
-        
+
+        // GAME OVER: Sin combustible
+        if (Fuel.quantity <= 0) {
+            this.gameOverNoFuel();
+            return;
+        }
+
         const progress = (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100;
         const progressBar = document.getElementById('trip-progress-bar');
         if (progressBar) {
             progressBar.style.width = `${Math.min(progress, 100)}%`;
         }
-        
+
         const distanceTraveledEl = document.getElementById('distance-traveled');
         const totalDistanceEl = document.getElementById('total-distance');
         if (distanceTraveledEl) distanceTraveledEl.textContent = Math.round(distanceTraveled);
         if (totalDistanceEl) totalDistanceEl.textContent = TOTAL_MISSION_DISTANCE;
-        
+
         if (distanceTraveled >= TOTAL_MISSION_DISTANCE) {
             this.endMission();
         }
     }
     
+    gameOverNoFuel() {
+        // Detener ambos intervalos
+        clearInterval(this.gameLoopInterval);
+        this.gameLoopInterval = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+
+        this.gameState = GAME_STATES.PAUSED;
+
+        logbook.addEntry('COMBUSTIBLE AGOTADO. La nave deriva sin control.', LOG_TYPES.CRITICAL);
+        logbook.addEntry('Los sistemas de soporte vital fallan. La tripulación no puede sobrevivir.', LOG_TYPES.DEATH);
+        logbook.addEntry('GAME OVER: La misión ha fracasado.', LOG_TYPES.CRITICAL);
+
+        new Notification('COMBUSTIBLE AGOTADO - GAME OVER', NOTIFICATION_TYPES.ALERT);
+
+        // Mostrar pantalla de Game Over (0 sobrevivientes)
+        victorySystem.showVictoryScreen(0);
+    }
+
     endMission() {
         clearInterval(this.gameLoopInterval);
         this.gameState = GAME_STATES.PAUSED;
-        
+
         const aliveCrew = crewMembers.filter(c => c.isAlive).length;
         logbook.addEntry(`¡MISIÓN COMPLETADA! Llegada a ${DESTINATION_NAME}.`, LOG_TYPES.SUCCESS);
         logbook.addEntry(`Tripulantes sobrevivientes: ${aliveCrew}/5`, LOG_TYPES.SUCCESS);
-        
+
         // Mostrar pantalla de victoria
         victorySystem.showVictoryScreen(aliveCrew);
     }

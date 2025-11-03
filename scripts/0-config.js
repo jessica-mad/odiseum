@@ -10,7 +10,7 @@ const YEARS_PER_TRANCHE = 5; // 5 años narrativos por tramo
 const YEARS_PER_TICK = YEARS_PER_TRANCHE / TICKS_PER_TRANCHE; // ~0.167 años por tick
 
 /* === CONSTANTES DE MISIÓN === */
-const TOTAL_MISSION_DISTANCE = 10000; // UA
+const TOTAL_MISSION_DISTANCE = 3000; // UA
 const DESTINATION_NAME = "Nueva Tierra (Kepler-442b)";
 const DESTINATION_SYSTEM = "Kepler-442";
 
@@ -125,7 +125,7 @@ const RESOURCES_CONFIG = {
     oxygen: { name: 'Oxígeno', initial: 400, max: 400, consumeRate: 0.5 },
     medicine: { name: 'Medicinas', initial: 200, max: 200, consumeRate: 5 },
     data: { name: 'Datos/Entret.', initial: 150, max: 150, consumeRate: 5 },
-    fuel: { name: 'Combustible', initial: 1000, max: 1000, consumeRate: 2 }
+    fuel: { name: 'Combustible', initial: 1000, max: 1000, consumeRate: 1.5 }
 };
 
 /* === CONFIGURACIÓN DE NECESIDADES === */
