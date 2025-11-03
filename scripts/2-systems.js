@@ -143,8 +143,7 @@ class GameLoop {
             typeof eventSystem !== 'undefined' &&
             eventSystem &&
             !this.eventTriggeredThisTranche &&
-            !eventSystem.activeEvent &&
-            Math.random() < 0.15
+            !eventSystem.activeEvent
         ) {
             eventSystem.tryTriggerEvent();
         }
@@ -389,14 +388,30 @@ class EventSystem {
 
         const prioritized = this.prioritizeEvents(candidates);
 
+        let selectedEvent = null;
+
         for (const event of prioritized) {
-            const probability = event.trigger?.probability ?? 1;
-            if (Math.random() <= probability) {
-                this.displayEvent(event);
-                if (this.pendingChainEvents.has(event.id)) {
-                    this.pendingChainEvents.delete(event.id);
-                }
+            if (!selectedEvent) {
+                selectedEvent = event;
+            }
+
+            const rawProbability = event.trigger?.probability;
+            const normalizedProbability = typeof rawProbability === 'number'
+                ? Math.min(Math.max(rawProbability, 0), 1)
+                : 1;
+
+            const guaranteedTrigger = normalizedProbability === 0;
+
+            if (guaranteedTrigger || Math.random() <= normalizedProbability) {
+                selectedEvent = event;
                 break;
+            }
+        }
+
+        if (selectedEvent) {
+            this.displayEvent(selectedEvent);
+            if (this.pendingChainEvents.has(selectedEvent.id)) {
+                this.pendingChainEvents.delete(selectedEvent.id);
             }
         }
     }
