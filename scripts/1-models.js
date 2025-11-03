@@ -36,6 +36,13 @@ class Crew {
         this.personalLog = [];
         this.lastInteraction = null;
         this.autoManaging = false;
+
+        // Sistema de eventos
+        this.eventFlags = [];
+        this.trauma = null;
+        this.emotionalState = 'stable';
+        this.skillModifier = 1.0;
+        this.eventMemories = [];
     }
     
     /* === SISTEMA DE EDAD === */

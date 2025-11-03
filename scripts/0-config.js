@@ -37,6 +37,7 @@ const LOG_TYPES = {
     WARNING: 'warning',
     CRITICAL: 'critical',
     EVENT: 'event',
+    EVENT_CRITICAL: 'event_critical',
     DEATH: 'death',
     AGE: 'age',
     MESSAGE: 'message'
@@ -49,6 +50,7 @@ const LOG_ICONS = {
     'warning': '⚠️',
     'critical': '🚨',
     'event': '📌',
+    'event_critical': '🛑',
     'death': '💀',
     'age': '👴',
     'message': '📡'
@@ -170,3 +172,6 @@ const DEATH_PROBABILITIES = {
     starvation: 0.05,
     health: 0.03
 };
+
+/* === SISTEMA DE EVENTOS (REFERENCIA GLOBAL) === */
+let eventSystem = null;

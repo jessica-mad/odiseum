@@ -45,6 +45,7 @@ class GameLoop {
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.currentSpeed = 65;
         this.missionStarted = false;
+        this.eventTriggeredThisTranche = false;
     }
 
     start() {
@@ -53,6 +54,7 @@ class GameLoop {
 
         this.gameState = GAME_STATES.IN_TRANCHE;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
+        this.eventTriggeredThisTranche = false;
 
         // Actualizar UI de botones
         document.getElementById('start-button').style.display = 'none';
@@ -100,7 +102,8 @@ class GameLoop {
         // Avanzar tiempo
         timeSystem.advanceTick();
         timeSystem.updateCalendarUI();
-        
+        currentYear = timeSystem.getCurrentYear();
+
         // Envejecer tripulantes despiertos
         crewMembers.forEach(crew => {
             crew.age(YEARS_PER_TICK);
@@ -134,7 +137,18 @@ class GameLoop {
             crew.updateConsoleCrewState();
             crew.updateMiniCard();
         });
-        
+
+        // Intentar disparar evento crítico
+        if (
+            typeof eventSystem !== 'undefined' &&
+            eventSystem &&
+            !this.eventTriggeredThisTranche &&
+            !eventSystem.activeEvent &&
+            Math.random() < 0.15
+        ) {
+            eventSystem.tryTriggerEvent();
+        }
+
         // Actualizar recursos
         this.updateAllResources();
         
@@ -162,6 +176,7 @@ class GameLoop {
         this.timerInterval = null;
 
         this.gameState = GAME_STATES.PAUSED;
+        this.eventTriggeredThisTranche = false;
 
         // Reiniciar temporizador
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
@@ -345,6 +360,445 @@ class GameLoop {
                 document.getElementById('rest-need-amount').textContent = Math.round(crewMember.restNeed);
             }
         }
+    }
+}
+
+/* === SISTEMA DE EVENTOS CRÍTICOS === */
+class EventSystem {
+    constructor() {
+        this.availableEvents = Array.isArray(EVENTS_POOL) ? [...EVENTS_POOL] : [];
+        this.triggeredEvents = new Set();
+        this.globalFlags = [];
+        this.activeEvent = null;
+        this.currentOverlay = null;
+        this.currentPopup = null;
+        this.pendingChainEvents = new Set();
+        this.resolvingEvent = false;
+    }
+
+    tryTriggerEvent() {
+        if (this.activeEvent) return;
+
+        const currentTranche = timeSystem.getCurrentTranche();
+        const candidates = this.availableEvents.filter(event => {
+            if (this.triggeredEvents.has(event.id)) return false;
+            return this.checkEventConditions(event, currentTranche);
+        });
+
+        if (candidates.length === 0) return;
+
+        const prioritized = this.prioritizeEvents(candidates);
+
+        for (const event of prioritized) {
+            const probability = event.trigger?.probability ?? 1;
+            if (Math.random() <= probability) {
+                this.displayEvent(event);
+                if (this.pendingChainEvents.has(event.id)) {
+                    this.pendingChainEvents.delete(event.id);
+                }
+                break;
+            }
+        }
+    }
+
+    prioritizeEvents(events) {
+        const chainEvents = [];
+        const flaggedEvents = [];
+        const generalEvents = [];
+
+        events.forEach(event => {
+            if (this.pendingChainEvents.has(event.id)) {
+                chainEvents.push(event);
+            } else if ((event.trigger?.requiredFlags || []).length > 0) {
+                flaggedEvents.push(event);
+            } else {
+                generalEvents.push(event);
+            }
+        });
+
+        return [...chainEvents, ...flaggedEvents, ...generalEvents];
+    }
+
+    checkEventConditions(event, currentTranche = timeSystem.getCurrentTranche()) {
+        const trigger = event.trigger || {};
+
+        if (typeof trigger.minTranche === 'number' && currentTranche < trigger.minTranche) return false;
+        if (typeof trigger.maxTranche === 'number' && currentTranche > trigger.maxTranche) return false;
+
+        if (!this.validateCrewState(trigger.requiredAlive, crew => crew.isAlive)) return false;
+        if (!this.validateCrewState(trigger.requiredAwake, crew => crew.isAlive && crew.state === 'Despierto')) return false;
+        if (!this.validateCrewState(trigger.requiredAsleep, crew => crew.isAlive && crew.state !== 'Despierto')) return false;
+
+        if (!this.validateResourceThreshold(trigger.resourceMin, (resource, value) => resource.quantity >= value)) return false;
+        if (!this.validateResourceThreshold(trigger.resourceMax, (resource, value) => resource.quantity <= value)) return false;
+
+        const accumulatedFlags = new Set(this.globalFlags);
+        if (Array.isArray(crewMembers)) {
+            crewMembers.forEach(crew => {
+                (crew.eventFlags || []).forEach(flag => accumulatedFlags.add(flag));
+            });
+        }
+
+        if (Array.isArray(trigger.requiredFlags)) {
+            const missing = trigger.requiredFlags.some(flag => !accumulatedFlags.has(flag));
+            if (missing) return false;
+        }
+
+        if (Array.isArray(trigger.blockedByFlags)) {
+            const blocked = trigger.blockedByFlags.some(flag => accumulatedFlags.has(flag));
+            if (blocked) return false;
+        }
+
+        return true;
+    }
+
+    validateCrewState(names, predicate) {
+        if (!Array.isArray(names) || names.length === 0) return true;
+        return names.every(name => {
+            const crew = this.getCrewByName(name);
+            return crew ? predicate(crew) : false;
+        });
+    }
+
+    validateResourceThreshold(config, comparator) {
+        if (!config || typeof config !== 'object') return true;
+        return Object.entries(config).every(([key, value]) => {
+            const resource = this.getResourceByKey(key);
+            if (!resource) return false;
+            return comparator(resource, value);
+        });
+    }
+
+    displayEvent(event) {
+        if (this.activeEvent) return;
+
+        this.activeEvent = event;
+        this.resolvingEvent = false;
+        gameLoop.eventTriggeredThisTranche = true;
+
+        if (gameLoop.gameState === GAME_STATES.IN_TRANCHE) {
+            gameLoop.pause();
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'event-overlay';
+        overlay.id = 'event-overlay';
+
+        const popup = document.createElement('div');
+        popup.className = 'event-popup';
+
+        const header = document.createElement('div');
+        header.className = 'event-header';
+        header.innerHTML = `
+            <div class="event-header-icon">${event.icon || '⚠️'}</div>
+            <div class="event-header-meta">
+                <h2>${event.title || ''}</h2>
+                <div class="event-header-details">${event.character || ''} • Año ${timeSystem.getCurrentYear().toFixed(1)}</div>
+            </div>
+        `;
+
+        const description = document.createElement('div');
+        description.className = 'event-description';
+        description.textContent = event.description || '';
+
+        const optionsContainer = document.createElement('div');
+        optionsContainer.className = 'event-options';
+
+        const optionAButton = this.createOptionButton(event, event.optionA);
+        const optionBButton = this.createOptionButton(event, event.optionB);
+
+        optionsContainer.appendChild(optionAButton);
+        optionsContainer.appendChild(optionBButton);
+
+        popup.appendChild(header);
+        popup.appendChild(description);
+        popup.appendChild(optionsContainer);
+
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+
+        this.currentOverlay = overlay;
+        this.currentPopup = popup;
+    }
+
+    createOptionButton(event, option) {
+        const button = document.createElement('button');
+        button.className = 'event-option-button';
+        button.textContent = option?.label || '';
+
+        const { ok, reason } = this.evaluateOptionRequirements(option);
+        if (!ok) {
+            button.classList.add('disabled');
+            if (reason) {
+                button.title = reason;
+            }
+        }
+
+        button.addEventListener('click', () => {
+            if (button.classList.contains('disabled') || this.resolvingEvent) return;
+            this.selectOption(event, option);
+        });
+
+        return button;
+    }
+
+    evaluateOptionRequirements(option) {
+        if (!option || !option.requires) return { ok: true, reason: '' };
+
+        const requires = option.requires;
+
+        if (Array.isArray(requires.crewAlive)) {
+            for (const name of requires.crewAlive) {
+                const crew = this.getCrewByName(name);
+                if (!crew || !crew.isAlive) {
+                    return { ok: false, reason: `${name} debe estar vivo` };
+                }
+            }
+        }
+
+        if (Array.isArray(requires.crewAwake)) {
+            for (const name of requires.crewAwake) {
+                const crew = this.getCrewByName(name);
+                if (!crew || crew.state !== 'Despierto') {
+                    return { ok: false, reason: `${name} debe estar despierto` };
+                }
+            }
+        }
+
+        if (Array.isArray(requires.crewAsleep)) {
+            for (const name of requires.crewAsleep) {
+                const crew = this.getCrewByName(name);
+                if (!crew || crew.state === 'Despierto') {
+                    return { ok: false, reason: `${name} debe estar encapsulado` };
+                }
+            }
+        }
+
+        if (requires.minResources && typeof requires.minResources === 'object') {
+            for (const [key, value] of Object.entries(requires.minResources)) {
+                const resource = this.getResourceByKey(key);
+                if (!resource || resource.quantity < value) {
+                    return { ok: false, reason: `Requiere ${key}: ${value}` };
+                }
+            }
+        }
+
+        return { ok: true, reason: '' };
+    }
+
+    selectOption(event, option) {
+        if (!option) return;
+        const { ok, reason } = this.evaluateOptionRequirements(option);
+        if (!ok) {
+            new Notification(reason || 'Requisitos no cumplidos', NOTIFICATION_TYPES.WARNING);
+            return;
+        }
+
+        this.resolvingEvent = true;
+
+        if (option.costs && typeof option.costs === 'object') {
+            Object.entries(option.costs).forEach(([key, value]) => {
+                const resource = this.getResourceByKey(key);
+                if (resource) {
+                    if (value >= 0) {
+                        resource.consume(value);
+                    } else {
+                        resource.quantity = Math.min(resource.limiteStock, resource.quantity + Math.abs(value));
+                    }
+                    resource.updateResourceUI();
+                }
+            });
+        }
+
+        if (Array.isArray(option.wakeUp)) {
+            option.wakeUp.forEach(name => {
+                const crew = this.getCrewByName(name);
+                if (crew && crew.isAlive) {
+                    crew.state = 'Despierto';
+                    crew.updateConsoleCrewState();
+                    crew.updateMiniCard();
+                }
+            });
+        }
+
+        const outcomeKey = option.result === 'good' ? 'good' : 'bad';
+        const outcome = event.outcomes?.[outcomeKey];
+
+        this.applyOutcome(event, outcome, outcomeKey);
+        this.showOutcome(event, outcome, outcomeKey);
+    }
+
+    applyOutcome(event, outcome, outcomeKey) {
+        if (!outcome) return;
+
+        if (outcome.flag && !this.globalFlags.includes(outcome.flag)) {
+            this.globalFlags.push(outcome.flag);
+        }
+
+        if (!this.globalFlags.includes(event.id)) {
+            this.globalFlags.push(event.id);
+        }
+
+        this.triggeredEvents.add(event.id);
+
+        if (Array.isArray(this.availableEvents)) {
+            this.availableEvents = this.availableEvents.filter(e => e.id !== event.id);
+        }
+
+        const affectedCrew = outcome.affectedCrew || {};
+        Object.entries(affectedCrew).forEach(([name, changes]) => {
+            const crew = this.getCrewByName(name);
+            if (!crew) return;
+
+            currentYear = timeSystem.getCurrentYear();
+
+            if (changes.hasOwnProperty('trauma')) {
+                crew.trauma = changes.trauma;
+            }
+
+            if (changes.emotionalState) {
+                crew.emotionalState = changes.emotionalState;
+            }
+
+            if (typeof changes.skillModifier === 'number') {
+                crew.skillModifier = changes.skillModifier;
+            }
+
+            if (changes.relationships && typeof changes.relationships === 'object') {
+                Object.entries(changes.relationships).forEach(([otherName, delta]) => {
+                    const otherCrew = this.getCrewByName(otherName);
+                    if (!otherCrew) return;
+                    const currentValue = crew.relationships?.[otherCrew.id] ?? 50;
+                    const newValue = Math.max(0, Math.min(100, currentValue + delta));
+                    crew.relationships[otherCrew.id] = newValue;
+                });
+            }
+
+            if (outcome.flag && !crew.eventFlags.includes(outcome.flag)) {
+                crew.eventFlags.push(outcome.flag);
+            }
+
+            if (!crew.eventFlags.includes(event.id)) {
+                crew.eventFlags.push(event.id);
+            }
+
+            crew.eventMemories.push({
+                eventId: event.id,
+                outcome: outcomeKey,
+                narrative: outcome.narrative || '',
+                year: timeSystem.getCurrentYear()
+            });
+
+            if (crew.eventMemories.length > 20) {
+                crew.eventMemories.shift();
+            }
+
+            crew.addToPersonalLog(`[EVENTO CRÍTICO] ${event.title || ''}: ${outcome.narrative || ''}`);
+            crew.updateConsoleCrewState();
+            crew.updateMiniCard();
+        });
+
+        if (outcome.chainEvent) {
+            this.pendingChainEvents.add(outcome.chainEvent);
+        }
+
+        const entryText = `${event.icon || '⚠️'} ${event.title || 'Evento crítico'} — ${outcome.narrative || ''}`.trim();
+        logbook.addEntry(entryText, LOG_TYPES.EVENT_CRITICAL);
+
+        if (typeof gameLoop.updateCrewPopupIfOpen === 'function') {
+            gameLoop.updateCrewPopupIfOpen();
+        }
+    }
+
+    showOutcome(event, outcome, outcomeKey) {
+        if (!this.currentPopup) return;
+
+        this.currentPopup.innerHTML = '';
+
+        const header = document.createElement('div');
+        header.className = 'event-header';
+        header.innerHTML = `
+            <div class="event-header-icon">${event.icon || '⚠️'}</div>
+            <div class="event-header-meta">
+                <h2>${event.title || ''}</h2>
+                <div class="event-header-details">${event.character || ''} • Año ${timeSystem.getCurrentYear().toFixed(1)}</div>
+            </div>
+        `;
+
+        const resultContainer = document.createElement('div');
+        const resultClass = outcomeKey === 'good' ? 'good' : 'bad';
+        resultContainer.className = `event-result ${resultClass}`;
+
+        const narrative = document.createElement('p');
+        narrative.textContent = outcome?.narrative || '';
+
+        const changesList = document.createElement('ul');
+        changesList.className = 'event-result-changes';
+
+        if (outcome && outcome.affectedCrew) {
+            Object.entries(outcome.affectedCrew).forEach(([name, changes]) => {
+                const item = document.createElement('li');
+                const parts = [];
+                if (changes.trauma) parts.push(`Trauma: ${changes.trauma}`);
+                if (changes.emotionalState) parts.push(`Estado: ${changes.emotionalState}`);
+                if (typeof changes.skillModifier === 'number') parts.push(`Modificador: ${changes.skillModifier}`);
+                if (changes.relationships) {
+                    Object.entries(changes.relationships).forEach(([otherName, delta]) => {
+                        const symbol = delta >= 0 ? '+' : '';
+                        parts.push(`Relación con ${otherName}: ${symbol}${delta}`);
+                    });
+                }
+                item.textContent = `${name}: ${parts.join(' | ')}`;
+                changesList.appendChild(item);
+            });
+        }
+
+        const continueButton = document.createElement('button');
+        continueButton.className = 'event-option-button';
+        continueButton.textContent = 'CONTINUAR';
+        continueButton.addEventListener('click', () => this.closeEvent());
+
+        resultContainer.appendChild(narrative);
+        if (changesList.childElementCount > 0) {
+            resultContainer.appendChild(changesList);
+        }
+        resultContainer.appendChild(continueButton);
+
+        this.currentPopup.appendChild(header);
+        this.currentPopup.appendChild(resultContainer);
+    }
+
+    closeEvent() {
+        if (this.currentOverlay && this.currentOverlay.parentNode) {
+            this.currentOverlay.parentNode.removeChild(this.currentOverlay);
+        }
+
+        this.activeEvent = null;
+        this.currentOverlay = null;
+        this.currentPopup = null;
+        this.resolvingEvent = false;
+
+        if (gameLoop.gameState === GAME_STATES.TRANCHE_PAUSED) {
+            gameLoop.resume();
+        }
+    }
+
+    getCrewByName(name) {
+        if (!Array.isArray(crewMembers)) return null;
+        return crewMembers.find(crew => crew.name === name) || null;
+    }
+
+    getResourceByKey(key) {
+        const map = {
+            energy: Energy,
+            food: Food,
+            water: Water,
+            oxygen: Oxygen,
+            medicine: Medicine,
+            data: Data,
+            fuel: Fuel
+        };
+        return map[key] || null;
     }
 }
 
@@ -609,6 +1063,24 @@ let gameLoop = new GameLoop();
 let messageSystem = new MessageSystem();
 let sortingSystem = new SortingSystem();
 let victorySystem = new VictorySystem();
+
+if (typeof window !== 'undefined') {
+    window.forceEvent = (eventId) => {
+        const event = Array.isArray(EVENTS_POOL)
+            ? EVENTS_POOL.find(e => e.id === eventId)
+            : null;
+        if (eventSystem && event && !eventSystem.activeEvent) {
+            eventSystem.displayEvent(event);
+        }
+    };
+
+    window.showFlags = () => {
+        console.log('Global:', eventSystem ? eventSystem.globalFlags : []);
+        if (Array.isArray(crewMembers)) {
+            crewMembers.forEach(crew => console.log(crew.name, crew.eventFlags));
+        }
+    };
+}
 
 // Variable global del estado del juego (para compatibilidad)
 let gameState = GAME_STATES.PAUSED;

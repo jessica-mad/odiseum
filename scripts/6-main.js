@@ -114,7 +114,10 @@ function initializeGame() {
     Medicine = new Resource('Medicinas', 200, 200, 'medicine-meter', 'medicine-amount');
     Data = new Resource('Datos/Entret.', 150, 150, 'data-meter', 'data-amount');
     Fuel = new Resource('Combustible', 1000, 1000, 'fuel-meter', 'fuel-amount');
-    
+
+    // Inicializar sistema de eventos
+    eventSystem = new EventSystem();
+
     // Crear tripulación desde datos
     crewMembers = createCrewFromData();
     
