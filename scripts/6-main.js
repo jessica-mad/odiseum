@@ -175,6 +175,20 @@ function initializeSortingDropdown() {
 }
 
 /* === CONTROL DEL JUEGO === */
+function isLastTranche() {
+    // Calcular distancia restante
+    const remainingDistance = TOTAL_MISSION_DISTANCE - distanceTraveled;
+
+    // Estimar distancia que se recorrerá en el próximo tramo
+    // (asumimos velocidad actual)
+    const currentSpeed = parseInt(document.getElementById('speed-control').value);
+    const distancePerTick = (currentSpeed / 100) * 10;
+    const distancePerTranche = distancePerTick * TICKS_PER_TRANCHE;
+
+    // Si la distancia restante es menor o igual a la distancia de un tramo, es el último
+    return remainingDistance <= distancePerTranche;
+}
+
 function updateStartButtonText() {
     const startButton = document.getElementById('start-button');
 
@@ -184,9 +198,30 @@ function updateStartButtonText() {
     } else if (timeSystem.getCurrentTranche() === 0) {
         // Misión iniciada, primer tramo
         startButton.textContent = 'Iniciar tramo';
+    } else if (isLastTranche()) {
+        // Último tramo
+        startButton.textContent = 'Iniciar último tramo';
     } else {
         // Tramos siguientes
-        startButton.textContent = 'Avanzar tramo';
+        startButton.textContent = 'Iniciar siguiente tramo';
+    }
+}
+
+function updateVoyageStatus() {
+    const voyageStatus = document.getElementById('voyage-status');
+    const currentTranche = timeSystem.getCurrentTranche();
+
+    if (gameLoop.gameState === GAME_STATES.IN_TRANCHE) {
+        voyageStatus.style.display = 'block';
+        voyageStatus.textContent = `Estamos viajando tramo ${currentTranche}`;
+    } else if (gameLoop.gameState === GAME_STATES.TRANCHE_PAUSED) {
+        voyageStatus.style.display = 'block';
+        voyageStatus.textContent = `Estamos viajando tramo ${currentTranche}`;
+    } else if (gameLoop.missionStarted && currentTranche > 0) {
+        voyageStatus.style.display = 'block';
+        voyageStatus.textContent = `Hemos viajado el tramo ${currentTranche - 1}`;
+    } else {
+        voyageStatus.style.display = 'none';
     }
 }
 
@@ -194,10 +229,11 @@ function startGame() {
     if (gameLoop.gameState !== GAME_STATES.PAUSED &&
         gameLoop.gameState !== GAME_STATES.AWAITING_START) return;
 
-    // Si es el primer inicio, mostrar bitácora introductoria
-    if (timeSystem.getCurrentTranche() === 0) {
+    // Si la misión NO ha sido iniciada y es el tramo 0, mostrar bitácora introductoria
+    if (!gameLoop.missionStarted && timeSystem.getCurrentTranche() === 0) {
         showIntroLogbook();
     } else {
+        // En cualquier otro caso, iniciar el tramo
         gameLoop.start();
     }
 }
@@ -234,6 +270,9 @@ function startFirstTranche() {
 
     // Actualizar texto del botón a "Iniciar tramo"
     updateStartButtonText();
+
+    // Actualizar estado del viaje
+    updateVoyageStatus();
 
     // Mostrar el botón de inicio de tramo
     document.getElementById('start-button').style.display = 'inline-block';

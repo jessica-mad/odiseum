@@ -58,6 +58,11 @@ class GameLoop {
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
 
+        // Actualizar estado del viaje
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
         // Bloquear slider de velocidad
         document.getElementById('speed-control').disabled = true;
 
@@ -163,6 +168,11 @@ class GameLoop {
             updateStartButtonText();
         }
 
+        // Actualizar estado del viaje
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
         // Desbloquear slider de velocidad
         document.getElementById('speed-control').disabled = false;
 
@@ -178,26 +188,36 @@ class GameLoop {
     
     pause() {
         if (this.gameState !== GAME_STATES.IN_TRANCHE) return;
-        
+
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
-        
+
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'inline-block';
-        
+
+        // Actualizar estado del viaje (sigue mostrando que estamos viajando)
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
         logbook.addEntry('Tramo pausado', LOG_TYPES.INFO);
     }
-    
+
     resume() {
         if (this.gameState !== GAME_STATES.TRANCHE_PAUSED) return;
-        
+
         this.gameState = GAME_STATES.IN_TRANCHE;
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
-        
+
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
-        
+
+        // Actualizar estado del viaje
+        if (typeof updateVoyageStatus === 'function') {
+            updateVoyageStatus();
+        }
+
         logbook.addEntry('Tramo reanudado', LOG_TYPES.INFO);
     }
     
