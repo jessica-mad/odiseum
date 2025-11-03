@@ -175,10 +175,19 @@ function initializeSortingDropdown() {
 }
 
 /* === CONTROL DEL JUEGO === */
+function updateStartButtonText() {
+    const startButton = document.getElementById('start-button');
+    if (timeSystem.getCurrentTranche() === 0) {
+        startButton.textContent = 'Comenzar';
+    } else {
+        startButton.textContent = 'Avanzar tramo';
+    }
+}
+
 function startGame() {
-    if (gameLoop.gameState !== GAME_STATES.PAUSED && 
+    if (gameLoop.gameState !== GAME_STATES.PAUSED &&
         gameLoop.gameState !== GAME_STATES.AWAITING_START) return;
-    
+
     // Si es el primer inicio, mostrar bitácora introductoria
     if (timeSystem.getCurrentTranche() === 0) {
         showIntroLogbook();
