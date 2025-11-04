@@ -337,6 +337,9 @@ class Crew {
         
         card.onclick = () => openCrewManagementPopup(this.name);
         
+        // Ocultar preview info y botones para tripulantes despiertos (se auto-gestionan)
+        const isAwake = this.state === 'Despierto';
+
         card.innerHTML = `
             <div class="crew-card-header">
                 <span class="crew-card-name">${this.name}</span>
@@ -345,17 +348,17 @@ class Crew {
             <div class="crew-card-age" id="mini-age-${this.id}">
                 ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
             </div>
-            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
-                ${this.state === 'Despierto' ? '👁️ DESPIERTO' : '💤 ENCAPSULADO'}
+            <div class="crew-card-state ${isAwake ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
+                ${isAwake ? '👁️ DESPIERTO' : '💤 ENCAPSULADO'}
             </div>
-            <div class="crew-card-needs" id="mini-needs-${this.id}">
+            <div class="crew-card-needs" id="mini-needs-${this.id}" style="${isAwake ? 'display: none;' : ''}">
                 ${this.generateNeedBars()}
             </div>
-            <div class="crew-card-actions">
+            <div class="crew-card-actions" style="${isAwake ? 'display: none;' : ''}">
                 <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'food')">🍕</button>
                 <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'health')">❤️</button>
                 <button class="crew-card-btn" onclick="event.stopPropagation(); updateWakeSleep('${this.name}')">
-                    ${this.state === 'Despierto' ? '💤' : '👁️'}
+                    ${isAwake ? '💤' : '👁️'}
                 </button>
             </div>
             <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: none;"></div>
@@ -455,8 +458,16 @@ class Crew {
         const needsContainer = document.getElementById(`mini-needs-${this.id}`);
         if (needsContainer) {
             needsContainer.innerHTML = this.generateNeedBars();
+            // Ocultar necesidades si está despierto
+            needsContainer.style.display = this.state === 'Despierto' ? 'none' : '';
         }
-        
+
+        // Ocultar botones de acciones si está despierto
+        const actionsContainer = card.querySelector('.crew-card-actions');
+        if (actionsContainer) {
+            actionsContainer.style.display = this.state === 'Despierto' ? 'none' : '';
+        }
+
         const autoIndicator = document.getElementById(`auto-manage-${this.id}`);
         if (autoIndicator) {
             autoIndicator.style.display = this.autoManaging ? 'block' : 'none';

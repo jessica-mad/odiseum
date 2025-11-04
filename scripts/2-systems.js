@@ -49,7 +49,6 @@ class AwakeBenefitSystem {
         this.isNavigatorAwake = false;
         this.isChefAwake = false;
         this.awakeCrewCount = 0;
-        this.nextMedicalIndex = 0;
         this.currentPatientName = null;
     }
 
@@ -66,7 +65,6 @@ class AwakeBenefitSystem {
         this.isChefAwake = awakeCrew.some(crew => crew.role === 'cook');
 
         if (!this.isDoctorAwake) {
-            this.nextMedicalIndex = 0;
             this.currentPatientName = null;
             const doctor = crewMembers.find(crew => crew.role === 'doctor');
             if (doctor) {
@@ -85,7 +83,6 @@ class AwakeBenefitSystem {
         const patients = crewMembers.filter(crew => crew.isAlive && crew.healthNeed < 100);
 
         if (patients.length === 0) {
-            this.nextMedicalIndex = 0;
             this.currentPatientName = null;
             const doctor = crewMembers.find(crew => crew.role === 'doctor');
             if (doctor) {
@@ -95,25 +92,33 @@ class AwakeBenefitSystem {
             return;
         }
 
-        if (this.nextMedicalIndex >= patients.length) {
-            this.nextMedicalIndex = 0;
+        const healRate = this.isCaptainAwake ? 1.2 : 1.0;
+
+        // Verificar si el paciente actual todavía necesita atención
+        let currentPatient = null;
+        if (this.currentPatientName) {
+            currentPatient = patients.find(p => p.name === this.currentPatientName);
         }
 
-        const healRate = this.isCaptainAwake ? 1.2 : 1.0;
-        const patient = patients[this.nextMedicalIndex];
+        // Si no hay paciente actual o ya está curado, buscar al más enfermo
+        if (!currentPatient) {
+            // Encontrar al paciente con menor healthNeed (más enfermo)
+            currentPatient = patients.reduce((mostSick, patient) =>
+                patient.healthNeed < mostSick.healthNeed ? patient : mostSick
+            );
+        }
 
-        patient.healthNeed = Math.min(100, patient.healthNeed + healRate);
-        patient.updateConsoleCrewState();
-        patient.updateMiniCard();
+        // Curar al paciente seleccionado
+        currentPatient.healthNeed = Math.min(100, currentPatient.healthNeed + healRate);
+        currentPatient.updateConsoleCrewState();
+        currentPatient.updateMiniCard();
 
-        this.currentPatientName = patient.name;
+        this.currentPatientName = currentPatient.name;
         const doctor = crewMembers.find(crew => crew.role === 'doctor');
         if (doctor) {
-            doctor.currentActivity = `Atendiendo a ${patient.name}`;
+            doctor.currentActivity = `Atendiendo a ${currentPatient.name}`;
             doctor.updateMiniCard();
         }
-
-        this.nextMedicalIndex = (this.nextMedicalIndex + 1) % patients.length;
 
         if (typeof gameLoop !== 'undefined' && gameLoop) {
             gameLoop.updateCrewPopupIfOpen();
