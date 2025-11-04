@@ -549,8 +549,11 @@ function enableInteractionsBetweenTranches() {
 }
 
 function enableAllInteractions() {
+    console.log('[DEBUG enableAllInteractions] Iniciando...');
+
     // Habilitar todos los botones de gestión de necesidades
     const manageButtons = document.querySelectorAll('.manage-btn');
+    console.log('[DEBUG enableAllInteractions] Botones de gestión encontrados:', manageButtons.length);
     if (manageButtons && manageButtons.length > 0) {
         manageButtons.forEach(btn => {
             if (btn) {
@@ -566,6 +569,7 @@ function enableAllInteractions() {
 
     // Habilitar botón de cambiar estado
     const wakeSleeepBtn = document.getElementById('wake-sleep-btn');
+    console.log('[DEBUG enableAllInteractions] wake-sleep-btn:', wakeSleeepBtn ? 'encontrado' : 'NO ENCONTRADO');
     if (wakeSleeepBtn) {
         wakeSleeepBtn.disabled = false;
         wakeSleeepBtn.style.opacity = '1';
@@ -575,6 +579,7 @@ function enableAllInteractions() {
 
     // Deshabilitar slider de velocidad (NO se puede cambiar durante el tramo)
     const speedControl = document.getElementById('speed-control');
+    console.log('[DEBUG enableAllInteractions] Deshabilitando speed-control:', speedControl ? 'encontrado' : 'NO ENCONTRADO');
     if (speedControl) {
         speedControl.disabled = true;
         speedControl.style.opacity = '0.5';
@@ -584,12 +589,15 @@ function enableAllInteractions() {
 
     // Deshabilitar slider de navegación durante tramo
     const navSpeedSlider = document.getElementById('nav-speed-slider');
+    console.log('[DEBUG enableAllInteractions] Deshabilitando nav-speed-slider:', navSpeedSlider ? 'encontrado' : 'NO ENCONTRADO');
     if (navSpeedSlider) {
         navSpeedSlider.disabled = true;
         navSpeedSlider.style.opacity = '0.5';
         navSpeedSlider.style.cursor = 'not-allowed';
         navSpeedSlider.style.pointerEvents = 'none';
     }
+
+    console.log('[DEBUG enableAllInteractions] COMPLETADO');
 }
 
 function setCrewCardButtonsState(disabled) {

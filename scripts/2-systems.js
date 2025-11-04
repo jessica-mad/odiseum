@@ -246,14 +246,22 @@ class GameLoop {
     }
 
     start() {
-        if (this.gameState !== GAME_STATES.PAUSED &&
-            this.gameState !== GAME_STATES.AWAITING_START) return;
+        console.log('[DEBUG GameLoop.start] Estado actual:', this.gameState);
+        console.log('[DEBUG GameLoop.start] Estados válidos:', GAME_STATES.PAUSED, GAME_STATES.AWAITING_START);
 
+        if (this.gameState !== GAME_STATES.PAUSED &&
+            this.gameState !== GAME_STATES.AWAITING_START) {
+            console.log('[DEBUG GameLoop.start] ABORTADO - Estado no válido');
+            return;
+        }
+
+        console.log('[DEBUG GameLoop.start] Cambiando estado a IN_TRANCHE');
         this.gameState = GAME_STATES.IN_TRANCHE;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.eventTriggeredThisTranche = false;
 
         // Actualizar UI de botones
+        console.log('[DEBUG GameLoop.start] Actualizando UI de botones');
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
@@ -265,8 +273,10 @@ class GameLoop {
 
         // Obtener velocidad actual (antes de deshabilitar el control)
         this.currentSpeed = parseInt(document.getElementById('speed-control').value);
+        console.log('[DEBUG GameLoop.start] Velocidad:', this.currentSpeed);
 
         // Habilitar interacciones durante el tramo (deshabilita velocidad, habilita recursos)
+        console.log('[DEBUG GameLoop.start] Habilitando interacciones');
         if (typeof enableAllInteractions === 'function') {
             enableAllInteractions();
         }
@@ -275,10 +285,14 @@ class GameLoop {
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
 
         // Iniciar bucle de simulación (cada 2 segundos)
+        console.log('[DEBUG GameLoop.start] Iniciando bucle de simulación');
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
 
         // Iniciar actualización del temporizador visual (cada 1 segundo)
+        console.log('[DEBUG GameLoop.start] Iniciando temporizador');
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
+
+        console.log('[DEBUG GameLoop.start] COMPLETADO');
     }
 
     updateTimerTick() {
