@@ -282,6 +282,13 @@ function updateStartButtonText() {
 
 function updateVoyageStatus() {
     const voyageStatus = document.getElementById('voyage-status');
+
+    // Si el elemento no existe, simplemente retornar sin hacer nada
+    if (!voyageStatus) {
+        console.log('[updateVoyageStatus] Elemento voyage-status no encontrado, ignorando...');
+        return;
+    }
+
     const currentTranche = timeSystem.getCurrentTranche();
 
     if (gameLoop.gameState === GAME_STATES.IN_TRANCHE) {
@@ -299,24 +306,14 @@ function updateVoyageStatus() {
 }
 
 function startGame() {
-    console.log('[DEBUG startGame] Estado actual:', gameLoop.gameState);
-    console.log('[DEBUG startGame] Estados válidos:', GAME_STATES.PAUSED, GAME_STATES.AWAITING_START);
-    console.log('[DEBUG startGame] Misión iniciada:', gameLoop.missionStarted);
-    console.log('[DEBUG startGame] Tramo actual:', timeSystem.getCurrentTranche());
-
     if (gameLoop.gameState !== GAME_STATES.PAUSED &&
-        gameLoop.gameState !== GAME_STATES.AWAITING_START) {
-        console.log('[DEBUG startGame] ABORTADO - Estado no es válido');
-        return;
-    }
+        gameLoop.gameState !== GAME_STATES.AWAITING_START) return;
 
     // Si la misión NO ha sido iniciada y es el tramo 0, mostrar bitácora introductoria
     if (!gameLoop.missionStarted && timeSystem.getCurrentTranche() === 0) {
-        console.log('[DEBUG startGame] Mostrando bitácora introductoria');
         showIntroLogbook();
     } else {
         // En cualquier otro caso, iniciar el tramo
-        console.log('[DEBUG startGame] Iniciando tramo...');
         gameLoop.start();
     }
 }
