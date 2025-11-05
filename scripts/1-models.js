@@ -390,25 +390,10 @@ class Crew {
             return card;
         }
 
-        // Ocultar preview de tripulantes despiertos - se gestionan solos
-        if (this.state === 'Despierto') {
-            card.style.display = 'none';
-            return card;
-        }
-
         card.onclick = () => openCrewManagementPopup(this.name);
 
-        card.innerHTML = `
-            <div class="crew-card-header">
-                <span class="crew-card-name">${this.name}</span>
-                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
-            </div>
-            <div class="crew-card-age" id="mini-age-${this.id}">
-                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
-            </div>
-            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
-                ${this.state === 'Despierto' ? '👁️ DESPIERTO' : '💤 ENCAPSULADO'}
-            </div>
+        // Si está despierto: mostrar solo info básica, sin necesidades ni controles
+        const needsAndActionsHTML = this.state === 'Despierto' ? '' : `
             <div class="crew-card-needs" id="mini-needs-${this.id}">
                 ${this.generateNeedBars()}
             </div>
@@ -419,6 +404,20 @@ class Crew {
                     ${this.state === 'Despierto' ? '💤' : '👁️'}
                 </button>
             </div>
+        `;
+
+        card.innerHTML = `
+            <div class="crew-card-header">
+                <span class="crew-card-name">${this.name}</span>
+                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
+            </div>
+            <div class="crew-card-age" id="mini-age-${this.id}">
+                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
+            </div>
+            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
+                ${this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO'}
+            </div>
+            ${needsAndActionsHTML}
             <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: none;"></div>
             <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: none;">
                 🤖 Auto-gestionando
@@ -478,7 +477,6 @@ class Crew {
         if (!card) return;
 
         if (!this.isAlive) {
-            card.style.display = 'block';
             card.className = 'crew-mini-card dead';
             card.onclick = null;
             card.innerHTML = `
@@ -491,14 +489,6 @@ class Crew {
             return;
         }
 
-        // Ocultar preview de tripulantes despiertos - se gestionan solos
-        if (this.state === 'Despierto') {
-            card.style.display = 'none';
-            return;
-        }
-
-        // Mostrar la card si está encapsulado
-        card.style.display = 'block';
         card.className = `crew-mini-card ${this.getOverallStatus()}`;
 
         const statusElement = document.getElementById(`mini-status-${this.id}`);
@@ -518,7 +508,7 @@ class Crew {
 
         const stateElement = document.getElementById(`mini-state-${this.id}`);
         if (stateElement) {
-            stateElement.textContent = this.state === 'Despierto' ? '👁️ DESPIERTO' : '💤 ENCAPSULADO';
+            stateElement.textContent = this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO';
             stateElement.className = `crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}`;
         }
 

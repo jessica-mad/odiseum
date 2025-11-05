@@ -413,6 +413,17 @@ function updateWakeSleepFromPopup() {
     }
 }
 
+/* === SISTEMA DE SONIDO === */
+function playClickSound() {
+    try {
+        const audio = new Audio('assets/click-sound.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(err => console.log('Audio playback failed:', err));
+    } catch (err) {
+        console.log('Audio error:', err);
+    }
+}
+
 /* === GESTIÓN RÁPIDA DESDE MINI-CARDS === */
 function quickManage(crewName, type) {
     if (!crewControlsAvailable()) return;
@@ -422,6 +433,7 @@ function quickManage(crewName, type) {
 
     if (type === 'food') {
         if (Food.quantity >= 10) {
+            playClickSound();
             Food.consume(10);
             crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
             Food.updateResourceUI();
@@ -434,6 +446,7 @@ function quickManage(crewName, type) {
         }
     } else if (type === 'health') {
         if (Medicine.quantity >= 5) {
+            playClickSound();
             Medicine.consume(5);
             crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
             Medicine.updateResourceUI();
