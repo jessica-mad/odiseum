@@ -682,3 +682,149 @@
         left: 20px;
     }
 }
+
+/* === CREW CARDS MEJORADAS === */
+.crew-mini-card {
+    cursor: move;
+    transition: all 0.2s ease;
+}
+
+.crew-mini-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.crew-column-content.drag-over {
+    background: rgba(0, 255, 65, 0.1);
+    border: 2px dashed var(--color-terminal-green);
+}
+
+/* Card de operativo */
+.crew-card-benefit-mini {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    background: rgba(0, 255, 65, 0.1);
+    padding: 4px 6px;
+    margin: 4px 0;
+    border-left: 2px solid var(--color-terminal-green);
+}
+
+.crew-card-location {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    padding: 4px 6px;
+    margin: 4px 0;
+}
+
+.crew-card-thought {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    padding: 6px;
+    margin-top: 4px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid var(--color-terminal-green-dark);
+    overflow: hidden;
+}
+
+.thought-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 15s linear infinite;
+    padding-left: 100%;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Necesidades avanzadas */
+.crew-card-needs-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.need-bar-advanced {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.need-bar-icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.need-bar-icon-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.need-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    position: relative;
+    overflow: visible;
+}
+
+.need-bar-fill-advanced {
+    height: 100%;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px currentColor;
+    position: relative;
+}
+
+.need-bar-fill-advanced.good {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-green);
+}
+
+.need-bar-fill-advanced.warning {
+    background: #ffaa00;
+    color: #ffaa00;
+}
+
+.need-bar-fill-advanced.critical {
+    background: #ff4444;
+    color: #ff4444;
+    animation: pulse-critical-bar 1s infinite;
+}
+
+@keyframes pulse-critical-bar {
+    0%, 100% {
+        box-shadow: 0 0 10px currentColor;
+    }
+    50% {
+        box-shadow: 0 0 20px currentColor, inset 0 0 10px currentColor;
+    }
+}
+
+.need-bar-percent {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    min-width: 40px;
+    text-align: right;
+}

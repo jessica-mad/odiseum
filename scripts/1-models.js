@@ -378,6 +378,17 @@ class Crew {
         card.className = `crew-mini-card ${this.getOverallStatus()}`;
         card.id = `mini-card-${this.id}`;
 
+        // Hacer la card arrastrable
+        card.draggable = true;
+        card.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', this.name);
+            e.dataTransfer.effectAllowed = 'move';
+            card.classList.add('dragging');
+        };
+        card.ondragend = (e) => {
+            card.classList.remove('dragging');
+        };
+
         if (!this.isAlive) {
             card.onclick = null;
             card.innerHTML = `
@@ -392,39 +403,140 @@ class Crew {
 
         card.onclick = () => openCrewManagementPopup(this.name);
 
-        // Si está despierto: mostrar solo info básica, sin necesidades ni controles
-        const needsAndActionsHTML = this.state === 'Despierto' ? '' : `
-            <div class="crew-card-needs" id="mini-needs-${this.id}">
-                ${this.generateNeedBars()}
-            </div>
-            <div class="crew-card-actions">
-                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'food')">🍕</button>
-                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'health')">❤️</button>
-                <button class="crew-card-btn" onclick="event.stopPropagation(); updateWakeSleep('${this.name}')">
-                    ${this.state === 'Despierto' ? '💤' : '👁️'}
-                </button>
-            </div>
-        `;
+        // OPERATIVO: mostrar beneficio, ubicación y pensamiento
+        if (this.state === 'Despierto') {
+            const benefit = this.getAwakeBenefitDescription();
+            const location = this.getCurrentLocation();
+            const thought = this.getCurrentThought();
 
-        card.innerHTML = `
-            <div class="crew-card-header">
-                <span class="crew-card-name">${this.name}</span>
-                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
-            </div>
-            <div class="crew-card-age" id="mini-age-${this.id}">
-                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
-            </div>
-            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
-                ${this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO'}
-            </div>
-            ${needsAndActionsHTML}
-            <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: none;"></div>
-            <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: none;">
-                🤖 Auto-gestionando
-            </div>
-        `;
+            card.innerHTML = `
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
+                </div>
+                ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                <div class="crew-card-location">
+                    📍 ${location}
+                </div>
+                <div class="crew-card-thought">
+                    <div class="thought-marquee">${thought}</div>
+                </div>
+            `;
+        } else {
+            // CRIOSTASIS: mostrar necesidades con barras
+            card.innerHTML = `
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
+                </div>
+                <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">
+                    ${this.generateAdvancedNeedBars()}
+                </div>
+            `;
+        }
 
         return card;
+    }
+
+    getCurrentLocation() {
+        // Obtener la ubicación actual del tripulante en el mapa
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            const location = shipMapSystem.getCrewLocation(this.id);
+            if (location) {
+                // Si está en un pasillo entre secciones
+                if (location.type === 'moving') {
+                    return 'Desplazándose...';
+                }
+                return location.name || 'Ubicación desconocida';
+            }
+        }
+        // Ubicación por defecto según especialidad
+        const defaultLocations = {
+            'Navegante': 'Puente de Mando',
+            'Ingeniera': 'Sala de Máquinas',
+            'Doctora': 'Enfermería',
+            'Botánica': 'Invernadero',
+            'Geóloga': 'Laboratorio'
+        };
+        return defaultLocations[this.specialization] || 'Nave';
+    }
+
+    getCurrentThought() {
+        // Pensamientos según necesidades y estado
+        if (this.foodNeed < 30) {
+            return '💭 Tengo tanta hambre... Necesito comer algo pronto.';
+        }
+        if (this.healthNeed < 30) {
+            return '💭 No me siento bien... Necesito atención médica.';
+        }
+        if (this.wasteNeed > 80) {
+            return '💭 Necesito ir al baño urgentemente...';
+        }
+
+        // Pensamientos aleatorios según especialidad
+        const thoughts = {
+            'Navegante': [
+                '💭 Los cálculos de trayectoria están perfectos hoy.',
+                '💭 Me pregunto qué encontraremos en la Nueva Tierra.',
+                '💭 Mantener el rumbo es mi responsabilidad.'
+            ],
+            'Ingeniera': [
+                '💭 Los sistemas están funcionando óptimamente.',
+                '💭 Debería revisar los conductos de ventilación.',
+                '💭 Esta nave es una maravilla de ingeniería.'
+            ],
+            'Doctora': [
+                '💭 Todos parecen estar en buena salud.',
+                '💭 Espero no tener que usar el quirófano.',
+                '💭 La medicina preventiva es clave en el espacio.'
+            ],
+            'Botánica': [
+                '💭 Las plantas están creciendo bien este ciclo.',
+                '💭 El oxígeno generado es suficiente.',
+                '💭 Me encanta cuidar del invernadero.'
+            ],
+            'Geóloga': [
+                '💭 Los análisis de muestras son fascinantes.',
+                '💭 Qué minerales tendrá la Nueva Tierra...',
+                '💭 La geología espacial nunca deja de sorprenderme.'
+            ]
+        };
+
+        const crewThoughts = thoughts[this.specialization] || ['💭 Todo va bien.'];
+        return crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
+    }
+
+    generateAdvancedNeedBars() {
+        const needs = [
+            { icon: '🍕', label: 'COMIDA', value: this.foodNeed, max: 100 },
+            { icon: '❤️', label: 'SALUD', value: this.healthNeed, max: 100 },
+            { icon: '🚽', label: 'HIGIENE', value: this.wasteNeed, max: 100, inverse: true }
+        ];
+
+        return needs.map(need => {
+            const percentage = (need.value / need.max) * 100;
+            let colorClass = 'good';
+
+            if (need.inverse) {
+                if (percentage > 80) colorClass = 'critical';
+                else if (percentage > 60) colorClass = 'warning';
+            } else {
+                if (percentage < 20) colorClass = 'critical';
+                else if (percentage < 40) colorClass = 'warning';
+            }
+
+            return `
+                <div class="need-bar-advanced">
+                    <button class="need-bar-icon-btn" onclick="event.stopPropagation(); quickManage('${this.name}', '${need.label.toLowerCase()}')">
+                        ${need.icon}
+                    </button>
+                    <div class="need-bar-track">
+                        <div class="need-bar-fill-advanced ${colorClass}" style="width: ${percentage}%"></div>
+                    </div>
+                    <span class="need-bar-percent">${Math.round(percentage)}%</span>
+                </div>
+            `;
+        }).join('');
     }
 
     getAwakeBenefitDescription() {

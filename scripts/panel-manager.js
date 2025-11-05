@@ -16,7 +16,7 @@ class PanelManager {
             crew: null,
             control: null
         };
-        this.currentOpenPanel = null;
+        this.openPanels = new Set(); // Usar Set para múltiples paneles abiertos
         this.isAnimating = false;
         this.controlPanelUpdateInterval = null;
     }
@@ -101,18 +101,25 @@ class PanelManager {
      */
     setupOutsideClickListener() {
         document.addEventListener('click', (e) => {
-            if (!this.currentOpenPanel) return;
+            if (this.openPanels.size === 0) return;
 
-            const panel = this.panels[this.currentOpenPanel];
-            const tab = document.getElementById(`panel-tab-${this.currentOpenPanel}`);
+            // Chequear cada panel abierto
+            const clickedOutside = [];
+            this.openPanels.forEach(panelName => {
+                const panel = this.panels[panelName];
+                const tab = document.getElementById(`panel-tab-${panelName}`);
 
-            // Si el click no fue dentro del panel ni en el tab
-            if (panel && !panel.contains(e.target) && !tab?.contains(e.target)) {
-                // Verificar que tampoco sea un popup
-                if (!e.target.closest('.window.interface')) {
-                    this.closePanel(this.currentOpenPanel);
+                // Si el click no fue dentro del panel ni en el tab
+                if (panel && !panel.contains(e.target) && !tab?.contains(e.target)) {
+                    // Verificar que tampoco sea un popup
+                    if (!e.target.closest('.window.interface')) {
+                        clickedOutside.push(panelName);
+                    }
                 }
-            }
+            });
+
+            // Cerrar paneles donde se hizo click fuera
+            clickedOutside.forEach(panelName => this.closePanel(panelName));
         });
     }
 
@@ -124,13 +131,19 @@ class PanelManager {
         if (this.isAnimating) return;
 
         // Si el panel ya está abierto, cerrarlo
-        if (this.currentOpenPanel === panelName) {
+        if (this.openPanels.has(panelName)) {
             this.closePanel(panelName);
         } else {
-            // Si hay otro panel abierto, cerrarlo primero
-            if (this.currentOpenPanel) {
-                this.closePanel(this.currentOpenPanel);
+            // Mapa y Crew pueden convivir, pero Control es exclusivo
+            if (panelName === 'control') {
+                // Cerrar mapa y crew si están abiertos
+                this.closePanel('map');
+                this.closePanel('crew');
+            } else if (this.openPanels.has('control')) {
+                // Si control está abierto, cerrarlo para abrir lateral
+                this.closePanel('control');
             }
+
             // Abrir el nuevo panel
             this.openPanel(panelName);
         }
@@ -153,7 +166,7 @@ class PanelManager {
 
         // Marcar como abierto
         panel.classList.add('open');
-        this.currentOpenPanel = panelName;
+        this.openPanels.add(panelName);
 
         // Actualizar el tab
         const tab = document.getElementById(`panel-tab-${panelName}`);
@@ -185,12 +198,13 @@ class PanelManager {
         if (this.isAnimating) return;
 
         const panel = this.panels[panelName];
-        if (!panel) return;
+        if (!panel || !this.openPanels.has(panelName)) return;
 
         this.isAnimating = true;
 
         // Marcar como cerrado
         panel.classList.remove('open');
+        this.openPanels.delete(panelName);
 
         // Actualizar el tab
         const tab = document.getElementById(`panel-tab-${panelName}`);
@@ -201,11 +215,6 @@ class PanelManager {
         // Si es el panel de control, detener actualizaciones periódicas
         if (panelName === 'control') {
             this.stopControlPanelUpdates();
-        }
-
-        // Solo actualizar currentOpenPanel si es el que está abierto
-        if (this.currentOpenPanel === panelName) {
-            this.currentOpenPanel = null;
         }
 
         // Esperar a que termine la animación
@@ -261,13 +270,76 @@ class PanelManager {
 
         // Separar tripulantes por estado
         crewMembers.forEach(crew => {
-            const miniCard = crew.miniCard || crew.createMiniCard();
+            const miniCard = crew.createMiniCard();
 
             if (crew.state === 'Despierto') {
-                awakeContainer.appendChild(miniCard.cloneNode(true));
+                awakeContainer.appendChild(miniCard);
             } else {
-                asleepContainer.appendChild(miniCard.cloneNode(true));
+                asleepContainer.appendChild(miniCard);
             }
+        });
+
+        // Configurar drag & drop en los contenedores
+        this.setupDragAndDrop(awakeContainer, asleepContainer);
+    }
+
+    /**
+     * Configura drag & drop entre columnas
+     */
+    setupDragAndDrop(awakeContainer, asleepContainer) {
+        [awakeContainer, asleepContainer].forEach(container => {
+            container.ondragover = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                container.classList.add('drag-over');
+            };
+
+            container.ondragleave = (e) => {
+                if (e.target === container) {
+                    container.classList.remove('drag-over');
+                }
+            };
+
+            container.ondrop = (e) => {
+                e.preventDefault();
+                container.classList.remove('drag-over');
+
+                const crewName = e.dataTransfer.getData('text/plain');
+                const crew = crewMembers.find(c => c.name === crewName);
+
+                if (!crew || !crew.isAlive) return;
+
+                // Determinar nuevo estado según el contenedor
+                const targetState = container.id === 'panel-crew-awake' ? 'Despierto' : 'Encapsulado';
+
+                // Solo cambiar si es diferente
+                if (crew.state !== targetState) {
+                    crew.state = targetState;
+                    crew.updateConsoleCrewState();
+
+                    // Refrescar sistema de beneficios
+                    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+                        awakeBenefitSystem.refreshState(crewMembers);
+                        if (typeof updateVoyageVisualizer === 'function') {
+                            updateVoyageVisualizer();
+                        }
+                    }
+
+                    // Actualizar panel
+                    this.updateCrewPanel();
+
+                    // Log y notificación
+                    const action = targetState === 'Despierto' ? 'despertado' : 'encapsulado';
+                    logbook.addEntry(
+                        `${crew.name} ha sido ${action}`,
+                        LOG_TYPES.EVENT
+                    );
+                    new Notification(
+                        `${crew.name} ha sido ${action}`,
+                        NOTIFICATION_TYPES.SUCCESS
+                    );
+                }
+            };
         });
     }
 
@@ -284,11 +356,18 @@ class PanelManager {
      * Cierra todos los paneles
      */
     closeAllPanels() {
-        Object.keys(this.panels).forEach(panelName => {
-            if (this.panels[panelName]) {
-                this.closePanel(panelName);
-            }
+        const panelsToClose = Array.from(this.openPanels);
+        panelsToClose.forEach(panelName => {
+            this.closePanel(panelName);
         });
+    }
+
+    /**
+     * Cierra los paneles laterales (mapa y crew)
+     */
+    closeSidePanels() {
+        this.closePanel('map');
+        this.closePanel('crew');
     }
 
     /**
@@ -296,15 +375,24 @@ class PanelManager {
      * @returns {boolean}
      */
     isAnyPanelOpen() {
-        return this.currentOpenPanel !== null;
+        return this.openPanels.size > 0;
     }
 
     /**
-     * Obtiene el panel actualmente abierto
-     * @returns {string|null}
+     * Obtiene los paneles actualmente abiertos
+     * @returns {Array<string>}
      */
-    getCurrentPanel() {
-        return this.currentOpenPanel;
+    getOpenPanels() {
+        return Array.from(this.openPanels);
+    }
+
+    /**
+     * Verifica si un panel específico está abierto
+     * @param {string} panelName - Nombre del panel
+     * @returns {boolean}
+     */
+    isPanelOpen(panelName) {
+        return this.openPanels.has(panelName);
     }
 
     /**
@@ -319,7 +407,7 @@ class PanelManager {
 
         // Iniciar actualizaciones periódicas cada segundo
         this.controlPanelUpdateInterval = setInterval(() => {
-            if (this.currentOpenPanel === 'control') {
+            if (this.isPanelOpen('control')) {
                 this.updateControlPanel();
             }
         }, 1000);

@@ -1020,7 +1020,7 @@ function sleepAllCrew() {
     }
 
     // Actualizar panel de tripulación si está abierto
-    if (typeof panelManager !== 'undefined' && panelManager.getCurrentPanel() === 'crew') {
+    if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
         panelManager.updateCrewPanel();
     }
 
@@ -1062,7 +1062,7 @@ function wakeAllCrew() {
     }
 
     // Actualizar panel de tripulación si está abierto
-    if (typeof panelManager !== 'undefined' && panelManager.getCurrentPanel() === 'crew') {
+    if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
         panelManager.updateCrewPanel();
     }
 

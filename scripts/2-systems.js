@@ -430,6 +430,14 @@ class GameLoop {
 
         // Mostrar mensajes cuánticos si hay
         messageSystem.showMessagesForTranche(timeSystem.getCurrentTranche());
+
+        // Cerrar paneles laterales y abrir panel de control
+        if (typeof panelManager !== 'undefined' && panelManager) {
+            panelManager.closeSidePanels();
+            if (!panelManager.isPanelOpen('control')) {
+                panelManager.openPanel('control');
+            }
+        }
     }
     
     pause() {
