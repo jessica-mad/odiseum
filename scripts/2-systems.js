@@ -735,6 +735,18 @@ class EventSystem {
             gameLoop.pause();
         }
 
+        // Reproducir sonido de alarma 2 segundos antes del popup
+        if (typeof playEventAlarmSound === 'function') {
+            playEventAlarmSound();
+        }
+
+        // Esperar 2 segundos antes de mostrar el popup
+        setTimeout(() => {
+            this.showEventPopup(event);
+        }, 2000);
+    }
+
+    showEventPopup(event) {
         const overlay = document.createElement('div');
         overlay.className = 'event-overlay';
         overlay.id = 'event-overlay';

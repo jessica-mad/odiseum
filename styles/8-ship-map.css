@@ -34,121 +34,122 @@
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
 }
 
-/* === GRILLA DEL MAPA === */
+/* === GRILLA DEL MAPA (18x12) === */
 .ship-map-grid {
     position: relative;
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    grid-template-rows: repeat(9, 1fr);
-    gap: 2px;
-    padding: 10px;
+    grid-template-columns: repeat(18, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    gap: 1px;
+    padding: 8px;
     background: var(--color-terminal-bg);
 }
 
 /* === CELDAS DE LA GRILLA === */
 .grid-cell {
     position: relative;
-    border: 1px solid rgba(0, 255, 65, 0.2);
+    border: 1px solid rgba(0, 255, 65, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
     transition: all 0.2s ease;
+    min-height: 0;
 }
 
 .grid-cell:hover {
-    border-color: rgba(0, 255, 65, 0.5);
+    border-color: rgba(0, 255, 65, 0.4);
 }
 
 /* Celdas vacías */
 .cell-empty {
-    background: rgba(0, 0, 0, 0.8);
-    border-color: rgba(0, 255, 65, 0.05);
+    background: rgba(0, 0, 0, 0.9);
+    border-color: rgba(0, 255, 65, 0.03);
 }
 
 /* Pasillos */
 .cell-corridor {
     background: linear-gradient(135deg,
-        rgba(0, 255, 65, 0.05) 0%,
-        rgba(0, 255, 65, 0.1) 50%,
-        rgba(0, 255, 65, 0.05) 100%);
-    border-color: rgba(0, 255, 65, 0.3);
+        rgba(0, 255, 65, 0.04) 0%,
+        rgba(0, 255, 65, 0.08) 50%,
+        rgba(0, 255, 65, 0.04) 100%);
+    border-color: rgba(0, 255, 65, 0.25);
 }
 
 /* Puente de mando */
 .cell-bridge {
     background: radial-gradient(circle,
-        rgba(0, 255, 65, 0.25) 0%,
-        rgba(0, 255, 65, 0.15) 100%);
-    border-color: rgba(0, 255, 65, 0.6);
-    box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.3);
+        rgba(0, 255, 65, 0.2) 0%,
+        rgba(0, 255, 65, 0.12) 100%);
+    border-color: rgba(0, 255, 65, 0.5);
+    box-shadow: inset 0 0 8px rgba(0, 255, 65, 0.25);
 }
 
 /* Enfermería */
 .cell-medbay {
     background: radial-gradient(circle,
-        rgba(255, 68, 68, 0.25) 0%,
-        rgba(255, 68, 68, 0.15) 100%);
-    border-color: rgba(255, 68, 68, 0.6);
-    box-shadow: inset 0 0 10px rgba(255, 68, 68, 0.2);
+        rgba(255, 68, 68, 0.2) 0%,
+        rgba(255, 68, 68, 0.12) 100%);
+    border-color: rgba(255, 68, 68, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 68, 68, 0.18);
 }
 
 /* Cocina */
 .cell-kitchen {
     background: radial-gradient(circle,
-        rgba(255, 170, 68, 0.25) 0%,
-        rgba(255, 170, 68, 0.15) 100%);
-    border-color: rgba(255, 170, 68, 0.6);
-    box-shadow: inset 0 0 10px rgba(255, 170, 68, 0.2);
+        rgba(255, 170, 68, 0.2) 0%,
+        rgba(255, 170, 68, 0.12) 100%);
+    border-color: rgba(255, 170, 68, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 170, 68, 0.18);
 }
 
 /* Cápsulas de sueño */
 .cell-capsules {
     background: radial-gradient(circle,
-        rgba(68, 136, 255, 0.25) 0%,
-        rgba(68, 136, 255, 0.15) 100%);
-    border-color: rgba(68, 136, 255, 0.6);
-    box-shadow: inset 0 0 10px rgba(68, 136, 255, 0.2);
+        rgba(68, 136, 255, 0.2) 0%,
+        rgba(68, 136, 255, 0.12) 100%);
+    border-color: rgba(68, 136, 255, 0.5);
+    box-shadow: inset 0 0 8px rgba(68, 136, 255, 0.18);
 }
 
 /* Bodega */
 .cell-cargo {
     background: radial-gradient(circle,
-        rgba(136, 136, 136, 0.25) 0%,
-        rgba(136, 136, 136, 0.15) 100%);
-    border-color: rgba(136, 136, 136, 0.6);
-    box-shadow: inset 0 0 10px rgba(136, 136, 136, 0.2);
+        rgba(136, 136, 136, 0.2) 0%,
+        rgba(136, 136, 136, 0.12) 100%);
+    border-color: rgba(136, 136, 136, 0.5);
+    box-shadow: inset 0 0 8px rgba(136, 136, 136, 0.18);
 }
 
 /* Ingeniería */
 .cell-engineering {
     background: radial-gradient(circle,
-        rgba(255, 136, 0, 0.25) 0%,
-        rgba(255, 136, 0, 0.15) 100%);
-    border-color: rgba(255, 136, 0, 0.6);
-    box-shadow: inset 0 0 10px rgba(255, 136, 0, 0.2);
+        rgba(255, 136, 0, 0.2) 0%,
+        rgba(255, 136, 0, 0.12) 100%);
+    border-color: rgba(255, 136, 0, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 136, 0, 0.18);
 }
 
 /* Invernadero */
 .cell-greenhouse {
     background: radial-gradient(circle,
-        rgba(68, 255, 68, 0.25) 0%,
-        rgba(68, 255, 68, 0.15) 100%);
-    border-color: rgba(68, 255, 68, 0.6);
-    box-shadow: inset 0 0 10px rgba(68, 255, 68, 0.2);
+        rgba(68, 255, 68, 0.2) 0%,
+        rgba(68, 255, 68, 0.12) 100%);
+    border-color: rgba(68, 255, 68, 0.5);
+    box-shadow: inset 0 0 8px rgba(68, 255, 68, 0.18);
 }
 
 /* Labels de celdas */
 .cell-label {
-    font-size: 20px;
-    opacity: 0.4;
-    filter: drop-shadow(0 0 3px rgba(0, 255, 65, 0.3));
+    font-size: 16px;
+    opacity: 0.35;
+    filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.25));
     pointer-events: none;
 }
 
 .grid-cell:hover .cell-label {
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 /* === MARCADORES DE TRIPULANTES EN GRILLA === */
@@ -158,14 +159,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     z-index: 10;
     cursor: pointer;
 
     /* Transiciones suaves al cambiar de celda */
     transition:
-        grid-row 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-        grid-column 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        grid-row 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        grid-column 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.3s ease;
 
     width: 100%;
@@ -174,19 +175,19 @@
 }
 
 .crew-marker-grid:hover {
-    transform: scale(1.2);
+    transform: scale(1.15);
     z-index: 20;
 }
 
 /* Icono del tripulante en grilla */
 .crew-icon-grid {
-    font-size: 28px;
-    filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.7));
+    font-size: 22px;
+    filter: drop-shadow(0 0 6px rgba(0, 255, 65, 0.6));
     transition: all 0.3s ease;
 }
 
 .crew-marker-grid:hover .crew-icon-grid {
-    filter: drop-shadow(0 0 12px rgba(0, 255, 65, 1));
+    filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.9));
     transform: scale(1.1);
 }
 
@@ -196,66 +197,66 @@
 }
 
 .crew-marker-grid.sleeping .crew-icon-grid {
-    opacity: 0.6;
-    filter: drop-shadow(0 0 6px rgba(68, 136, 255, 0.7));
+    opacity: 0.5;
+    filter: drop-shadow(0 0 5px rgba(68, 136, 255, 0.6));
     animation: icon-pulse-slow 3s ease-in-out infinite;
 }
 
 .crew-marker-grid.resting .crew-icon-grid {
-    filter: drop-shadow(0 0 6px rgba(255, 170, 68, 0.7));
+    filter: drop-shadow(0 0 5px rgba(255, 170, 68, 0.6));
     animation: icon-pulse-medium 2.5s ease-in-out infinite;
 }
 
 .crew-marker-grid.dead .crew-icon-grid {
     opacity: 0.3;
-    filter: grayscale(100%) drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+    filter: grayscale(100%) drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
     animation: none;
 }
 
 @keyframes icon-pulse-active {
     0%, 100% {
         transform: scale(1);
-        filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.7));
+        filter: drop-shadow(0 0 6px rgba(0, 255, 65, 0.6));
     }
     50% {
         transform: scale(1.05);
-        filter: drop-shadow(0 0 12px rgba(0, 255, 65, 1));
+        filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.8));
     }
 }
 
 @keyframes icon-pulse-slow {
     0%, 100% {
         transform: scale(0.95);
-        opacity: 0.5;
+        opacity: 0.4;
     }
     50% {
         transform: scale(1);
-        opacity: 0.7;
+        opacity: 0.6;
     }
 }
 
 @keyframes icon-pulse-medium {
     0%, 100% {
         transform: scale(0.98);
-        filter: drop-shadow(0 0 6px rgba(255, 170, 68, 0.7));
+        filter: drop-shadow(0 0 5px rgba(255, 170, 68, 0.6));
     }
     50% {
         transform: scale(1.02);
-        filter: drop-shadow(0 0 10px rgba(255, 170, 68, 1));
+        filter: drop-shadow(0 0 8px rgba(255, 170, 68, 0.8));
     }
 }
 
 /* Nombre del tripulante */
 .crew-name-grid {
     font-family: var(--font-monaco);
-    font-size: 8px;
+    font-size: 7px;
     color: var(--color-terminal-green);
     background: var(--color-terminal-bg);
-    padding: 1px 3px;
+    padding: 1px 2px;
     border: 1px solid var(--color-terminal-green);
     border-radius: 2px;
     white-space: nowrap;
-    text-shadow: 0 0 3px rgba(0, 255, 65, 0.8);
+    text-shadow: 0 0 2px rgba(0, 255, 65, 0.7);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -271,33 +272,6 @@
     text-shadow: none;
 }
 
-/* Efecto de aura para tripulantes activos */
-.crew-marker-grid.active::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120%;
-    height: 120%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 255, 65, 0.3) 0%, transparent 70%);
-    animation: aura-pulse-grid 2s ease-in-out infinite;
-    pointer-events: none;
-    z-index: -1;
-}
-
-@keyframes aura-pulse-grid {
-    0%, 100% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 0.5;
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(1.2);
-        opacity: 0.8;
-    }
-}
-
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
     .ship-map-container {
@@ -311,21 +285,21 @@
     }
 
     .crew-icon-grid {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .cell-label {
-        font-size: 14px;
+        font-size: 12px;
     }
 }
 
 /* Pequeños ajustes para pantallas más pequeñas */
 @media (min-width: 769px) and (max-width: 1200px) {
     .crew-icon-grid {
-        font-size: 22px;
+        font-size: 20px;
     }
 
     .cell-label {
-        font-size: 16px;
+        font-size: 14px;
     }
 }

@@ -5,22 +5,25 @@
 /* === SISTEMA DE MAPA DE LA NAVE === */
 class ShipMapSystem {
     constructor() {
-        // Grilla de 9x9 de la nave
+        // Grilla 18x12 más detallada de la nave
         // B=Puente, P=Pasillo, E=Enfermería, C=Cocina, S=Cápsulas, G=Bodega, I=Ingeniería, V=Invernadero
         this.grid = [
-            ['.', '.', '.', 'B', 'B', 'B', '.', '.', '.'],  // Fila 1
-            ['.', '.', '.', 'P', '.', 'P', '.', '.', '.'],  // Fila 2
-            ['E', 'E', 'P', 'P', 'P', 'P', 'P', 'C', 'C'],  // Fila 3
-            ['E', 'E', 'P', 'I', 'I', 'V', 'P', 'C', 'C'],  // Fila 4
-            ['P', 'P', 'P', 'I', 'I', 'V', 'P', 'S', 'S'],  // Fila 5
-            ['.', '.', 'P', 'V', 'V', 'V', 'P', 'S', 'S'],  // Fila 6
-            ['.', '.', 'P', 'P', 'P', 'P', 'P', 'G', 'G'],  // Fila 7
-            ['.', '.', '.', '.', '.', '.', '.', 'G', 'G'],  // Fila 8
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.']   // Fila 9
+            ['.', '.', '.', '.', '.', 'B', 'B', 'B', 'B', 'B', 'B', '.', '.', '.', '.', '.', '.', '.'],  // Fila 1
+            ['.', '.', '.', '.', 'P', 'B', 'B', 'B', 'B', 'B', 'B', 'P', '.', '.', '.', '.', '.', '.'],  // Fila 2
+            ['.', '.', '.', '.', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', '.', '.', '.', '.', '.', '.'],  // Fila 3
+            ['E', 'E', 'E', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'C', 'C', 'C', '.', '.'],  // Fila 4
+            ['E', 'E', 'E', 'P', 'I', 'I', 'I', 'P', 'P', 'P', 'V', 'V', 'P', 'C', 'C', 'C', '.', '.'],  // Fila 5
+            ['E', 'E', 'E', 'P', 'I', 'I', 'I', 'P', '.', 'P', 'V', 'V', 'P', 'C', 'C', 'C', '.', '.'],  // Fila 6
+            ['P', 'P', 'P', 'P', 'I', 'I', 'I', 'P', '.', 'P', 'V', 'V', 'P', 'P', 'P', 'P', 'P', 'S'],  // Fila 7
+            ['.', '.', '.', 'P', 'P', 'P', 'P', 'P', '.', 'P', 'V', 'V', 'V', 'V', 'P', 'S', 'S', 'S'],  // Fila 8
+            ['.', '.', '.', '.', '.', '.', '.', 'P', '.', 'P', 'P', 'P', 'P', 'P', 'P', 'S', 'S', 'S'],  // Fila 9
+            ['.', '.', '.', '.', '.', '.', '.', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'S', 'S', 'S'],  // Fila 10
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', 'G', 'G', 'G', 'P', 'P', 'P', 'P', 'P', 'P'],  // Fila 11
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.']   // Fila 12
         ];
 
-        this.rows = 9;
-        this.cols = 9;
+        this.rows = 12;
+        this.cols = 18;
 
         // Zonas y sus tiles principales
         this.zones = {
@@ -34,6 +37,7 @@ class ShipMapSystem {
         };
 
         this.crewLocations = {}; // { crewId: { row, col } }
+        this.crewTargets = {}; // { crewId: zone }
         this.crewPaths = {}; // { crewId: [{ row, col }, ...] }
         this.crewIcons = {
             'Cpt. Rivera': '👨‍✈️',
@@ -79,12 +83,11 @@ class ShipMapSystem {
     generateGridHTML() {
         let html = '';
 
-        // Generar celdas de la grilla
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 const cellType = this.grid[row][col];
                 const cellClass = this.getCellClass(cellType);
-                const cellLabel = this.getCellLabel(cellType);
+                const cellLabel = this.getCellLabel(cellType, row, col);
 
                 html += `
                     <div class="grid-cell ${cellClass}"
@@ -115,8 +118,8 @@ class ShipMapSystem {
         return classes[type] || 'cell-empty';
     }
 
-    getCellLabel(type) {
-        // Solo mostrar labels en algunos tiles específicos
+    getCellLabel(type, row, col) {
+        // Solo mostrar labels en posiciones centrales de cada zona
         const labels = {
             'B': '🎮',
             'E': '🏥',
@@ -126,7 +129,17 @@ class ShipMapSystem {
             'I': '⚙️',
             'V': '🌱'
         };
-        return labels[type] || '';
+
+        // Mostrar solo en el centro aproximado de cada zona
+        if (type === 'B' && row === 1 && col === 7) return labels[type];
+        if (type === 'E' && row === 4 && col === 1) return labels[type];
+        if (type === 'C' && row === 5 && col === 14) return labels[type];
+        if (type === 'S' && row === 8 && col === 16) return labels[type];
+        if (type === 'G' && row === 11 && col === 10) return labels[type];
+        if (type === 'I' && row === 5 && col === 5) return labels[type];
+        if (type === 'V' && row === 7 && col === 11) return labels[type];
+
+        return '';
     }
 
     getCrewIcon(crew) {
@@ -147,21 +160,30 @@ class ShipMapSystem {
     getTargetZoneForCrew(crew) {
         if (!crew.isAlive) return null;
 
-        if (crew.state === 'Encapsulado' || crew.state === CREW_STATES.RESTING) {
+        // Estado principal
+        if (crew.state === 'Encapsulado') {
             return 'capsules';
         }
 
+        // Si está operativo, analizar necesidades y actividades
         if (crew.state === 'Despierto') {
             const activity = crew.currentActivity?.toLowerCase() || '';
 
-            if (activity.includes('atendiendo') || activity === 'resting') {
-                return 'medbay';
-            }
-            if (activity.includes('eating') || activity === 'eating') {
-                return 'kitchen';
+            // Prioridad 1: Actividades específicas
+            if (activity.includes('atendiendo')) {
+                return 'medbay'; // Doctora atendiendo paciente
             }
 
-            // Zona por defecto según el rol
+            // Prioridad 2: Necesidades críticas
+            if (crew.healthNeed < 50) {
+                return 'medbay'; // Necesita atención médica
+            }
+
+            if (crew.foodNeed < 40) {
+                return 'kitchen'; // Tiene hambre
+            }
+
+            // Prioridad 3: Zona de trabajo según rol
             switch (crew.role) {
                 case 'commander': return 'bridge';
                 case 'doctor': return 'medbay';
@@ -177,14 +199,13 @@ class ShipMapSystem {
 
     getRandomTileInZone(zone) {
         if (!this.zones[zone] || !this.zones[zone].tiles.length) {
-            return { row: 4, col: 4 }; // Centro si falla
+            return { row: 6, col: 9 };
         }
 
         const tiles = this.zones[zone].tiles;
         return tiles[Math.floor(Math.random() * tiles.length)];
     }
 
-    // Pathfinding simple usando BFS
     findPath(start, end) {
         if (!start || !end) return [];
         if (start.row === end.row && start.col === end.col) return [end];
@@ -201,7 +222,6 @@ class ShipMapSystem {
                 return path;
             }
 
-            // Explorar vecinos (arriba, abajo, izquierda, derecha)
             const neighbors = [
                 { row: current.row - 1, col: current.col },
                 { row: current.row + 1, col: current.col },
@@ -220,7 +240,6 @@ class ShipMapSystem {
                 if (visited.has(key)) continue;
 
                 const cellType = this.grid[neighbor.row][neighbor.col];
-                // Puede moverse por pasillos y habitaciones (no por vacío)
                 if (cellType === '.') continue;
 
                 visited.add(key);
@@ -228,7 +247,7 @@ class ShipMapSystem {
             }
         }
 
-        return [end]; // Si no encuentra camino, ir directo
+        return [end];
     }
 
     updateCrewLocations() {
@@ -242,27 +261,30 @@ class ShipMapSystem {
             if (!targetZone) return;
 
             const currentPos = this.crewLocations[crew.id];
-            const targetPos = this.getRandomTileInZone(targetZone);
+            const currentTarget = this.crewTargets[crew.id];
 
-            // Si no tiene posición inicial, colocarlo directamente
-            if (!currentPos) {
-                this.crewLocations[crew.id] = targetPos;
-                this.createOrUpdateCrewMarker(crew, targetPos);
-                return;
-            }
+            // Si cambió de zona objetivo
+            if (currentTarget !== targetZone) {
+                this.crewTargets[crew.id] = targetZone;
+                const targetPos = this.getRandomTileInZone(targetZone);
 
-            // Si ya está en la zona correcta, no mover
-            const currentZone = this.getZoneAtPosition(currentPos);
-            if (currentZone === targetZone) {
-                this.createOrUpdateCrewMarker(crew, currentPos);
-                return;
-            }
-
-            // Calcular path y mover
-            const path = this.findPath(currentPos, targetPos);
-            if (path.length > 1) {
-                this.crewPaths[crew.id] = path;
-                this.animateCrewMovement(crew);
+                if (!currentPos) {
+                    // Primera vez, colocar directamente
+                    this.crewLocations[crew.id] = targetPos;
+                    this.createOrUpdateCrewMarker(crew, targetPos);
+                } else {
+                    // Calcular path y mover
+                    const path = this.findPath(currentPos, targetPos);
+                    if (path.length > 1) {
+                        this.crewPaths[crew.id] = path;
+                        this.animateCrewMovement(crew);
+                    }
+                }
+            } else {
+                // Actualizar marcador en posición actual
+                if (currentPos) {
+                    this.createOrUpdateCrewMarker(crew, currentPos);
+                }
             }
         });
     }
@@ -286,7 +308,7 @@ class ShipMapSystem {
         if (!path || path.length <= 1) return;
 
         let stepIndex = 0;
-        const moveSpeed = 600; // ms por paso
+        const moveSpeed = 400; // Más rápido: 400ms por paso
 
         const moveStep = () => {
             if (stepIndex >= path.length) {
@@ -333,7 +355,7 @@ class ShipMapSystem {
             marker.classList.add('active');
         }
 
-        // Actualizar posición en la grilla
+        // Actualizar posición
         marker.style.gridRow = pos.row + 1;
         marker.style.gridColumn = pos.col + 1;
 
@@ -355,10 +377,10 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // Actualizar cada 5 segundos
+        // Actualizar cada 3 segundos
         setInterval(() => {
             this.updateCrewLocations();
-        }, 5000);
+        }, 3000);
     }
 }
 

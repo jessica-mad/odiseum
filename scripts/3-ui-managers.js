@@ -416,7 +416,7 @@ function updateWakeSleepFromPopup() {
 /* === SISTEMA DE SONIDO === */
 function playClickSound() {
     try {
-        const audio = new Audio('assets/button-needs.mp3');
+        const audio = new Audio('assets/sounds/button-needs.mp3');
         audio.volume = 0.3;
         audio.play().catch(err => console.log('Audio playback failed:', err));
     } catch (err) {
@@ -426,8 +426,18 @@ function playClickSound() {
 
 function playTrancheSound() {
     try {
-        const audio = new Audio('assets/tramo.mp3');
+        const audio = new Audio('assets/sounds/tramo.mp3');
         audio.volume = 0.4;
+        audio.play().catch(err => console.log('Audio playback failed:', err));
+    } catch (err) {
+        console.log('Audio error:', err);
+    }
+}
+
+function playEventAlarmSound() {
+    try {
+        const audio = new Audio('assets/sounds/alarm-event.mp3');
+        audio.volume = 0.5;
         audio.play().catch(err => console.log('Audio playback failed:', err));
     } catch (err) {
         console.log('Audio error:', err);
