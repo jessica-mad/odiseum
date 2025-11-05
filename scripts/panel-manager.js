@@ -128,25 +128,30 @@ class PanelManager {
      * @param {string} panelName - Nombre del panel (map, crew, control)
      */
     togglePanel(panelName) {
-        if (this.isAnimating) return;
-
         // Si el panel ya está abierto, cerrarlo
         if (this.openPanels.has(panelName)) {
             this.closePanel(panelName);
-        } else {
-            // Mapa y Crew pueden convivir, pero Control es exclusivo
-            if (panelName === 'control') {
-                // Cerrar mapa y crew si están abiertos
-                this.closePanel('map');
-                this.closePanel('crew');
-            } else if (this.openPanels.has('control')) {
-                // Si control está abierto, cerrarlo para abrir lateral
-                this.closePanel('control');
-            }
-
-            // Abrir el nuevo panel
-            this.openPanel(panelName);
+            return;
         }
+
+        // Si no está abierto, aplicar lógica de exclusividad
+        // Control es exclusivo con los laterales
+        if (panelName === 'control') {
+            // Cerrar mapa y crew si están abiertos
+            if (this.openPanels.has('map')) {
+                this.closePanel('map');
+            }
+            if (this.openPanels.has('crew')) {
+                this.closePanel('crew');
+            }
+        } else if (this.openPanels.has('control')) {
+            // Si control está abierto, cerrarlo para abrir lateral
+            this.closePanel('control');
+        }
+        // Si es map o crew, pueden coexistir entre ellos
+
+        // Abrir el nuevo panel
+        this.openPanel(panelName);
     }
 
     /**
@@ -154,15 +159,11 @@ class PanelManager {
      * @param {string} panelName - Nombre del panel
      */
     openPanel(panelName) {
-        if (this.isAnimating) return;
-
         const panel = this.panels[panelName];
         if (!panel) {
             console.error(`Panel ${panelName} no encontrado`);
             return;
         }
-
-        this.isAnimating = true;
 
         // Marcar como abierto
         panel.classList.add('open');
@@ -182,12 +183,7 @@ class PanelManager {
             this.startControlPanelUpdates();
         }
 
-        // Esperar a que termine la animación
-        setTimeout(() => {
-            this.isAnimating = false;
-        }, 300);
-
-        console.log(`📂 Panel ${panelName} abierto`);
+        console.log(`📂 Panel ${panelName} abierto`, Array.from(this.openPanels));
     }
 
     /**
@@ -195,12 +191,8 @@ class PanelManager {
      * @param {string} panelName - Nombre del panel
      */
     closePanel(panelName) {
-        if (this.isAnimating) return;
-
         const panel = this.panels[panelName];
         if (!panel || !this.openPanels.has(panelName)) return;
-
-        this.isAnimating = true;
 
         // Marcar como cerrado
         panel.classList.remove('open');
@@ -217,12 +209,7 @@ class PanelManager {
             this.stopControlPanelUpdates();
         }
 
-        // Esperar a que termine la animación
-        setTimeout(() => {
-            this.isAnimating = false;
-        }, 300);
-
-        console.log(`📁 Panel ${panelName} cerrado`);
+        console.log(`📁 Panel ${panelName} cerrado`, Array.from(this.openPanels));
     }
 
     /**
@@ -261,23 +248,44 @@ class PanelManager {
         const awakeContainer = document.getElementById('panel-crew-awake');
         const asleepContainer = document.getElementById('panel-crew-asleep');
 
-        if (!awakeContainer || !asleepContainer) return;
-        if (typeof crewMembers === 'undefined' || !crewMembers) return;
+        if (!awakeContainer || !asleepContainer) {
+            console.error('Contenedores de crew no encontrados');
+            return;
+        }
+        if (typeof crewMembers === 'undefined' || !crewMembers) {
+            console.error('crewMembers no definido');
+            return;
+        }
+
+        console.log('🔄 Actualizando panel de tripulación');
 
         // Limpiar contenedores
         awakeContainer.innerHTML = '';
         asleepContainer.innerHTML = '';
 
         // Separar tripulantes por estado
-        crewMembers.forEach(crew => {
-            const miniCard = crew.createMiniCard();
+        let awakeCount = 0;
+        let asleepCount = 0;
 
-            if (crew.state === 'Despierto') {
-                awakeContainer.appendChild(miniCard);
-            } else {
-                asleepContainer.appendChild(miniCard);
+        crewMembers.forEach(crew => {
+            try {
+                const miniCard = crew.createMiniCard();
+
+                if (crew.state === 'Despierto') {
+                    awakeContainer.appendChild(miniCard);
+                    awakeCount++;
+                    console.log(`  ✅ ${crew.name} -> OPERATIVOS`);
+                } else {
+                    asleepContainer.appendChild(miniCard);
+                    asleepCount++;
+                    console.log(`  💤 ${crew.name} -> CRIOSTASIS`);
+                }
+            } catch (error) {
+                console.error(`Error creando card para ${crew.name}:`, error);
             }
         });
+
+        console.log(`📊 Operativos: ${awakeCount}, Criostasis: ${asleepCount}`);
 
         // Configurar drag & drop en los contenedores
         this.setupDragAndDrop(awakeContainer, asleepContainer);

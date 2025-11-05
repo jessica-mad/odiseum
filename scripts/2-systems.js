@@ -428,16 +428,22 @@ class GameLoop {
 
         new Notification('Tramo completado. Preparando para el siguiente tramo.', NOTIFICATION_TYPES.INFO);
 
+        // Cerrar paneles laterales y abrir panel de control
+        setTimeout(() => {
+            if (typeof panelManager !== 'undefined' && panelManager) {
+                // Cerrar todos los paneles primero
+                panelManager.closeAllPanels();
+
+                // Esperar un poco y abrir el panel de control
+                setTimeout(() => {
+                    panelManager.openPanel('control');
+                    console.log('🎮 Panel de control abierto automáticamente');
+                }, 100);
+            }
+        }, 500);
+
         // Mostrar mensajes cuánticos si hay
         messageSystem.showMessagesForTranche(timeSystem.getCurrentTranche());
-
-        // Cerrar paneles laterales y abrir panel de control
-        if (typeof panelManager !== 'undefined' && panelManager) {
-            panelManager.closeSidePanels();
-            if (!panelManager.isPanelOpen('control')) {
-                panelManager.openPanel('control');
-            }
-        }
     }
     
     pause() {

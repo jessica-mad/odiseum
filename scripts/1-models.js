@@ -507,10 +507,13 @@ class Crew {
     }
 
     generateAdvancedNeedBars() {
+        // Todas las necesidades excepto descanso
         const needs = [
-            { icon: '🍕', label: 'COMIDA', value: this.foodNeed, max: 100 },
-            { icon: '❤️', label: 'SALUD', value: this.healthNeed, max: 100 },
-            { icon: '🚽', label: 'HIGIENE', value: this.wasteNeed, max: 100, inverse: true }
+            { icon: '🍕', label: 'comida', value: this.foodNeed, max: 100 },
+            { icon: '💧', label: 'agua', value: this.waterNeed, max: 100 },
+            { icon: '🌡️', label: 'oxígeno', value: this.oxygenNeed, max: 100 },
+            { icon: '❤️', label: 'salud', value: this.healthNeed, max: 100 },
+            { icon: '🚽', label: 'higiene', value: this.wasteNeed, max: 100, inverse: true }
         ];
 
         return needs.map(need => {
@@ -527,7 +530,7 @@ class Crew {
 
             return `
                 <div class="need-bar-advanced">
-                    <button class="need-bar-icon-btn" onclick="event.stopPropagation(); quickManage('${this.name}', '${need.label.toLowerCase()}')">
+                    <button class="need-bar-icon-btn" onclick="event.stopPropagation(); quickManage('${this.name}', '${need.label}')">
                         ${need.icon}
                     </button>
                     <div class="need-bar-track">
