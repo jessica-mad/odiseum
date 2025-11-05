@@ -570,12 +570,12 @@ class Resource {
     updateResourceUI() {
         const meter = document.getElementById(this.id);
         const amountSpan = document.getElementById(this.amount);
-        
+
         if (meter) {
             meter.value = this.quantity;
             meter.max = this.limiteStock;
         }
-        
+
         if (amountSpan) {
             amountSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
         }
@@ -584,6 +584,24 @@ class Resource {
             const stripSpan = document.getElementById(this.stripId);
             if (stripSpan) {
                 stripSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
+            }
+
+            // Actualizar indicador de color
+            const indicatorId = this.stripId.replace('resource-strip-', 'indicator-');
+            const indicator = document.getElementById(indicatorId);
+            if (indicator) {
+                const percentage = (this.quantity / this.limiteStock) * 100;
+                indicator.className = 'resource-indicator';
+
+                if (percentage >= 70) {
+                    indicator.classList.add('full');
+                } else if (percentage >= 40) {
+                    indicator.classList.add('medium');
+                } else if (percentage >= 15) {
+                    indicator.classList.add('low');
+                } else {
+                    indicator.classList.add('critical');
+                }
             }
         }
     }

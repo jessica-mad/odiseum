@@ -79,7 +79,11 @@ class ShipMapSystem {
         this.isVisible = !this.isVisible;
         const container = document.getElementById('ship-map-container');
         if (container) {
-            container.style.display = this.isVisible ? 'flex' : 'none';
+            if (this.isVisible) {
+                container.classList.add('visible');
+            } else {
+                container.classList.remove('visible');
+            }
         }
 
         // Actualizar botón
@@ -93,12 +97,7 @@ class ShipMapSystem {
         this.createMapUI();
         this.updateCrewLocations();
         this.startAutoUpdate();
-
-        // Ocultar por defecto
-        const container = document.getElementById('ship-map-container');
-        if (container) {
-            container.style.display = 'none';
-        }
+        // El mapa inicia oculto por CSS (sin clase 'visible')
     }
 
     createMapUI() {

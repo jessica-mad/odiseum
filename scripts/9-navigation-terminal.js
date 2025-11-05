@@ -86,7 +86,23 @@ class NavigationControls {
     }
 
     updateGameSpeed(speed) {
-        // Esta función será llamada cuando se implemente el sistema de velocidad
+        // Sincronizar con el slider del popup de trip management
+        const speedControl = document.getElementById('speed-control');
+        if (speedControl) {
+            speedControl.value = speed;
+        }
+
+        // Actualizar display del popup
+        const speedValue = document.getElementById('speed-value');
+        if (speedValue) {
+            speedValue.textContent = speed;
+        }
+
+        // Actualizar pronóstico de viaje
+        if (typeof updateVoyageForecastDisplay === 'function') {
+            updateVoyageForecastDisplay();
+        }
+
         if (terminal) {
             terminal.info(`Velocidad de nave ajustada a ${speed}%`);
         }

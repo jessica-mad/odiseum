@@ -32,13 +32,43 @@
     box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.05);
 }
 
-.resource-icon {
-    font-size: 16px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.resource-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.resource-indicator.full {
+    background-color: #00ff41;
+    box-shadow: 0 0 8px #00ff41;
+}
+
+.resource-indicator.medium {
+    background-color: #ffaa00;
+    box-shadow: 0 0 8px #ffaa00;
+}
+
+.resource-indicator.low {
+    background-color: #ff8800;
+    box-shadow: 0 0 8px #ff8800;
+}
+
+.resource-indicator.critical {
+    background-color: #ff4444;
+    box-shadow: 0 0 8px #ff4444;
+    animation: pulse-critical 1s ease-in-out infinite;
+}
+
+@keyframes pulse-critical {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
 }
 
 .resource-label {
