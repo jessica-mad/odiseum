@@ -284,27 +284,110 @@
             </div>
         </div>
 
-        <!-- Sidebar Izquierdo: Mapa de la Nave - Desktop Only -->
-        <div class="ship-map-sidebar desktop-only" id="ship-map-sidebar">
-            <div class="sidebar-header">
+        <!-- ============================================
+             PANELES DESPLEGABLES - PAPERS PLEASE STYLE
+             ============================================ -->
+
+        <!-- TABS VERTICALES -->
+        <div id="panel-tab-map" class="panel-tab-vertical panel-tab-left desktop-only">
+            MAPA
+        </div>
+
+        <div id="panel-tab-crew" class="panel-tab-vertical panel-tab-right desktop-only">
+            TRIPULACIÓN
+        </div>
+
+        <!-- TAB HORIZONTAL -->
+        <div id="panel-tab-control" class="panel-tab-horizontal desktop-only">
+            CONTROL
+        </div>
+
+        <!-- PANEL IZQUIERDO: MAPA -->
+        <div id="panel-map" class="panel-left desktop-only">
+            <div class="panel-header">
                 <h3>🗺️ MAPA DE LA NAVE</h3>
-                <button class="sidebar-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
+                <button class="panel-close-btn">×</button>
             </div>
-            <div class="sidebar-content">
+            <div class="panel-content">
                 <div class="ship-map-container" id="ship-map-container">
                     <!-- Se genera dinámicamente con JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Panel Lateral de Tripulación - Desktop Only -->
-        <div class="crew-sidebar desktop-only" id="crew-sidebar">
+        <!-- PANEL DERECHO: TRIPULACIÓN -->
+        <div id="panel-crew" class="panel-right desktop-only">
+            <div class="panel-header">
+                <h3>🚀 TRIPULACIÓN</h3>
+                <button class="panel-close-btn">×</button>
+            </div>
+            <div class="panel-sorting">
+                <label for="crew-sort-select">Ordenar por:</label>
+                <select id="crew-sort-select" onchange="onSortChange()">
+                    <!-- Se genera dinámicamente con JS -->
+                </select>
+            </div>
+            <div class="panel-content" id="panel-crew-cards-container">
+                <!-- Se genera dinámicamente con JS -->
+            </div>
+        </div>
+
+        <!-- PANEL INFERIOR: CONTROL -->
+        <div id="panel-control" class="panel-bottom desktop-only">
+            <div class="panel-header">
+                <h3>⚙️ CONTROL DE VIAJE</h3>
+                <button class="panel-close-btn">×</button>
+            </div>
+            <div class="panel-control-content">
+                <div class="panel-control-row">
+                    <div class="panel-control-group">
+                        <span class="panel-control-label">Velocidad Actual</span>
+                        <div class="panel-control-value" id="panel-speed-display">100%</div>
+                    </div>
+                    <div class="panel-control-group">
+                        <span class="panel-control-label">Combustible</span>
+                        <div class="panel-control-value" id="panel-fuel-display">0/0 UA</div>
+                    </div>
+                    <div class="panel-control-group">
+                        <span class="panel-control-label">Progreso Viaje</span>
+                        <div class="panel-control-value" id="panel-progress-display">0%</div>
+                    </div>
+                </div>
+                <div class="panel-control-row">
+                    <div class="panel-control-group">
+                        <span class="panel-control-label">Distancia Recorrida</span>
+                        <div class="panel-control-value" id="panel-distance-display">0 UA</div>
+                    </div>
+                    <div class="panel-control-group">
+                        <span class="panel-control-label">Distancia Total</span>
+                        <div class="panel-control-value" id="panel-total-distance-display">3000 UA</div>
+                    </div>
+                    <div class="panel-control-group">
+                        <span class="panel-control-label">Tiempo de Viaje</span>
+                        <div class="panel-control-value" id="panel-time-display">AÑO 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebars antiguos (ocultos, mantener compatibilidad) -->
+        <div class="ship-map-sidebar desktop-only" id="ship-map-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h3>🗺️ MAPA DE LA NAVE</h3>
+                <button class="sidebar-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <!-- Placeholder -->
+            </div>
+        </div>
+
+        <div class="crew-sidebar desktop-only" id="crew-sidebar" style="display: none;">
             <div class="sidebar-header">
                 <h3>🚀 TRIPULACIÓN</h3>
             </div>
             <div class="sidebar-sorting">
-                <label for="crew-sort-select">Ordenar por:</label>
-                <select id="crew-sort-select" onchange="onSortChange()">
+                <label for="crew-sort-select-old">Ordenar por:</label>
+                <select id="crew-sort-select-old" onchange="onSortChange()">
                     <!-- Se genera dinámicamente con JS -->
                 </select>
             </div>
@@ -530,6 +613,7 @@
     <script src="scripts/0-config.js"></script>
     <script src="scripts/1-models.js"></script>
     <script src="scripts/2-systems.js"></script>
+    <script src="scripts/panel-manager.js"></script>
     <script src="scripts/3-ui-managers.js"></script>
     <script src="scripts/4-crew-data.js"></script>
     <script src="scripts/5-messages-data.js"></script>

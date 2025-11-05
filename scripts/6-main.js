@@ -200,10 +200,13 @@ function initializeGame() {
     crewMembers.forEach(crew => crew.initializeRelationships(crewMembers));
     
     // Generar mini-cards en el panel lateral
-    const container = document.getElementById('crew-cards-container');
-    crewMembers.forEach(crew => {
-        container.appendChild(crew.createMiniCard());
-    });
+    const container = document.getElementById('panel-crew-cards-container') ||
+                     document.getElementById('crew-cards-container');
+    if (container) {
+        crewMembers.forEach(crew => {
+            container.appendChild(crew.createMiniCard());
+        });
+    }
     
     // Cargar mensajes cuánticos
     loadQuantumMessages();

@@ -26,7 +26,12 @@ class TerminalNotificationSystem {
         line.className = `terminal-line ${type}`;
 
         const timestamp = new Date().toLocaleTimeString('es-ES');
-        line.textContent = `[${timestamp}] > ${message}`;
+
+        // Procesar el mensaje para detectar nombres de tripulantes
+        const processedMessage = this.processCrewLinks(message);
+
+        // Usar innerHTML para permitir links
+        line.innerHTML = `[${timestamp}] > ${processedMessage}`;
 
         this.terminalContent.appendChild(line);
 
@@ -37,6 +42,60 @@ class TerminalNotificationSystem {
 
         // Auto-scroll al final
         this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
+    }
+
+    /**
+     * Procesa el mensaje para convertir nombres de tripulantes en links clickeables
+     * @param {string} message - Mensaje a procesar
+     * @returns {string} - Mensaje con links HTML
+     */
+    processCrewLinks(message) {
+        // Si no hay tripulantes definidos, retornar el mensaje sin cambios
+        if (typeof crewMembers === 'undefined' || !crewMembers || crewMembers.length === 0) {
+            return this.escapeHtml(message);
+        }
+
+        let processedMessage = this.escapeHtml(message);
+
+        // Iterar sobre todos los tripulantes
+        crewMembers.forEach(crew => {
+            const name = crew.name;
+            // Crear un patrón regex que detecte el nombre completo
+            // Usamos word boundaries para evitar coincidencias parciales
+            const regex = new RegExp(`\\b${this.escapeRegex(name)}\\b`, 'g');
+
+            // Reemplazar el nombre con un link clickeable
+            processedMessage = processedMessage.replace(regex,
+                `<span class="crew-link" onclick="openCrewManagementPopup('${this.escapeHtml(name)}')" style="color: var(--color-terminal-green); text-decoration: underline; cursor: pointer;">${name}</span>`
+            );
+        });
+
+        return processedMessage;
+    }
+
+    /**
+     * Escapa caracteres HTML para prevenir XSS
+     * @param {string} text - Texto a escapar
+     * @returns {string} - Texto escapado
+     */
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    /**
+     * Escapa caracteres especiales de regex
+     * @param {string} text - Texto a escapar
+     * @returns {string} - Texto escapado
+     */
+    escapeRegex(text) {
+        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     info(message) {

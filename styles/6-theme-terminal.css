@@ -1608,3 +1608,18 @@
         font-size: 11px;
     }
 }
+
+/* === LINKS DE TRIPULANTES EN TERMINAL === */
+.crew-link {
+    color: var(--color-terminal-green) !important;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.crew-link:hover {
+    color: var(--color-terminal-green) !important;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+    background: rgba(0, 255, 65, 0.1);
+    padding: 0 2px;
+}

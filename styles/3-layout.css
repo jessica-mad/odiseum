@@ -257,19 +257,266 @@
     text-transform: uppercase;
 }
 
-/* === PANEL LATERAL DE TRIPULACIÓN === */
-.crew-sidebar {
+/* === PANELES DESPLEGABLES - PAPERS PLEASE STYLE === */
+
+/* Panel Izquierdo (Mapa) */
+.panel-left {
+    position: fixed;
+    left: 0;
+    top: calc(var(--title-bar-height) + var(--resource-strip-height, 40px));
+    bottom: 0;
+    width: 320px;
+    background: var(--color-terminal-bg);
+    border-right: 3px solid var(--color-terminal-green);
+    box-shadow: 4px 0 20px rgba(0, 255, 65, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-sidebar);
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+}
+
+.panel-left.open {
+    transform: translateX(0);
+}
+
+/* Panel Derecho (Tripulación) */
+.panel-right {
     position: fixed;
     right: 0;
-    top: calc(var(--title-bar-height) + var(--details-bar-height));
-    bottom: 0; /* 100% altura */
-    width: var(--crew-sidebar-width);
+    top: calc(var(--title-bar-height) + var(--resource-strip-height, 40px));
+    bottom: 0;
+    width: 320px;
     background: var(--color-terminal-bg);
     border-left: 3px solid var(--color-terminal-green);
     box-shadow: -4px 0 20px rgba(0, 255, 65, 0.2);
     display: flex;
     flex-direction: column;
     z-index: var(--z-sidebar);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+}
+
+.panel-right.open {
+    transform: translateX(0);
+}
+
+/* Panel Inferior (Control) */
+.panel-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 220px;
+    background: var(--color-terminal-bg);
+    border-top: 3px solid var(--color-terminal-green);
+    box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-sidebar);
+    transform: translateY(100%);
+    transition: transform var(--transition-normal);
+}
+
+.panel-bottom.open {
+    transform: translateY(0);
+}
+
+/* Tabs Verticales (Izquierda y Derecha) */
+.panel-tab-vertical {
+    position: fixed;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    padding: 8px 6px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+    letter-spacing: 2px;
+    cursor: pointer;
+    z-index: calc(var(--z-sidebar) + 1);
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+    user-select: none;
+}
+
+.panel-tab-vertical:hover {
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.panel-tab-vertical.active {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+/* Tab Izquierdo (Mapa) */
+.panel-tab-left {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Tab Derecho (Tripulación) */
+.panel-tab-right {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+}
+
+/* Tab Horizontal (Abajo) */
+.panel-tab-horizontal {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    border-bottom: none;
+    padding: 6px 16px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-base);
+    letter-spacing: 2px;
+    cursor: pointer;
+    z-index: calc(var(--z-sidebar) + 1);
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+    border-radius: 4px 4px 0 0;
+    user-select: none;
+}
+
+.panel-tab-horizontal:hover {
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.panel-tab-horizontal.active {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+/* Cabeceras de Paneles */
+.panel-header {
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    padding: 10px;
+    font-family: var(--font-monaco);
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: var(--font-size-xl);
+    margin: 0;
+}
+
+.panel-close-btn {
+    background: transparent;
+    color: var(--color-terminal-green);
+    border: 1px solid var(--color-terminal-green);
+    font-size: var(--font-size-xxl);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    font-family: var(--font-monaco);
+}
+
+.panel-close-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+/* Contenido de Paneles */
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* BACKWARD COMPATIBILITY - Ocultar sidebars antiguos */
+.crew-sidebar {
+    display: none !important;
+}
+
+.ship-map-sidebar {
+    display: none !important;
+}
+
+/* Estilos adicionales para paneles */
+.panel-sorting {
+    background: var(--color-terminal-bg-light);
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+}
+
+.panel-sorting label {
+    font-size: var(--font-size-sm);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.panel-sorting select {
+    width: 100%;
+    padding: 4px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-terminal-green-dark);
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    cursor: pointer;
+}
+
+/* Control panel específico */
+.panel-control-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+}
+
+.panel-control-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.panel-control-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.panel-control-label {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green-dim);
+    text-transform: uppercase;
+}
+
+.panel-control-value {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xl);
+    color: var(--color-terminal-green);
+    background: var(--color-terminal-bg-light);
+    padding: 8px;
+    border: 1px solid var(--color-terminal-green-dark);
+    text-align: center;
 }
 
 .sidebar-header {
