@@ -274,18 +274,18 @@ class PanelManager {
                 if (crew.state === 'Despierto') {
                     awakeContainer.appendChild(miniCard);
                     awakeCount++;
-                    console.log(`  ✅ ${crew.name} -> OPERATIVOS`);
+                    console.log(`  ✅ ${crew.name} -> DESPIERTOS`);
                 } else {
                     asleepContainer.appendChild(miniCard);
                     asleepCount++;
-                    console.log(`  💤 ${crew.name} -> CRIOSTASIS`);
+                    console.log(`  💤 ${crew.name} -> ENCAPSULADOS`);
                 }
             } catch (error) {
                 console.error(`Error creando card para ${crew.name}:`, error);
             }
         });
 
-        console.log(`📊 Operativos: ${awakeCount}, Criostasis: ${asleepCount}`);
+        console.log(`📊 Despiertos: ${awakeCount}, Encapsulados: ${asleepCount}`);
 
         // Configurar drag & drop en los contenedores
         this.setupDragAndDrop(awakeContainer, asleepContainer);

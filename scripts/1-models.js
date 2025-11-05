@@ -403,11 +403,13 @@ class Crew {
 
         card.onclick = () => openCrewManagementPopup(this.name);
 
-        // OPERATIVO: mostrar beneficio, ubicación y pensamiento
+        // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
         if (this.state === 'Despierto') {
+            console.log(`🎨 Creando card DESPIERTO para ${this.name}`);
             const benefit = this.getAwakeBenefitDescription();
             const location = this.getCurrentLocation();
             const thought = this.getCurrentThought();
+            console.log(`  Benefit: ${benefit}, Location: ${location}, Thought: ${thought}`);
 
             card.innerHTML = `
                 <div class="crew-card-header">
@@ -422,8 +424,10 @@ class Crew {
                     <div class="thought-marquee">${thought}</div>
                 </div>
             `;
+            console.log(`  HTML generado, longitud: ${card.innerHTML.length}`);
         } else {
-            // CRIOSTASIS: mostrar necesidades con barras
+            // ENCAPSULADOS: mostrar necesidades con barras
+            console.log(`🎨 Creando card ENCAPSULADO para ${this.name}`);
             card.innerHTML = `
                 <div class="crew-card-header">
                     <span class="crew-card-name">${this.name}</span>
@@ -507,13 +511,12 @@ class Crew {
     }
 
     generateAdvancedNeedBars() {
-        // Todas las necesidades vitales
+        // Las 4 necesidades visibles para encapsulados
         const needs = [
-            { icon: '🍕', label: 'comida', value: this.foodNeed, max: 100 },
-            { icon: '🎮', label: 'entretenimiento', value: this.entertainmentNeed, max: 100 },
-            { icon: '😴', label: 'descanso', value: this.restNeed, max: 100 },
+            { icon: '🍲', label: 'alimentación', value: this.foodNeed, max: 100 },
             { icon: '❤️', label: 'salud', value: this.healthNeed, max: 100 },
-            { icon: '🚽', label: 'higiene', value: this.wasteNeed, max: 100, inverse: true }
+            { icon: '🚽', label: 'higiene', value: this.wasteNeed, max: 100, inverse: true },
+            { icon: '🎮', label: 'entretenimiento', value: this.entertainmentNeed, max: 100 }
         ];
 
         return needs.map(need => {
@@ -609,7 +612,7 @@ class Crew {
         card.onclick = () => openCrewManagementPopup(this.name);
 
         // USAR EL MISMO DISEÑO QUE createMiniCard()
-        // OPERATIVO: mostrar beneficio, ubicación y pensamiento
+        // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
         if (this.state === 'Despierto') {
             const benefit = this.getAwakeBenefitDescription();
             const location = this.getCurrentLocation();
@@ -629,7 +632,7 @@ class Crew {
                 </div>
             `;
         } else {
-            // CRIOSTASIS: mostrar necesidades con barras
+            // ENCAPSULADOS: mostrar necesidades con barras
             card.innerHTML = `
                 <div class="crew-card-header">
                     <span class="crew-card-name">${this.name}</span>
