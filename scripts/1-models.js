@@ -458,7 +458,7 @@ class Crew {
             'Botánica': 'Invernadero',
             'Geóloga': 'Laboratorio'
         };
-        return defaultLocations[this.specialization] || 'Nave';
+        return defaultLocations[this.position] || 'Nave';
     }
 
     getCurrentThought() {
@@ -502,16 +502,16 @@ class Crew {
             ]
         };
 
-        const crewThoughts = thoughts[this.specialization] || ['💭 Todo va bien.'];
+        const crewThoughts = thoughts[this.position] || ['💭 Todo va bien.'];
         return crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
     }
 
     generateAdvancedNeedBars() {
-        // Todas las necesidades excepto descanso
+        // Todas las necesidades vitales
         const needs = [
             { icon: '🍕', label: 'comida', value: this.foodNeed, max: 100 },
-            { icon: '💧', label: 'agua', value: this.waterNeed, max: 100 },
-            { icon: '🌡️', label: 'oxígeno', value: this.oxygenNeed, max: 100 },
+            { icon: '🎮', label: 'entretenimiento', value: this.entertainmentNeed, max: 100 },
+            { icon: '😴', label: 'descanso', value: this.restNeed, max: 100 },
             { icon: '❤️', label: 'salud', value: this.healthNeed, max: 100 },
             { icon: '🚽', label: 'higiene', value: this.wasteNeed, max: 100, inverse: true }
         ];
