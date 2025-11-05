@@ -27,16 +27,17 @@ html, body {
 }
 
 body {
-    font-family: var(--font-chicago);
-    background: var(--color-gray-dark);
-    color: var(--color-black);
+    font-family: var(--font-monaco);
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
     user-select: none;
 }
 
 /* === TIPOGRAFÍA === */
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-chicago);
+    font-family: var(--font-monaco);
     font-weight: normal;
+    color: var(--color-terminal-green);
 }
 
 p {
@@ -104,12 +105,13 @@ meter {
 }
 
 meter::-webkit-meter-bar {
-    background: #ddd;
-    border: var(--border-width) solid var(--border-color);
+    background: var(--color-terminal-bg);
+    border: var(--border-width) solid var(--color-terminal-green-dark);
 }
 
 meter::-webkit-meter-optimum-value {
-    background: var(--color-black);
+    background: var(--color-terminal-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
 }
 
 meter::-webkit-meter-suboptimum-value {

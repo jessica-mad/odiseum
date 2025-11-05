@@ -473,11 +473,16 @@ function onSortChange() {
 function disableAllInteractions() {
     // Deshabilitar todos los botones de gestión de necesidades
     const manageButtons = document.querySelectorAll('.manage-btn');
-    manageButtons.forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-        btn.style.cursor = 'not-allowed';
-    });
+    if (manageButtons && manageButtons.length > 0) {
+        manageButtons.forEach(btn => {
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.style.pointerEvents = 'none';
+            }
+        });
+    }
 
     setCrewCardButtonsState(true);
 
@@ -487,6 +492,7 @@ function disableAllInteractions() {
         wakeSleeepBtn.disabled = true;
         wakeSleeepBtn.style.opacity = '0.5';
         wakeSleeepBtn.style.cursor = 'not-allowed';
+        wakeSleeepBtn.style.pointerEvents = 'none';
     }
 
     // Deshabilitar slider de velocidad
@@ -501,11 +507,16 @@ function disableAllInteractions() {
 function enableInteractionsBetweenTranches() {
     // Deshabilitar botones de gestión de necesidades (NO se pueden usar entre tramos)
     const manageButtons = document.querySelectorAll('.manage-btn');
-    manageButtons.forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-        btn.style.cursor = 'not-allowed';
-    });
+    if (manageButtons && manageButtons.length > 0) {
+        manageButtons.forEach(btn => {
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.style.pointerEvents = 'none';
+            }
+        });
+    }
 
     setCrewCardButtonsState(true);
 
@@ -515,6 +526,7 @@ function enableInteractionsBetweenTranches() {
         wakeSleeepBtn.disabled = true;
         wakeSleeepBtn.style.opacity = '0.5';
         wakeSleeepBtn.style.cursor = 'not-allowed';
+        wakeSleeepBtn.style.pointerEvents = 'none';
     }
 
     // HABILITAR slider de velocidad (SÍ se puede usar entre tramos)
@@ -523,17 +535,32 @@ function enableInteractionsBetweenTranches() {
         speedControl.disabled = false;
         speedControl.style.opacity = '1';
         speedControl.style.cursor = 'pointer';
+        speedControl.style.pointerEvents = 'auto';
+    }
+
+    // Habilitar slider de navegación
+    const navSpeedSlider = document.getElementById('nav-speed-slider');
+    if (navSpeedSlider) {
+        navSpeedSlider.disabled = false;
+        navSpeedSlider.style.opacity = '1';
+        navSpeedSlider.style.cursor = 'pointer';
+        navSpeedSlider.style.pointerEvents = 'auto';
     }
 }
 
 function enableAllInteractions() {
     // Habilitar todos los botones de gestión de necesidades
     const manageButtons = document.querySelectorAll('.manage-btn');
-    manageButtons.forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-    });
+    if (manageButtons && manageButtons.length > 0) {
+        manageButtons.forEach(btn => {
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.style.pointerEvents = 'auto';
+            }
+        });
+    }
 
     setCrewCardButtonsState(false);
 
@@ -543,6 +570,7 @@ function enableAllInteractions() {
         wakeSleeepBtn.disabled = false;
         wakeSleeepBtn.style.opacity = '1';
         wakeSleeepBtn.style.cursor = 'pointer';
+        wakeSleeepBtn.style.pointerEvents = 'auto';
     }
 
     // Deshabilitar slider de velocidad (NO se puede cambiar durante el tramo)
@@ -551,6 +579,16 @@ function enableAllInteractions() {
         speedControl.disabled = true;
         speedControl.style.opacity = '0.5';
         speedControl.style.cursor = 'not-allowed';
+        speedControl.style.pointerEvents = 'none';
+    }
+
+    // Deshabilitar slider de navegación durante tramo
+    const navSpeedSlider = document.getElementById('nav-speed-slider');
+    if (navSpeedSlider) {
+        navSpeedSlider.disabled = true;
+        navSpeedSlider.style.opacity = '0.5';
+        navSpeedSlider.style.cursor = 'not-allowed';
+        navSpeedSlider.style.pointerEvents = 'none';
     }
 }
 

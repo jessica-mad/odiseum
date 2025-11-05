@@ -139,6 +139,13 @@ const NEEDS_CONFIG = {
         entertainment: -2,
         rest: -1.5
     },
+    resting: {
+        food: -0.8,
+        health: -0.5,
+        waste: 1,
+        entertainment: -0.5,
+        rest: 3  // Recupera descanso más rápido
+    },
     capsule: {
         food: -0.5,
         health: -0.3,
@@ -148,11 +155,23 @@ const NEEDS_CONFIG = {
     }
 };
 
+/* === ESTADOS DE TRIPULACIÓN === */
+const CREW_STATES = {
+    AWAKE: 'Despierto',
+    RESTING: 'Descansando',
+    CAPSULE: 'Cápsula',
+    DECEASED: 'Fallecido'
+};
+
+/* === UMBRALES DE ESTADO === */
+const REST_THRESHOLD_FOR_RESTING = 15; // Si el descanso baja de 15, puede entrar en modo descansando
+
 /* === CONFIGURACIÓN DE AUTO-GESTIÓN === */
 const AUTO_MANAGE_CONFIG = {
     food: { threshold: 60, cost: 10, recovery: 30 },
     hygiene: { threshold: 70, cost: 3, recovery: 40 },
-    entertainment: { threshold: 60, cost: 5, recovery: 35, probability: 0.3 }
+    entertainment: { threshold: 60, cost: 5, recovery: 35, probability: 0.3 },
+    medicine: { threshold: 50, cost: 5, recovery: 25 }
 };
 
 /* === EDAD Y EFICIENCIA === */

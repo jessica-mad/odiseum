@@ -1,0 +1,489 @@
+/* ============================================
+   COMPONENTS TERMINAL OVERRIDE - ODISEUM V2.0
+   Terminal Theme Overrides for Components
+   ============================================ */
+
+/* === MINI-CARDS DE TRIPULACIÓN === */
+.crew-mini-card {
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    color: var(--color-terminal-green);
+}
+
+.crew-mini-card:hover {
+    transform: translateX(-3px);
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(0, 255, 65, 0.3);
+    border-color: var(--color-terminal-green);
+}
+
+/* Estados de color con tema terminal */
+.crew-mini-card.ok {
+    background: var(--color-terminal-bg-light);
+    border-color: var(--color-terminal-green-dark);
+}
+
+.crew-mini-card.warning {
+    background: var(--color-terminal-bg-light);
+    border-color: var(--color-alert-yellow);
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 10px var(--color-alert-yellow-glow);
+}
+
+.crew-mini-card.critical {
+    background: var(--color-terminal-bg-light);
+    border-color: var(--color-alert-orange);
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 10px rgba(255, 149, 0, 0.4);
+}
+
+.crew-mini-card.danger {
+    background: var(--color-terminal-bg-light);
+    border-color: var(--color-alert-red);
+    animation: pulse-red-terminal 2s infinite;
+}
+
+@keyframes pulse-red-terminal {
+    0%, 100% {
+        box-shadow:
+            inset 0 0 10px rgba(0, 0, 0, 0.5),
+            0 0 10px var(--color-alert-red-glow);
+    }
+    50% {
+        box-shadow:
+            inset 0 0 10px rgba(0, 0, 0, 0.5),
+            0 0 20px var(--color-alert-red-glow);
+    }
+}
+
+.crew-mini-card.dead {
+    background: var(--color-terminal-bg);
+    border-color: var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dark);
+    opacity: 0.5;
+}
+
+.crew-card-age {
+    color: var(--color-terminal-green-dim);
+}
+
+.crew-card-age.aging {
+    color: var(--color-alert-red);
+}
+
+.crew-card-state {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 1px solid var(--color-terminal-green);
+}
+
+.crew-card-state.awake {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+}
+
+.crew-card-state.capsule {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green-dim);
+    border-color: var(--color-terminal-green-dark);
+}
+
+.crew-card-state.deceased {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green-dark);
+}
+
+.need-bar-fill {
+    background: var(--color-terminal-bg);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+.need-bar-progress {
+    background: var(--color-terminal-green-dark);
+}
+
+.need-bar-progress.good {
+    background: var(--color-terminal-green);
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
+.need-bar-progress.warning {
+    background: var(--color-alert-yellow);
+    box-shadow: 0 0 5px var(--color-alert-yellow-glow);
+}
+
+.need-bar-progress.critical {
+    background: var(--color-alert-red);
+    box-shadow: 0 0 5px var(--color-alert-red-glow);
+}
+
+.need-bar-value {
+    color: var(--color-terminal-green-dim);
+}
+
+.auto-manage-indicator {
+    color: var(--color-terminal-green);
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+/* === VENTANAS (POPUPS) === */
+.window {
+    background: var(--color-terminal-bg);
+    border: 3px solid var(--color-terminal-green);
+    box-shadow:
+        0 0 30px rgba(0, 255, 65, 0.4),
+        inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.title-bar {
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    font-family: var(--font-monaco);
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+}
+
+.close-btn {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+}
+
+.close-btn:hover {
+    background: var(--color-alert-red);
+    color: var(--color-terminal-bg);
+    border-color: var(--color-alert-red);
+    box-shadow: 0 0 10px var(--color-alert-red-glow);
+}
+
+.window-content {
+    color: var(--color-terminal-green);
+}
+
+.window-content h3 {
+    color: var(--color-terminal-green);
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+}
+
+.window-content h4 {
+    color: var(--color-terminal-green-dim);
+}
+
+/* === NOTIFICACIONES - ACID COLORS === */
+.notification {
+    background: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green);
+    box-shadow:
+        0 0 15px rgba(0, 255, 65, 0.3),
+        inset 0 0 20px rgba(0, 0, 0, 0.5);
+    color: var(--color-terminal-green);
+}
+
+.notification.alert {
+    background: var(--color-terminal-bg);
+    border-color: var(--color-alert-red);
+    color: var(--color-alert-red);
+    box-shadow:
+        0 0 20px var(--color-alert-red-glow),
+        inset 0 0 20px rgba(0, 0, 0, 0.5);
+    animation: alert-pulse 1.5s infinite;
+}
+
+@keyframes alert-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 15px var(--color-alert-red-glow),
+            inset 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        box-shadow:
+            0 0 30px var(--color-alert-red-glow),
+            inset 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.notification.warning {
+    background: var(--color-terminal-bg);
+    border-color: var(--color-alert-yellow);
+    color: var(--color-alert-yellow);
+    box-shadow:
+        0 0 15px var(--color-alert-yellow-glow),
+        inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.notification.info {
+    background: var(--color-terminal-bg);
+    border-color: var(--color-terminal-green);
+    color: var(--color-terminal-green);
+}
+
+/* === TABLAS === */
+table th {
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+}
+
+table td {
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+}
+
+/* === RECURSOS === */
+.resource-item label {
+    color: var(--color-terminal-green);
+}
+
+.resource-item span {
+    color: var(--color-terminal-green-dim);
+}
+
+/* === VIAJE === */
+.trip-controls {
+    border: 2px solid var(--color-terminal-green-dark);
+    background: var(--color-terminal-bg-light);
+}
+
+.progress-bar-container {
+    background: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green-dark);
+}
+
+.progress-bar {
+    background: var(--color-terminal-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.speed-note {
+    color: var(--color-alert-red);
+}
+
+/* === BITÁCORA === */
+.logbook-header {
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+}
+
+.logbook-header h3 {
+    color: var(--color-terminal-green);
+}
+
+.mission-objective {
+    color: var(--color-terminal-green-dim);
+}
+
+.logbook-entry {
+    background: var(--color-terminal-bg-light);
+    border-left: 3px solid var(--color-terminal-green);
+    color: var(--color-terminal-green-dim);
+}
+
+.logbook-entry.event {
+    border-left-color: var(--color-alert-yellow);
+    background: rgba(255, 255, 0, 0.05);
+}
+
+.logbook-entry.critical {
+    border-left-color: var(--color-alert-red);
+    background: rgba(255, 0, 85, 0.05);
+}
+
+.logbook-entry.success {
+    border-left-color: var(--color-terminal-green);
+    background: rgba(0, 255, 65, 0.05);
+}
+
+.logbook-entry.message {
+    border-left-color: var(--color-terminal-green-dim);
+    background: rgba(0, 255, 65, 0.03);
+}
+
+.logbook-entry-date {
+    color: var(--color-terminal-green);
+}
+
+.logbook-entry-text {
+    color: var(--color-terminal-green-dim);
+}
+
+/* === LOG PERSONAL === */
+.personal-log-content {
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+}
+
+.personal-log-entry {
+    background: var(--color-terminal-bg);
+    border-left: 2px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+}
+
+.personal-log-entry .log-day {
+    color: var(--color-terminal-green);
+}
+
+.personal-log-entry.ai-generated {
+    border-left-color: var(--color-terminal-green);
+    background: rgba(0, 255, 65, 0.05);
+}
+
+.personal-log-entry .log-metadata {
+    color: var(--color-terminal-green-dark);
+}
+
+/* === INFORMACIÓN PERSONAL === */
+.crew-personal-info {
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+}
+
+.personal-info-item {
+    color: var(--color-terminal-green-dim);
+}
+
+.personal-info-item strong {
+    color: var(--color-terminal-green);
+}
+
+.personal-info-item p {
+    color: var(--color-terminal-green-dim);
+}
+
+/* === SISTEMA DE TABS === */
+.crew-tabs {
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+    background: var(--color-terminal-bg);
+}
+
+.crew-tab-btn {
+    font-family: var(--font-monaco);
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+}
+
+.crew-tab-btn:hover {
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--color-terminal-green);
+}
+
+.crew-tab-btn.active {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border-bottom: 2px solid var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+/* === HISTORIA IA === */
+.ai-story-content {
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+}
+
+.ai-story-content p {
+    color: var(--color-terminal-green-dim);
+}
+
+.action-btn {
+    font-family: var(--font-monaco);
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    text-transform: uppercase;
+}
+
+.action-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+}
+
+/* === BOTONES GENERALES === */
+button,
+.btn,
+.control-btn,
+.menu-btn,
+.crew-card-btn,
+.manage-btn {
+    font-family: var(--font-monaco);
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover,
+.btn:hover,
+.control-btn:hover,
+.menu-btn:hover,
+.crew-card-btn:hover,
+.manage-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+}
+
+button:active,
+.btn:active,
+.control-btn:active,
+.menu-btn:active,
+.crew-card-btn:active {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* === INPUTS === */
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-terminal-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+/* === SCROLLBARS (Webkit) === */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-terminal-bg);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-terminal-green-dark);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-terminal-green);
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
+/* === PIXELART ICONS === */
+.pixelart-icon {
+    display: inline-block;
+    vertical-align: middle;
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+}
+
+.pixelart-icon:hover {
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(150%) contrast(119%);
+}

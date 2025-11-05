@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="styles/2-base.css">
     <link rel="stylesheet" href="styles/3-layout.css">
     <link rel="stylesheet" href="styles/4-components.css">
-    <link rel="stylesheet" href="styles/5-theme-retro.css">
+    <link rel="stylesheet" href="styles/6-theme-terminal.css">
+    <link rel="stylesheet" href="styles/7-components-terminal.css">
 </head>
 <body>
     <!-- Pantalla de Inicio / Login -->
@@ -48,16 +49,7 @@
         <!-- Barra de Detalles / Menú -->
         <div class="details-bar">
             <div class="menu-section">
-                <button class="menu-btn">Configuración</button>
-                <button class="menu-btn">Instrucciones</button>
-            </div>
-            <div class="controls-section">
-                <button id="start-button" class="control-btn" onclick="startGame()">Comenzar</button>
-                <button id="pause-button" class="control-btn" onclick="pauseGame()" style="display: none;">Pausar</button>
-                <button id="resume-button" class="control-btn" onclick="resumeGame()" style="display: none;">Reanudar</button>
-                <div class="voyage-status" id="voyage-status" style="display: none;"></div>
-                <div class="tranche-timer" id="tranche-timer">01:00</div>
-                <div class="calendar" id="calendar">Año 0</div>
+                <span class="mission-title">PROYECTO GÉNESIS - NUEVA TIERRA</span>
             </div>
         </div>
 
@@ -100,11 +92,33 @@
             </div>
         </div>
 
+        <!-- Consola de Navegación (Inferior) -->
         <div class="voyage-visualizer" id="voyage-visualizer">
+            <div class="nav-controls-section">
+                <div class="nav-control-group">
+                    <label class="nav-label">VELOCIDAD NAVE</label>
+                    <div class="nav-speed-display" id="nav-speed-display">100%</div>
+                    <input type="range" id="nav-speed-slider" min="0" max="100" value="100" class="nav-slider">
+                </div>
+                <div class="nav-control-group">
+                    <label class="nav-label">TIEMPO TRAMO</label>
+                    <div class="tranche-timer" id="tranche-timer">00:00</div>
+                </div>
+                <div class="nav-control-group">
+                    <label class="nav-label">AÑOS VIAJE</label>
+                    <div class="calendar" id="calendar">AÑO 0</div>
+                </div>
+                <div class="nav-control-buttons">
+                    <button id="start-button" class="nav-btn primary" onclick="startGame()">INICIAR TRAMO</button>
+                    <button id="pause-button" class="nav-btn" onclick="pauseGame()" style="display: none;">PAUSAR</button>
+                    <button id="resume-button" class="nav-btn" onclick="resumeGame()" style="display: none;">REANUDAR</button>
+                </div>
+            </div>
+
             <div class="voyage-panels">
                 <div class="voyage-endpoint">
                     <div class="planet-icon old-earth">🌍</div>
-                    <span class="planet-label">Tierra Vieja</span>
+                    <span class="planet-label">TIERRA VIEJA</span>
                 </div>
                 <div class="voyage-track">
                     <div class="voyage-track-line">
@@ -114,13 +128,14 @@
                 </div>
                 <div class="voyage-endpoint">
                     <div class="planet-icon new-earth">🪐</div>
-                    <span class="planet-label">Nueva Tierra</span>
+                    <span class="planet-label">NUEVA TIERRA</span>
                 </div>
             </div>
+
             <div class="voyage-readouts">
-                <div class="voyage-speed">Velocidad actual: <span id="voyage-speed-value">0%</span></div>
-                <div class="voyage-distance">Distancia: <span id="voyage-distance-current">0</span> / <span id="voyage-distance-total">0</span> UA</div>
-                <div class="voyage-forecast inactive" id="voyage-forecast">Activa a Lt. Johnson para obtener proyección de tramos.</div>
+                <div class="voyage-speed">VEL: <span id="voyage-speed-value">0%</span></div>
+                <div class="voyage-distance">DIST: <span id="voyage-distance-current">0</span> / <span id="voyage-distance-total">0</span> UA</div>
+                <div class="voyage-forecast inactive" id="voyage-forecast">PROYECCIÓN: ACTIVAR NAVEGANTE</div>
             </div>
         </div>
 
@@ -128,27 +143,29 @@
         <div class="desktop-main-area">
             <!-- Iconos del Escritorio -->
             <div class="desktop-icons">
-                <div class="desktop-icon" id="icon-resources-management" ondblclick="openResourcesPopup()">
-                    <div class="icon-image">📦</div>
-                    <div class="icon-label">Recursos</div>
-                </div>
-                <div class="desktop-icon" id="icon-crews-management" ondblclick="openCrewsPopup()">
-                    <div class="icon-image">👥</div>
-                    <div class="icon-label">Tripulación</div>
-                </div>
-                <div class="desktop-icon" id="icon-trip-management" ondblclick="openTripPopup()">
-                    <div class="icon-image">🚀</div>
-                    <div class="icon-label">Viaje</div>
-                </div>
                 <div class="desktop-icon" id="icon-logbook" ondblclick="openLogbookPopup()">
                     <div class="icon-image">📖</div>
                     <div class="icon-label">Bitácora</div>
                 </div>
             </div>
 
-            <!-- Panel de Notificaciones -->
-            <div id="notifications" class="notifications-panel"></div>
+            <!-- Terminal de Notificaciones -->
+            <div class="terminal-notification-area">
+                <div class="terminal-header">
+                    <span class="terminal-prompt">&gt; CONSOLA DE SISTEMA</span>
+                    <span class="terminal-time" id="terminal-time">00:00:00</span>
+                </div>
+                <div class="terminal-content" id="terminal-notifications">
+                    <div class="terminal-line">&gt; Sistema iniciado...</div>
+                    <div class="terminal-line">&gt; Esperando instrucciones...</div>
+                </div>
+            </div>
         </div>
+
+        <!-- Botón Toggle para Sidebar en Móvil -->
+        <button class="mobile-crew-toggle" id="mobile-crew-toggle" onclick="toggleMobileCrew()" style="display: none;">
+            👥 TRIPULACIÓN
+        </button>
 
         <!-- Panel Lateral de Tripulación (SIEMPRE VISIBLE) -->
         <div class="crew-sidebar" id="crew-sidebar">
@@ -377,6 +394,9 @@
     </div>
 
     <!-- JavaScript Files (in order) -->
+    <script src="scripts/icon-loader.js"></script>
+    <script src="scripts/8-icon-replacer.js"></script>
+    <script src="scripts/9-navigation-terminal.js"></script>
     <script src="scripts/0-config.js"></script>
     <script src="scripts/1-models.js"></script>
     <script src="scripts/2-systems.js"></script>

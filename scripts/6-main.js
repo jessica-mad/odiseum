@@ -282,6 +282,13 @@ function updateStartButtonText() {
 
 function updateVoyageStatus() {
     const voyageStatus = document.getElementById('voyage-status');
+
+    // Si el elemento no existe, simplemente retornar sin hacer nada
+    if (!voyageStatus) {
+        console.log('[updateVoyageStatus] Elemento voyage-status no encontrado, ignorando...');
+        return;
+    }
+
     const currentTranche = timeSystem.getCurrentTranche();
 
     if (gameLoop.gameState === GAME_STATES.IN_TRANCHE) {

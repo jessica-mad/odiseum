@@ -105,18 +105,27 @@ class Crew {
     /* === SISTEMA DE NECESIDADES === */
     updateCrewNeeds() {
         if (!this.isAlive) return;
-        
+
         const efficiency = this.getAgeEfficiency();
         const multiplier = 1 / efficiency;
-        
-        const config = this.state === 'Despierto' ? NEEDS_CONFIG.awake : NEEDS_CONFIG.capsule;
-        
-        if (this.state === 'Despierto') {
+
+        // Seleccionar configuración según estado
+        let config;
+        if (this.state === CREW_STATES.AWAKE) {
+            config = NEEDS_CONFIG.awake;
+        } else if (this.state === CREW_STATES.RESTING) {
+            config = NEEDS_CONFIG.resting;
+        } else {
+            config = NEEDS_CONFIG.capsule;
+        }
+
+        // Aplicar cambios según estado
+        if (this.state === CREW_STATES.AWAKE || this.state === CREW_STATES.RESTING) {
             this.foodNeed = Math.max(0, this.foodNeed + (config.food * multiplier));
             this.healthNeed = Math.max(0, this.healthNeed + (config.health * multiplier));
             this.wasteNeed = Math.min(100, this.wasteNeed + (config.waste * multiplier));
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + (config.entertainment * multiplier));
-            this.restNeed = Math.max(0, this.restNeed + (config.rest * multiplier));
+            this.restNeed = Math.max(100, this.restNeed + (config.rest * multiplier));
         } else {
             this.foodNeed = Math.max(0, this.foodNeed + config.food);
             this.healthNeed = Math.max(0, this.healthNeed + config.health);
@@ -124,16 +133,49 @@ class Crew {
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + config.entertainment);
             this.restNeed = Math.min(100, this.restNeed + config.rest);
         }
-        
+
+        // Auto-transición a estado descansando si está muy cansado
+        if (this.state === CREW_STATES.AWAKE && this.restNeed < REST_THRESHOLD_FOR_RESTING) {
+            this.enterRestingState();
+        }
+
+        // Salir de estado descansando si se recuperó
+        if (this.state === CREW_STATES.RESTING && this.restNeed > 80) {
+            this.exitRestingState();
+        }
+
         // Muerte por inanición
         if (this.foodNeed <= 0 && Math.random() < DEATH_PROBABILITIES.starvation) {
             this.die('inanición');
         }
-        
+
         // Muerte por salud crítica
         if (this.healthNeed <= 0 && Math.random() < DEATH_PROBABILITIES.health) {
             this.die('falta de atención médica');
         }
+    }
+
+    /* === GESTIÓN DE ESTADO DESCANSANDO === */
+    enterRestingState() {
+        if (this.state !== CREW_STATES.AWAKE) return;
+
+        this.state = CREW_STATES.RESTING;
+        this.addToPersonalLog('Entré en estado de descanso por agotamiento');
+        new CrewNotification(`${this.name} ha entrado en descanso profundo`, NOTIFICATION_TYPES.INFO);
+        logbook.addEntry(`${this.name} entró en estado de descanso profundo por agotamiento`, LOG_TYPES.INFO);
+        this.updateMiniCard();
+        this.updateConsoleCrewState();
+    }
+
+    exitRestingState() {
+        if (this.state !== CREW_STATES.RESTING) return;
+
+        this.state = CREW_STATES.AWAKE;
+        this.addToPersonalLog('Salí del estado de descanso, me siento renovado');
+        new CrewNotification(`${this.name} ha salido del descanso y está activo`, NOTIFICATION_TYPES.SUCCESS);
+        logbook.addEntry(`${this.name} terminó su periodo de descanso`, LOG_TYPES.INFO);
+        this.updateMiniCard();
+        this.updateConsoleCrewState();
     }
     
     checkHunger() {
@@ -168,11 +210,14 @@ class Crew {
     
     /* === SISTEMA DE AUTO-GESTIÓN === */
     tryAutoManage() {
-        if (!this.isAlive || this.state !== 'Despierto') return;
+        if (!this.isAlive || (this.state !== CREW_STATES.AWAKE && this.state !== CREW_STATES.RESTING)) return;
 
         this.autoManaging = false;
         const autoManageActions = [];
         const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
+
+        // Solo los despiertos pueden auto-gestionar (no los descansando)
+        if (this.state !== CREW_STATES.AWAKE) return;
 
         // Auto-gestionar comida
         if (this.foodNeed < AUTO_MANAGE_CONFIG.food.threshold && Food.quantity >= AUTO_MANAGE_CONFIG.food.cost) {
@@ -183,13 +228,22 @@ class Crew {
             this.currentActivity = 'eating';
         }
 
+        // Auto-gestionar salud (medicina)
+        if (this.healthNeed < AUTO_MANAGE_CONFIG.medicine.threshold && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
+            Medicine.consume(AUTO_MANAGE_CONFIG.medicine.cost);
+            const recovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
+            this.healthNeed = Math.min(100, this.healthNeed + recovery);
+            autoManageActions.push('tomó medicina');
+            this.currentActivity = 'resting';
+        }
+
         // Auto-gestionar higiene
         if (this.wasteNeed > AUTO_MANAGE_CONFIG.hygiene.threshold && Water.quantity >= AUTO_MANAGE_CONFIG.hygiene.cost) {
             Water.consume(AUTO_MANAGE_CONFIG.hygiene.cost);
             const recovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
             this.wasteNeed = Math.max(0, this.wasteNeed - recovery);
             autoManageActions.push('se aseó');
-            this.currentActivity = 'resting';
+            this.currentActivity = 'cleaning';
         }
 
         // Auto-gestionar entretenimiento
@@ -202,17 +256,18 @@ class Crew {
             autoManageActions.push('se entretuvo');
             this.currentActivity = 'socializing';
         }
-        
+
         if (autoManageActions.length > 0) {
             this.autoManaging = true;
             this.addToPersonalLog(`Auto-gestión: ${autoManageActions.join(', ')}`);
         } else {
             this.currentActivity = 'working';
         }
-        
+
         Food.updateResourceUI();
         Water.updateResourceUI();
         Data.updateResourceUI();
+        Medicine.updateResourceUI();
     }
     
     /* === SISTEMA DE RELACIONES === */
@@ -549,6 +604,11 @@ class Logbook {
         };
         this.entries.push(entry);
         this.updateUI();
+
+        // Enviar también al terminal de consola
+        if (typeof window.addLogbookEntryToTerminal === 'function') {
+            window.addLogbookEntryToTerminal(text, type);
+        }
     }
     
     updateUI() {
