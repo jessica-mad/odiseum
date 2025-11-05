@@ -967,10 +967,10 @@
 /* === TERMINAL DE NOTIFICACIONES === */
 .terminal-notification-area {
     position: fixed;
+    left: 20px;
+    top: calc(var(--title-bar-height) + var(--details-bar-height) + 480px);
+    width: 450px;
     bottom: 260px;
-    left: 120px;
-    right: calc(var(--crew-sidebar-width) + 20px);
-    height: 150px;
     background: var(--color-terminal-bg);
     border: 3px solid var(--color-terminal-green);
     box-shadow:

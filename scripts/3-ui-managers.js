@@ -2,6 +2,96 @@
 // GESTIÓN DE UI - ODISEUM V2.0
 // ============================================
 
+/* === GESTIÓN DE Z-INDEX DE POPUPS === */
+let currentZIndex = 1000;
+
+function bringToFront(popup) {
+    currentZIndex++;
+    popup.style.zIndex = currentZIndex;
+}
+
+function setupPopupZIndex() {
+    const popups = document.querySelectorAll('.window.interface');
+    popups.forEach(popup => {
+        popup.addEventListener('mousedown', () => {
+            bringToFront(popup);
+        });
+    });
+}
+
+/* === SISTEMA DE ACORDEONES MÓVIL === */
+let currentOpenAccordion = null;
+
+function toggleMobileAccordion(section) {
+    const header = event.currentTarget;
+    const content = document.getElementById(`mobile-accordion-${section}`);
+
+    // Si ya estaba abierto, cerrarlo
+    if (currentOpenAccordion === section) {
+        header.classList.remove('active');
+        content.classList.remove('active');
+        currentOpenAccordion = null;
+        return;
+    }
+
+    // Cerrar el acordeón previamente abierto
+    if (currentOpenAccordion) {
+        const prevHeader = document.querySelector(`[onclick="toggleMobileAccordion('${currentOpenAccordion}')"]`);
+        const prevContent = document.getElementById(`mobile-accordion-${currentOpenAccordion}`);
+        if (prevHeader) prevHeader.classList.remove('active');
+        if (prevContent) prevContent.classList.remove('active');
+    }
+
+    // Abrir el nuevo acordeón
+    header.classList.add('active');
+    content.classList.add('active');
+    currentOpenAccordion = section;
+
+    // Si es el mapa, moverlo al contenedor del acordeón
+    if (section === 'map') {
+        const mapContainer = document.getElementById('ship-map-container');
+        const mapAccordion = document.getElementById('mobile-accordion-map');
+        if (mapContainer && mapAccordion) {
+            mapAccordion.appendChild(mapContainer);
+            mapContainer.style.display = 'flex';
+        }
+    }
+}
+
+function initializeMobileView() {
+    const isMobile = window.innerWidth <= 768;
+    const mobileAccordion = document.getElementById('mobile-accordion');
+    const desktopArea = document.querySelector('.desktop-main-area');
+    const voyageVisualizer = document.querySelector('.voyage-visualizer');
+    const crewSidebar = document.querySelector('.crew-sidebar');
+
+    if (isMobile) {
+        // Mostrar acordeones
+        if (mobileAccordion) mobileAccordion.style.display = 'flex';
+
+        // Ocultar elementos de escritorio
+        if (desktopArea) desktopArea.style.display = 'none';
+        if (voyageVisualizer) voyageVisualizer.style.display = 'none';
+        if (crewSidebar) crewSidebar.style.display = 'none';
+
+        // Copiar tarjetas de tripulación al acordeón móvil
+        const crewCardsDesktop = document.getElementById('crew-cards-container');
+        const crewCardsMobile = document.getElementById('crew-cards-container-mobile');
+        if (crewCardsDesktop && crewCardsMobile) {
+            crewCardsMobile.innerHTML = crewCardsDesktop.innerHTML;
+        }
+    } else {
+        // Mostrar vista de escritorio
+        if (mobileAccordion) mobileAccordion.style.display = 'none';
+        if (desktopArea) desktopArea.style.display = 'block';
+        if (voyageVisualizer) voyageVisualizer.style.display = 'block';
+        if (crewSidebar) crewSidebar.style.display = 'flex';
+    }
+}
+
+// Inicializar vista móvil al cargar y redimensionar
+window.addEventListener('resize', initializeMobileView);
+
 /* === GESTIÓN DE VENTANAS ARRASTRABLES === */
 function setupDraggableWindows() {
     const windows = document.querySelectorAll('.window');

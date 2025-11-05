@@ -33,10 +33,10 @@
 /* === CONTENEDOR DEL MAPA === */
 .ship-map-container {
     position: fixed;
-    left: 120px;
-    top: calc(var(--title-bar-height) + var(--details-bar-height) + 60px);
-    right: calc(var(--crew-sidebar-width) + 20px);
-    bottom: 260px;
+    left: 20px;
+    top: calc(var(--title-bar-height) + var(--details-bar-height) + 20px);
+    width: 450px;
+    height: 450px;
     background: var(--color-terminal-bg);
     border: 3px solid var(--color-terminal-green);
     box-shadow:
@@ -94,9 +94,10 @@
     display: grid;
     grid-template-columns: repeat(25, 1fr);
     grid-template-rows: repeat(25, 1fr);
-    gap: 1px;
-    padding: 8px;
+    gap: 0.5px;
+    padding: 4px;
     background: var(--color-terminal-bg);
+    overflow: hidden;
 }
 
 /* === CELDAS DE LA GRILLA === */
@@ -195,14 +196,14 @@
 
 /* Labels de celdas */
 .cell-label {
-    font-size: 16px;
-    opacity: 0.35;
+    font-size: 10px;
+    opacity: 0.4;
     filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.25));
     pointer-events: none;
 }
 
 .grid-cell:hover .cell-label {
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 /* === MARCADORES DE TRIPULANTES EN GRILLA === */
@@ -234,14 +235,14 @@
 
 /* Icono del tripulante en grilla */
 .crew-icon-grid {
-    font-size: 22px;
-    filter: drop-shadow(0 0 6px rgba(0, 255, 65, 0.6));
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 65, 0.6));
     transition: all 0.3s ease;
 }
 
 .crew-marker-grid:hover .crew-icon-grid {
-    filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.9));
-    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.9));
+    transform: scale(1.2);
 }
 
 /* Estados visuales */
@@ -302,12 +303,12 @@
 /* Nombre del tripulante */
 .crew-name-grid {
     font-family: var(--font-monaco);
-    font-size: 7px;
+    font-size: 6px;
     color: var(--color-terminal-green);
     background: var(--color-terminal-bg);
-    padding: 1px 2px;
-    border: 1px solid var(--color-terminal-green);
-    border-radius: 2px;
+    padding: 0.5px 1px;
+    border: 0.5px solid var(--color-terminal-green);
+    border-radius: 1px;
     white-space: nowrap;
     text-shadow: 0 0 2px rgba(0, 255, 65, 0.7);
     opacity: 0;
@@ -325,10 +326,132 @@
     text-shadow: none;
 }
 
-/* === RESPONSIVE === */
+/* === SISTEMA DE ACORDEONES MÓVIL === */
 @media (max-width: 768px) {
     .ship-map-container {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: 400px;
+        border: none;
+        border-top: 2px solid var(--color-terminal-green);
+        border-bottom: 2px solid var(--color-terminal-green);
+        margin: 0;
         display: none;
+    }
+
+    .ship-map-container.mobile-expanded {
+        display: flex;
+    }
+
+    .mobile-accordion {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background: var(--color-terminal-bg);
+    }
+
+    .mobile-accordion-item {
+        border-bottom: 1px solid var(--color-terminal-green-dim);
+    }
+
+    .mobile-accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--color-terminal-bg-light);
+        color: var(--color-terminal-green);
+        font-family: var(--font-monaco);
+        font-size: var(--font-size-md);
+        cursor: pointer;
+        border: none;
+        width: 100%;
+        text-align: left;
+        transition: background 0.2s ease;
+    }
+
+    .mobile-accordion-header:hover {
+        background: rgba(0, 255, 65, 0.1);
+    }
+
+    .mobile-accordion-header.active {
+        background: rgba(0, 255, 65, 0.15);
+        border-bottom: 2px solid var(--color-terminal-green);
+    }
+
+    .mobile-accordion-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-accordion-header.active .mobile-accordion-icon {
+        transform: rotate(90deg);
+    }
+
+    .mobile-accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .mobile-accordion-content.active {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    /* Ocultar elementos de escritorio en móvil */
+    .voyage-visualizer,
+    .desktop-icons,
+    .terminal-notification-area {
+        display: none !important;
+    }
+
+    /* Ajustar crew sidebar para móvil */
+    .crew-sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: 400px;
+        border: none;
+        border-top: 1px solid var(--color-terminal-green-dim);
+    }
+
+    /* Ocultar botón de toggle de mapa en móvil */
+    .map-toggle-btn {
+        display: none !important;
+    }
+
+    /* Ajustar resource strip para móvil */
+    .resource-strip {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 4px;
+    }
+
+    .resource-chip {
+        font-size: 10px;
+        padding: 4px 6px;
+        min-width: 80px;
+    }
+
+    /* Ajustar details bar para móvil */
+    .details-bar {
+        flex-direction: column;
+        height: auto;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .mission-title {
+        font-size: 12px;
+    }
+
+    /* Ajustar desktop para acomodar acordeones */
+    .desktop {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow-y: auto;
     }
 }
 

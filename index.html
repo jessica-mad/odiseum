@@ -143,6 +143,76 @@
             </div>
         </div>
 
+        <!-- Sistema de Acordeones para Móvil -->
+        <div class="mobile-accordion" id="mobile-accordion" style="display: none;">
+            <!-- Control -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('control')">
+                    <span>🎮 CONTROL</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-control">
+                    <div class="nav-controls-section" style="padding: 16px;">
+                        <div class="nav-control-group">
+                            <label class="nav-label">VELOCIDAD NAVE</label>
+                            <div class="nav-speed-display" id="nav-speed-display-mobile">100%</div>
+                            <input type="range" id="nav-speed-slider-mobile" min="0" max="100" value="100" class="nav-slider">
+                        </div>
+                        <div class="nav-control-group">
+                            <label class="nav-label">TIEMPO TRAMO</label>
+                            <div class="tranche-timer" id="tranche-timer-mobile">00:00</div>
+                        </div>
+                        <div class="nav-control-group">
+                            <label class="nav-label">AÑOS VIAJE</label>
+                            <div class="calendar" id="calendar-mobile">AÑO 0</div>
+                        </div>
+                        <div class="nav-control-buttons">
+                            <button id="start-button-mobile" class="nav-btn primary" onclick="startGame()">INICIAR TRAMO</button>
+                            <button id="pause-button-mobile" class="nav-btn" onclick="pauseGame()" style="display: none;">PAUSAR</button>
+                            <button id="resume-button-mobile" class="nav-btn" onclick="resumeGame()" style="display: none;">REANUDAR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tripulantes -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('crew')">
+                    <span>👥 TRIPULANTES</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-crew">
+                    <div id="crew-cards-container-mobile" style="padding: 8px;">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('map')">
+                    <span>🗺️ MAPA</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-map">
+                    <!-- El mapa se mostrará aquí -->
+                </div>
+            </div>
+
+            <!-- Terminal -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('terminal')">
+                    <span>💻 TERMINAL</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-terminal">
+                    <div class="terminal-content" id="terminal-notifications-mobile" style="padding: 12px; max-height: 300px; overflow-y: auto;">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Área Principal del Escritorio -->
         <div class="desktop-main-area">
             <!-- Iconos del Escritorio -->

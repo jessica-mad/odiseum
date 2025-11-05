@@ -212,7 +212,13 @@ function initializeGame() {
     
     // Configurar ventanas arrastrables
     setupDraggableWindows();
-    
+
+    // Configurar z-index de popups
+    setupPopupZIndex();
+
+    // Inicializar vista móvil/escritorio
+    initializeMobileView();
+
     // Inicializar progreso del viaje
     gameLoop.updateTripProgress();
     
