@@ -87,13 +87,13 @@
     transform: scale(1.1);
 }
 
-/* === GRILLA DEL MAPA (18x12) === */
+/* === GRILLA DEL MAPA (25x25) === */
 .ship-map-grid {
     position: relative;
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(18, 1fr);
-    grid-template-rows: repeat(12, 1fr);
+    grid-template-columns: repeat(25, 1fr);
+    grid-template-rows: repeat(25, 1fr);
     gap: 1px;
     padding: 8px;
     background: var(--color-terminal-bg);

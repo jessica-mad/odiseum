@@ -5,33 +5,48 @@
 /* === SISTEMA DE MAPA DE LA NAVE === */
 class ShipMapSystem {
     constructor() {
-        // Grilla 18x12 con forma específica de nave
-        // PM=Puente, ENF=Enfermería, COC=Cocina, SUE=Cápsulas, BOD=Bodega, P=Pasillo, .=Vacío
+        // Grilla 25x25 con forma específica de nave
+        // C=Control/Puente, E=Enfermería, G=Ingeniería, K=Cocina, N=Invernadero, D=Cápsulas, B=Bodega, P=Pasillo, .=Vacío
         this.grid = [
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', '.', '.', '.', '.'],  // Fila 1
-            ['.', '.', '.', '.', '.', '.', 'P', '.', '.', '.', '.', '.', 'C', 'C', '.', '.', '.', '.'],  // Fila 2
-            ['.', '.', '.', 'E', 'E', '.', 'P', '.', '.', '.', '.', '.', '.', 'B', 'B', 'B', '.', '.'],  // Fila 3
-            ['.', '.', '.', 'E', 'E', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'B', 'B', 'B', '.', '.'],  // Fila 4
-            ['.', '.', '.', '.', '.', '.', 'P', '.', '.', '.', '.', '.', '.', '.', 'P', '.', '.', '.'],  // Fila 5
-            ['.', '.', '.', '.', '.', '.', 'P', '.', '.', '.', '.', '.', '.', 'S', 'S', 'S', '.', '.'],  // Fila 6
-            ['.', '.', '.', '.', '.', 'P', 'P', 'P', 'P', 'P', 'P', 'P', '.', 'S', 'S', 'S', '.', '.'],  // Fila 7
-            ['.', 'G', 'G', 'P', 'P', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 8
-            ['.', 'G', 'G', 'P', '.', '.', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 9
-            ['.', 'G', 'G', '.', '.', '.', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 10
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 11
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.']   // Fila 12
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 1
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 2
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 3
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 4
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', 'C', 'C', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 5
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 6
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 7
+            ['.', '.', '.', '.', '.', '.', '.', '.', 'E', 'E', 'E', 'P', 'P', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 8
+            ['.', '.', '.', '.', '.', '.', '.', 'E', 'E', 'E', 'E', 'P', 'P', 'G', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 9
+            ['.', '.', '.', '.', '.', '.', 'E', 'E', 'E', '.', '.', 'P', 'P', '.', '.', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.', '.'],  // Fila 10
+            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'K', 'K', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 11
+            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'K', 'K', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 12
+            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', 'P', 'P', 'P', 'P', 'P', 'P', 'K', 'K', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 13
+            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'N', 'N', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 14
+            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'N', 'N', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 15
+            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'N', 'N', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 16
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 17
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 18
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 19
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 20
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'B', 'B', 'B', 'B', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 21
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'B', 'B', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 22
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 23
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 24
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.']   // Fila 25
         ];
 
-        this.rows = 12;
-        this.cols = 18;
+        this.rows = 25;
+        this.cols = 25;
 
         // Zonas y sus tiles principales
         this.zones = {
-            bridge: { name: 'Puente de Mando', icon: '🎮', tiles: this.findTiles('B'), color: '#00ff41' },
+            bridge: { name: 'Control', icon: '🎮', tiles: this.findTiles('C'), color: '#00ff41' },
             medbay: { name: 'Enfermería', icon: '🏥', tiles: this.findTiles('E'), color: '#ff4444' },
-            kitchen: { name: 'Cocina', icon: '🍳', tiles: this.findTiles('C'), color: '#ffaa44' },
-            capsules: { name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('S'), color: '#4488ff' },
-            cargo: { name: 'Bodega', icon: '📦', tiles: this.findTiles('G'), color: '#888888' }
+            engineering: { name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('G'), color: '#ffaa00' },
+            kitchen: { name: 'Cocina', icon: '🍳', tiles: this.findTiles('K'), color: '#ff8844' },
+            greenhouse: { name: 'Invernadero', icon: '🌱', tiles: this.findTiles('N'), color: '#44ff44' },
+            capsules: { name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('D'), color: '#4488ff' },
+            cargo: { name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888' }
         };
 
         this.crewLocations = {};
@@ -126,12 +141,14 @@ class ShipMapSystem {
 
     getCellClass(type) {
         const classes = {
-            'B': 'cell-bridge',
-            'P': 'cell-corridor',
-            'E': 'cell-medbay',
-            'C': 'cell-kitchen',
-            'S': 'cell-capsules',
-            'G': 'cell-cargo',
+            'C': 'cell-bridge',       // Control
+            'E': 'cell-medbay',       // Enfermería
+            'G': 'cell-engineering',  // Ingeniería
+            'K': 'cell-kitchen',      // Cocina
+            'N': 'cell-greenhouse',   // Invernadero
+            'D': 'cell-capsules',     // Cápsulas
+            'B': 'cell-cargo',        // Bodega
+            'P': 'cell-corridor',     // Pasillo
             '.': 'cell-empty'
         };
         return classes[type] || 'cell-empty';
@@ -139,19 +156,23 @@ class ShipMapSystem {
 
     getCellLabel(type, row, col) {
         const labels = {
-            'B': '🎮',
-            'E': '🏥',
-            'C': '🍳',
-            'S': '🛏️',
-            'G': '📦'
+            'C': '🎮',  // Control
+            'E': '🏥',  // Enfermería
+            'G': '⚙️',  // Ingeniería
+            'K': '🍳',  // Cocina
+            'N': '🌱',  // Invernadero
+            'D': '🛏️',  // Cápsulas
+            'B': '📦'   // Bodega
         };
 
-        // Mostrar solo en el centro de cada zona
-        if (type === 'B' && row === 3 && col === 14) return labels[type];
-        if (type === 'E' && row === 3 && col === 4) return labels[type];
-        if (type === 'C' && row === 1 && col === 12) return labels[type];
-        if (type === 'S' && row === 6 && col === 14) return labels[type];
-        if (type === 'G' && row === 8 && col === 2) return labels[type];
+        // Mostrar solo en el centro de cada zona (aproximado)
+        if (type === 'C' && row === 3 && col === 11) return labels[type];   // Control
+        if (type === 'E' && row === 8 && col === 8) return labels[type];    // Enfermería
+        if (type === 'G' && row === 8 && col === 14) return labels[type];   // Ingeniería
+        if (type === 'K' && row === 11 && col === 15) return labels[type];  // Cocina
+        if (type === 'N' && row === 14 && col === 15) return labels[type];  // Invernadero
+        if (type === 'D' && row === 12 && col === 7) return labels[type];   // Cápsulas
+        if (type === 'B' && row === 20 && col === 11) return labels[type];  // Bodega
 
         return '';
     }
@@ -181,6 +202,7 @@ class ShipMapSystem {
         if (crew.state === 'Despierto') {
             const activity = crew.currentActivity?.toLowerCase() || '';
 
+            // Prioridad: atención médica
             if (activity.includes('atendiendo')) {
                 return 'medbay';
             }
@@ -189,18 +211,28 @@ class ShipMapSystem {
                 return 'medbay';
             }
 
+            // Prioridad: alimentación
             if (crew.foodNeed < 40) {
                 return 'kitchen';
             }
 
-            // Mapeo de roles a zonas disponibles
+            // Mapeo de roles a zonas de trabajo
             switch (crew.role) {
-                case 'commander': return 'bridge';
-                case 'doctor': return 'medbay';
-                case 'engineer': return 'cargo'; // Ingeniería → Bodega (más cercano disponible)
-                case 'cook': return 'kitchen';
-                case 'scientist': return 'cargo'; // Invernadero → Bodega
-                default: return 'bridge';
+                case 'commander':
+                    // Capitán: principalmente en Control, a Ingeniería en emergencias
+                    return 'bridge';
+                case 'doctor':
+                    return 'medbay';
+                case 'engineer':
+                    return 'engineering';
+                case 'cook':
+                    // Cocinero alterna entre Cocina e Invernadero
+                    return Math.random() < 0.6 ? 'kitchen' : 'greenhouse';
+                case 'scientist':
+                    // Científico trabaja en Invernadero
+                    return 'greenhouse';
+                default:
+                    return 'bridge';
             }
         }
 
