@@ -85,8 +85,20 @@ function initializeMobileView() {
             popup.style.left = '50%';
             popup.style.top = '50%';
             popup.style.transform = 'translate(-50%, -50%)';
-            popup.style.maxWidth = '90vw';
-            popup.style.maxHeight = '90vh';
+
+            // El popup de tripulante debe ser pantalla completa en móvil
+            if (popup.id === 'crew-management-popup') {
+                popup.style.width = '100vw';
+                popup.style.height = '100vh';
+                popup.style.maxWidth = '100vw';
+                popup.style.maxHeight = '100vh';
+                popup.style.margin = '0';
+                popup.style.borderRadius = '0';
+            } else {
+                popup.style.maxWidth = '90vw';
+                popup.style.maxHeight = '90vh';
+            }
+
             popup.style.overflow = 'auto';
         });
     } else {
@@ -281,7 +293,11 @@ function openLogbookPopup() {
     logbook.updateUI();
 }
 
-function closeLogbookPopup() {
+function closeLogbookPopup(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     document.getElementById('logbook-popup').style.display = 'none';
 }
 
@@ -363,7 +379,11 @@ function openCrewManagementPopup(name) {
     document.getElementById('crew-management-popup').style.display = 'block';
 }
 
-function closeCrewManagementPopup() {
+function closeCrewManagementPopup(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     document.getElementById('crew-management-popup').style.display = 'none';
 }
 
