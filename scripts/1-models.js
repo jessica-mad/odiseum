@@ -403,39 +403,51 @@ class Crew {
 
         card.onclick = () => openCrewManagementPopup(this.name);
 
-        // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
-        if (this.state === 'Despierto') {
-            console.log(`🎨 Creando card DESPIERTO para ${this.name}`);
-            const benefit = this.getAwakeBenefitDescription();
-            const location = this.getCurrentLocation();
-            const thought = this.getCurrentThought();
-            console.log(`  Benefit: ${benefit}, Location: ${location}, Thought: ${thought}`);
+        try {
+            // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
+            if (this.state === 'Despierto') {
+                console.log(`🎨 Creando card DESPIERTO para ${this.name}`);
+                const benefit = this.getAwakeBenefitDescription();
+                const location = this.getCurrentLocation();
+                const thought = this.getCurrentThought();
+                console.log(`  Benefit: "${benefit}", Location: "${location}", Thought: "${thought}"`);
 
+                card.innerHTML = `
+                    <div class="crew-card-header">
+                        <span class="crew-card-name">${this.name}</span>
+                        <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
+                    </div>
+                    ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                    <div class="crew-card-location">
+                        📍 ${location}
+                    </div>
+                    <div class="crew-card-thought">
+                        <div class="thought-marquee">${thought}</div>
+                    </div>
+                `;
+                console.log(`  ✅ HTML generado correctamente, longitud: ${card.innerHTML.length}`);
+            } else {
+                // ENCAPSULADOS: mostrar necesidades con barras
+                console.log(`🎨 Creando card ENCAPSULADO para ${this.name}`);
+                card.innerHTML = `
+                    <div class="crew-card-header">
+                        <span class="crew-card-name">${this.name}</span>
+                        <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
+                    </div>
+                    <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">
+                        ${this.generateAdvancedNeedBars()}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error(`❌ ERROR creando card para ${this.name}:`, error);
+            // Crear una card de fallback básica
             card.innerHTML = `
                 <div class="crew-card-header">
                     <span class="crew-card-name">${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
-                ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
-                <div class="crew-card-location">
-                    📍 ${location}
-                </div>
-                <div class="crew-card-thought">
-                    <div class="thought-marquee">${thought}</div>
-                </div>
-            `;
-            console.log(`  HTML generado, longitud: ${card.innerHTML.length}`);
-        } else {
-            // ENCAPSULADOS: mostrar necesidades con barras
-            console.log(`🎨 Creando card ENCAPSULADO para ${this.name}`);
-            card.innerHTML = `
-                <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
-                    <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
-                </div>
-                <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">
-                    ${this.generateAdvancedNeedBars()}
-                </div>
+                <div class="crew-card-state">${this.state}</div>
             `;
         }
 
@@ -443,71 +455,81 @@ class Crew {
     }
 
     getCurrentLocation() {
-        // Obtener la ubicación actual del tripulante en el mapa
-        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
-            const location = shipMapSystem.getCrewLocation(this.id);
-            if (location) {
-                // Si está en un pasillo entre secciones
-                if (location.type === 'moving') {
-                    return 'Desplazándose...';
+        try {
+            // Obtener la ubicación actual del tripulante en el mapa
+            if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+                const location = shipMapSystem.getCrewLocation(this.id);
+                if (location) {
+                    // Si está en un pasillo entre secciones
+                    if (location.type === 'moving') {
+                        return 'Desplazándose...';
+                    }
+                    return location.name || 'Ubicación desconocida';
                 }
-                return location.name || 'Ubicación desconocida';
             }
+            // Ubicación por defecto según especialidad
+            const defaultLocations = {
+                'Navegante': 'Puente de Mando',
+                'Ingeniera': 'Sala de Máquinas',
+                'Doctora': 'Enfermería',
+                'Botánica': 'Invernadero',
+                'Geóloga': 'Laboratorio'
+            };
+            return defaultLocations[this.position] || 'Nave';
+        } catch (error) {
+            console.warn(`⚠️ Error obteniendo ubicación para ${this.name}:`, error);
+            return 'Nave';
         }
-        // Ubicación por defecto según especialidad
-        const defaultLocations = {
-            'Navegante': 'Puente de Mando',
-            'Ingeniera': 'Sala de Máquinas',
-            'Doctora': 'Enfermería',
-            'Botánica': 'Invernadero',
-            'Geóloga': 'Laboratorio'
-        };
-        return defaultLocations[this.position] || 'Nave';
     }
 
     getCurrentThought() {
-        // Pensamientos según necesidades y estado
-        if (this.foodNeed < 30) {
-            return '💭 Tengo tanta hambre... Necesito comer algo pronto.';
-        }
-        if (this.healthNeed < 30) {
-            return '💭 No me siento bien... Necesito atención médica.';
-        }
-        if (this.wasteNeed > 80) {
-            return '💭 Necesito ir al baño urgentemente...';
-        }
+        try {
+            // Pensamientos según necesidades y estado
+            if (this.foodNeed < 30) {
+                return '💭 Tengo tanta hambre... Necesito comer algo pronto.';
+            }
+            if (this.healthNeed < 30) {
+                return '💭 No me siento bien... Necesito atención médica.';
+            }
+            if (this.wasteNeed > 80) {
+                return '💭 Necesito ir al baño urgentemente...';
+            }
 
-        // Pensamientos aleatorios según especialidad
-        const thoughts = {
-            'Navegante': [
-                '💭 Los cálculos de trayectoria están perfectos hoy.',
-                '💭 Me pregunto qué encontraremos en la Nueva Tierra.',
-                '💭 Mantener el rumbo es mi responsabilidad.'
-            ],
-            'Ingeniera': [
-                '💭 Los sistemas están funcionando óptimamente.',
-                '💭 Debería revisar los conductos de ventilación.',
-                '💭 Esta nave es una maravilla de ingeniería.'
-            ],
-            'Doctora': [
-                '💭 Todos parecen estar en buena salud.',
-                '💭 Espero no tener que usar el quirófano.',
-                '💭 La medicina preventiva es clave en el espacio.'
-            ],
-            'Botánica': [
-                '💭 Las plantas están creciendo bien este ciclo.',
-                '💭 El oxígeno generado es suficiente.',
-                '💭 Me encanta cuidar del invernadero.'
-            ],
-            'Geóloga': [
-                '💭 Los análisis de muestras son fascinantes.',
-                '💭 Qué minerales tendrá la Nueva Tierra...',
-                '💭 La geología espacial nunca deja de sorprenderme.'
-            ]
-        };
+            // Pensamientos aleatorios según especialidad
+            const thoughts = {
+                'Navegante': [
+                    '💭 Los cálculos de trayectoria están perfectos hoy.',
+                    '💭 Me pregunto qué encontraremos en la Nueva Tierra.',
+                    '💭 Mantener el rumbo es mi responsabilidad.'
+                ],
+                'Ingeniera': [
+                    '💭 Los sistemas están funcionando óptimamente.',
+                    '💭 Debería revisar los conductos de ventilación.',
+                    '💭 Esta nave es una maravilla de ingeniería.'
+                ],
+                'Doctora': [
+                    '💭 Todos parecen estar en buena salud.',
+                    '💭 Espero no tener que usar el quirófano.',
+                    '💭 La medicina preventiva es clave en el espacio.'
+                ],
+                'Botánica': [
+                    '💭 Las plantas están creciendo bien este ciclo.',
+                    '💭 El oxígeno generado es suficiente.',
+                    '💭 Me encanta cuidar del invernadero.'
+                ],
+                'Geóloga': [
+                    '💭 Los análisis de muestras son fascinantes.',
+                    '💭 Qué minerales tendrá la Nueva Tierra...',
+                    '💭 La geología espacial nunca deja de sorprenderme.'
+                ]
+            };
 
-        const crewThoughts = thoughts[this.position] || ['💭 Todo va bien.'];
-        return crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
+            const crewThoughts = thoughts[this.position] || ['💭 Todo va bien.'];
+            return crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
+        } catch (error) {
+            console.warn(`⚠️ Error obteniendo pensamiento para ${this.name}:`, error);
+            return '💭 Todo va bien.';
+        }
     }
 
     generateAdvancedNeedBars() {
@@ -546,17 +568,17 @@ class Crew {
     }
 
     getAwakeBenefitDescription() {
-        if (!this.isAlive) return '';
+        try {
+            if (!this.isAlive) return '';
+            if (this.state !== 'Despierto') return '';
+            if (typeof awakeBenefitSystem === 'undefined' || !awakeBenefitSystem) return '';
 
-        if (this.state !== 'Despierto') {
+            const benefit = awakeBenefitSystem.describeBenefitForCrew(this);
+            return benefit || '';
+        } catch (error) {
+            console.warn(`⚠️ Error obteniendo beneficio para ${this.name}:`, error);
             return '';
         }
-
-        if (typeof awakeBenefitSystem === 'undefined' || !awakeBenefitSystem) {
-            return '';
-        }
-
-        return awakeBenefitSystem.describeBenefitForCrew(this);
     }
 
     generateNeedBars() {
