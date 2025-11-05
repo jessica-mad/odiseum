@@ -64,6 +64,7 @@ function initializeMobileView() {
     const desktopArea = document.querySelector('.desktop-main-area');
     const voyageVisualizer = document.querySelector('.voyage-visualizer');
     const crewSidebar = document.querySelector('.crew-sidebar');
+    const mapSidebar = document.getElementById('ship-map-sidebar');
 
     if (isMobile) {
         // Mostrar acordeones
@@ -73,13 +74,21 @@ function initializeMobileView() {
         if (desktopArea) desktopArea.style.display = 'none';
         if (voyageVisualizer) voyageVisualizer.style.display = 'none';
         if (crewSidebar) crewSidebar.style.display = 'none';
+        if (mapSidebar) mapSidebar.style.display = 'none';
 
-        // Copiar tarjetas de tripulación al acordeón móvil
-        const crewCardsDesktop = document.getElementById('crew-cards-container');
-        const crewCardsMobile = document.getElementById('crew-cards-container-mobile');
-        if (crewCardsDesktop && crewCardsMobile) {
-            crewCardsMobile.innerHTML = crewCardsDesktop.innerHTML;
-        }
+        // Llenar acordeón de recursos
+        updateMobileResources();
+
+        // Centrar popups
+        document.querySelectorAll('.window.interface').forEach(popup => {
+            popup.style.position = 'fixed';
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.maxWidth = '90vw';
+            popup.style.maxHeight = '90vh';
+            popup.style.overflow = 'auto';
+        });
     } else {
         // Mostrar vista de escritorio
         if (mobileAccordion) mobileAccordion.style.display = 'none';
@@ -87,6 +96,40 @@ function initializeMobileView() {
         if (voyageVisualizer) voyageVisualizer.style.display = 'block';
         if (crewSidebar) crewSidebar.style.display = 'flex';
     }
+}
+
+function updateMobileResources() {
+    const container = document.getElementById('resources-mobile-container');
+    if (!container) return;
+
+    const resources = [
+        { name: 'Energía', indicator: 'indicator-energy', value: 'resource-strip-energy' },
+        { name: 'Alimentos', indicator: 'indicator-food', value: 'resource-strip-food' },
+        { name: 'Agua', indicator: 'indicator-water', value: 'resource-strip-water' },
+        { name: 'Oxígeno', indicator: 'indicator-oxygen', value: 'resource-strip-oxygen' },
+        { name: 'Medicinas', indicator: 'indicator-medicine', value: 'resource-strip-medicine' },
+        { name: 'Datos', indicator: 'indicator-data', value: 'resource-strip-data' },
+        { name: 'Combustible', indicator: 'indicator-fuel', value: 'resource-strip-fuel' }
+    ];
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    resources.forEach(resource => {
+        const valueElem = document.getElementById(resource.value);
+        const indicatorElem = document.getElementById(resource.indicator);
+        const value = valueElem ? valueElem.textContent : '0/0';
+        const indicatorClass = indicatorElem ? indicatorElem.className : 'resource-indicator full';
+
+        html += `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: 4px;">
+                <span class="${indicatorClass}"></span>
+                <span style="flex: 1; font-family: var(--font-monaco); font-size: 14px; color: var(--color-terminal-green);">${resource.name}</span>
+                <span style="font-family: var(--font-monaco); font-size: 12px; color: var(--color-terminal-green);">${value}</span>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
 }
 
 // Inicializar vista móvil al cargar y redimensionar

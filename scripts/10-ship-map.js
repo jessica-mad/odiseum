@@ -77,12 +77,12 @@ class ShipMapSystem {
 
     toggleVisibility() {
         this.isVisible = !this.isVisible;
-        const container = document.getElementById('ship-map-container');
-        if (container) {
+        const sidebar = document.getElementById('ship-map-sidebar');
+        if (sidebar) {
             if (this.isVisible) {
-                container.classList.add('visible');
+                sidebar.classList.add('visible');
             } else {
-                container.classList.remove('visible');
+                sidebar.classList.remove('visible');
             }
         }
 
@@ -105,12 +105,13 @@ class ShipMapSystem {
         if (!mapContainer) return;
 
         mapContainer.innerHTML = `
-            <div class="ship-map-title">
-                <span>🚀 MAPA DE LA NAVE - ODISEUM</span>
-                <button class="map-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
-            </div>
-            <div class="ship-map-grid" id="ship-map-grid">
-                ${this.generateGridHTML()}
+            <div class="ship-map-wrapper">
+                <div class="ship-map-grid" id="ship-map-grid">
+                    ${this.generateGridHTML()}
+                </div>
+                <div class="ship-map-crew-overlay" id="ship-map-crew-overlay">
+                    <!-- Los tripulantes se renderizan aquí -->
+                </div>
             </div>
         `;
     }
@@ -353,20 +354,20 @@ class ShipMapSystem {
     }
 
     createOrUpdateCrewMarker(crew, pos) {
-        const gridContainer = document.getElementById('ship-map-grid');
-        if (!gridContainer) return;
+        const overlay = document.getElementById('ship-map-crew-overlay');
+        if (!overlay) return;
 
         let marker = document.getElementById(`crew-marker-${crew.id}`);
 
         if (!marker) {
             marker = document.createElement('div');
-            marker.className = 'crew-marker-grid';
+            marker.className = 'crew-marker-overlay';
             marker.id = `crew-marker-${crew.id}`;
             marker.dataset.crewId = crew.id;
-            gridContainer.appendChild(marker);
+            overlay.appendChild(marker);
         }
 
-        marker.className = 'crew-marker-grid';
+        marker.className = 'crew-marker-overlay';
         if (!crew.isAlive) {
             marker.classList.add('dead');
         } else if (crew.state === 'Encapsulado') {
@@ -377,8 +378,16 @@ class ShipMapSystem {
             marker.classList.add('active');
         }
 
-        marker.style.gridRow = pos.row + 1;
-        marker.style.gridColumn = pos.col + 1;
+        // Posicionar usando porcentajes basados en la posición del grid
+        const topPercent = (pos.row / this.rows) * 100;
+        const leftPercent = (pos.col / this.cols) * 100;
+        const widthPercent = (1 / this.cols) * 100;
+        const heightPercent = (1 / this.rows) * 100;
+
+        marker.style.top = `${topPercent}%`;
+        marker.style.left = `${leftPercent}%`;
+        marker.style.width = `${widthPercent}%`;
+        marker.style.height = `${heightPercent}%`;
 
         const icon = this.getCrewIcon(crew);
         marker.innerHTML = `

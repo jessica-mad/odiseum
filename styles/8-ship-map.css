@@ -30,43 +30,45 @@
     box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
 }
 
-/* === CONTENEDOR DEL MAPA COMO SIDEBAR IZQUIERDO === */
-.ship-map-container {
+/* === SIDEBAR IZQUIERDO DEL MAPA === */
+.ship-map-sidebar {
     position: fixed;
     left: 0;
     top: calc(var(--title-bar-height) + var(--details-bar-height) + var(--resource-strip-height, 50px));
     bottom: var(--voyage-visualizer-height, 260px);
-    width: 350px;
+    width: 400px;
     background: var(--color-terminal-bg);
     border-right: 3px solid var(--color-terminal-green);
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
     display: none;
     flex-direction: column;
-    z-index: var(--z-desktop);
+    z-index: var(--z-sidebar, 100);
     overflow: hidden;
 }
 
-.ship-map-container.visible {
+.ship-map-sidebar.visible {
     display: flex;
 }
 
-/* === TÍTULO DEL MAPA === */
-.ship-map-title {
+.ship-map-sidebar .sidebar-header {
     background: var(--color-terminal-bg-light);
     border-bottom: 2px solid var(--color-terminal-green);
-    padding: 8px 12px;
-    font-family: var(--font-monaco);
-    font-size: var(--font-size-md);
-    color: var(--color-terminal-green);
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: bold;
-    letter-spacing: 2px;
-    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
 }
 
-.map-close-btn {
+.ship-map-sidebar .sidebar-header h3 {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+    margin: 0;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+    letter-spacing: 1px;
+}
+
+.sidebar-close-btn {
     background: transparent;
     border: 1px solid var(--color-terminal-green);
     color: var(--color-terminal-green);
@@ -83,10 +85,43 @@
     line-height: 1;
 }
 
-.map-close-btn:hover {
+.sidebar-close-btn:hover {
     background: var(--color-terminal-green);
     color: var(--color-terminal-bg);
     transform: scale(1.1);
+}
+
+.ship-map-sidebar .sidebar-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* === CONTENEDOR DEL MAPA === */
+.ship-map-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* === WRAPPER DEL MAPA === */
+.ship-map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* === OVERLAY DE TRIPULANTES === */
+.ship-map-crew-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
 }
 
 /* === GRILLA DEL MAPA (25x25) === */
@@ -208,8 +243,9 @@
     opacity: 0.7;
 }
 
-/* === MARCADORES DE TRIPULANTES EN GRILLA === */
-.crew-marker-grid {
+/* === MARCADORES DE TRIPULANTES EN OVERLAY === */
+.crew-marker-overlay {
+    position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -218,16 +254,16 @@
     z-index: 10;
     cursor: pointer;
 
-    /* Transiciones suaves al cambiar de celda */
+    /* Transiciones suaves al cambiar de posición */
     transition:
-        grid-row 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        grid-column 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.3s ease;
 
     pointer-events: auto;
 }
 
-.crew-marker-grid:hover {
+.crew-marker-overlay:hover {
     transform: scale(1.15);
     z-index: 20;
 }
@@ -239,28 +275,28 @@
     transition: all 0.3s ease;
 }
 
-.crew-marker-grid:hover .crew-icon-grid {
+.crew-marker-overlay:hover .crew-icon-grid {
     filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.9));
     transform: scale(1.2);
 }
 
 /* Estados visuales */
-.crew-marker-grid.active .crew-icon-grid {
+.crew-marker-overlay.active .crew-icon-grid {
     animation: icon-pulse-active 2s ease-in-out infinite;
 }
 
-.crew-marker-grid.sleeping .crew-icon-grid {
+.crew-marker-overlay.sleeping .crew-icon-grid {
     opacity: 0.5;
     filter: drop-shadow(0 0 5px rgba(68, 136, 255, 0.6));
     animation: icon-pulse-slow 3s ease-in-out infinite;
 }
 
-.crew-marker-grid.resting .crew-icon-grid {
+.crew-marker-overlay.resting .crew-icon-grid {
     filter: drop-shadow(0 0 5px rgba(255, 170, 68, 0.6));
     animation: icon-pulse-medium 2.5s ease-in-out infinite;
 }
 
-.crew-marker-grid.dead .crew-icon-grid {
+.crew-marker-overlay.dead .crew-icon-grid {
     opacity: 0.3;
     filter: grayscale(100%) drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
     animation: none;
@@ -315,11 +351,11 @@
     pointer-events: none;
 }
 
-.crew-marker-grid:hover .crew-name-grid {
+.crew-marker-overlay:hover .crew-name-grid {
     opacity: 1;
 }
 
-.crew-marker-grid.dead .crew-name-grid {
+.crew-marker-overlay.dead .crew-name-grid {
     color: #888;
     border-color: #888;
     text-shadow: none;

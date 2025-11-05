@@ -175,14 +175,14 @@
                 </div>
             </div>
 
-            <!-- Tripulantes -->
+            <!-- Recursos -->
             <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('crew')">
-                    <span>👥 TRIPULANTES</span>
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('resources')">
+                    <span>📦 RECURSOS</span>
                     <span class="mobile-accordion-icon">▶</span>
                 </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-crew">
-                    <div id="crew-cards-container-mobile" style="padding: 8px;">
+                <div class="mobile-accordion-content" id="mobile-accordion-resources">
+                    <div id="resources-mobile-container" style="padding: 12px;">
                         <!-- Se llena con JS -->
                     </div>
                 </div>
@@ -223,11 +223,6 @@
                 </div>
             </div>
 
-            <!-- Mapa de la Nave -->
-            <div class="ship-map-container" id="ship-map-container">
-                <!-- Se genera dinámicamente con JS -->
-            </div>
-
             <!-- Terminal de Notificaciones -->
             <div class="terminal-notification-area">
                 <div class="terminal-header">
@@ -241,10 +236,18 @@
             </div>
         </div>
 
-        <!-- Botón Toggle para Sidebar en Móvil -->
-        <button class="mobile-crew-toggle" id="mobile-crew-toggle" onclick="toggleMobileCrew()" style="display: none;">
-            👥 TRIPULACIÓN
-        </button>
+        <!-- Sidebar Izquierdo: Mapa de la Nave -->
+        <div class="ship-map-sidebar" id="ship-map-sidebar">
+            <div class="sidebar-header">
+                <h3>🗺️ MAPA DE LA NAVE</h3>
+                <button class="sidebar-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="ship-map-container" id="ship-map-container">
+                    <!-- Se genera dinámicamente con JS -->
+                </div>
+            </div>
+        </div>
 
         <!-- Panel Lateral de Tripulación (SIEMPRE VISIBLE) -->
         <div class="crew-sidebar" id="crew-sidebar">
