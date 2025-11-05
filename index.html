@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="styles/4-components.css">
     <link rel="stylesheet" href="styles/6-theme-terminal.css">
     <link rel="stylesheet" href="styles/7-components-terminal.css">
+    <link rel="stylesheet" href="styles/8-ship-map.css">
 </head>
 <body>
     <!-- Pantalla de Inicio / Login -->
@@ -40,60 +41,64 @@
 
     <!-- Escritorio Principal -->
     <div id="desktop" class="desktop" style="display: none;">
-        <!-- Barra de Título Principal -->
-        <div class="title-bar-main">
-            <span class="title-text">Odiseum V2.0</span>
-            <span class="player-name-display">IA: <span id="playerName">---</span></span>
-        </div>
-
-        <!-- Barra de Detalles / Menú -->
-        <div class="details-bar">
-            <div class="menu-section">
+        <!-- Barra de Título Principal - Desktop -->
+        <div class="title-bar-main desktop-only">
+            <div class="top-bar-section">
+                <span class="title-text">Odiseum V2.0</span>
+            </div>
+            <div class="top-bar-section center">
                 <span class="mission-title">PROYECTO GÉNESIS - NUEVA TIERRA</span>
             </div>
+            <div class="top-bar-section">
+                <span class="player-name-display">IA: <span id="playerName">---</span></span>
+            </div>
         </div>
 
-        <!-- Barra de Recursos Permanente -->
-        <div class="resource-strip" id="resource-strip">
-            <div class="resource-chip">
-                <span class="resource-icon">⚡</span>
-                <span class="resource-label">Energía</span>
+        <!-- Barras de Título - Mobile -->
+        <div class="title-bar-mobile mobile-only" style="display: none;">
+            <div class="mobile-top-bar-first">
+                <span class="title-text">Odiseum V2.0</span>
+                <span class="player-name-display">IA: <span id="playerName-mobile">---</span></span>
+            </div>
+            <div class="mobile-top-bar-second">
+                <span class="mission-title-mobile">PROYECTO GÉNESIS - NUEVA TIERRA</span>
+            </div>
+        </div>
+
+        <!-- Barra de Recursos Permanente - Desktop -->
+        <div class="resource-strip desktop-only" id="resource-strip">
+            <div class="resource-chip" id="resource-chip-energy">
+                <span class="resource-label">Energía:</span>
                 <span class="resource-value" id="resource-strip-energy">0/0</span>
             </div>
-            <div class="resource-chip">
-                <span class="resource-icon">🍲</span>
-                <span class="resource-label">Alimentos</span>
+            <div class="resource-chip" id="resource-chip-food">
+                <span class="resource-label">Alimentos:</span>
                 <span class="resource-value" id="resource-strip-food">0/0</span>
             </div>
-            <div class="resource-chip">
-                <span class="resource-icon">💧</span>
-                <span class="resource-label">Agua</span>
+            <div class="resource-chip" id="resource-chip-water">
+                <span class="resource-label">Agua:</span>
                 <span class="resource-value" id="resource-strip-water">0/0</span>
             </div>
-            <div class="resource-chip">
-                <span class="resource-icon">🌬️</span>
-                <span class="resource-label">Oxígeno</span>
+            <div class="resource-chip" id="resource-chip-oxygen">
+                <span class="resource-label">Oxígeno:</span>
                 <span class="resource-value" id="resource-strip-oxygen">0/0</span>
             </div>
-            <div class="resource-chip">
-                <span class="resource-icon">💊</span>
-                <span class="resource-label">Medicinas</span>
+            <div class="resource-chip" id="resource-chip-medicine">
+                <span class="resource-label">Medicinas:</span>
                 <span class="resource-value" id="resource-strip-medicine">0/0</span>
             </div>
-            <div class="resource-chip">
-                <span class="resource-icon">💾</span>
-                <span class="resource-label">Datos</span>
+            <div class="resource-chip" id="resource-chip-data">
+                <span class="resource-label">Datos:</span>
                 <span class="resource-value" id="resource-strip-data">0/0</span>
             </div>
-            <div class="resource-chip">
-                <span class="resource-icon">⛽</span>
-                <span class="resource-label">Combustible</span>
+            <div class="resource-chip" id="resource-chip-fuel">
+                <span class="resource-label">Combustible:</span>
                 <span class="resource-value" id="resource-strip-fuel">0/0</span>
             </div>
         </div>
 
-        <!-- Consola de Navegación (Inferior) -->
-        <div class="voyage-visualizer" id="voyage-visualizer">
+        <!-- Consola de Navegación (Inferior) - Desktop Only -->
+        <div class="voyage-visualizer desktop-only" id="voyage-visualizer">
             <div class="nav-controls-section">
                 <div class="nav-control-group">
                     <label class="nav-label">VELOCIDAD NAVE</label>
@@ -139,8 +144,125 @@
             </div>
         </div>
 
-        <!-- Área Principal del Escritorio -->
-        <div class="desktop-main-area">
+        <!-- Sistema de Acordeones para Móvil -->
+        <div class="mobile-accordion mobile-only" id="mobile-accordion" style="display: none;">
+            <!-- Recursos -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('resources')">
+                    <span>📦 RECURSOS</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-resources">
+                    <div id="resources-mobile-container" style="padding: 12px;">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tripulación -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('crew')">
+                    <span>🚀 TRIPULACIÓN</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-crew">
+                    <div id="crew-mobile-container" style="padding: 12px;">
+                        <!-- Se llena con JS desde crew-cards-container -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('map')">
+                    <span>🗺️ MAPA</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-map">
+                    <div id="map-mobile-container" style="padding: 12px;">
+                        <!-- El mapa se mostrará aquí -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bitácora -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('logbook')">
+                    <span>📖 BITÁCORA</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-logbook">
+                    <div id="logbook-mobile-container" style="padding: 12px;">
+                        <!-- Se llena con JS desde logbook-entries -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal de Notificaciones -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('terminal')">
+                    <span>💻 TERMINAL</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-terminal">
+                    <div class="terminal-content" id="terminal-notifications-mobile" style="padding: 12px; max-height: 300px; overflow-y: auto;">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control de Velocidad -->
+            <div class="mobile-accordion-item">
+                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('control')">
+                    <span>⚡ CONTROL DE VELOCIDAD</span>
+                    <span class="mobile-accordion-icon">▶</span>
+                </button>
+                <div class="mobile-accordion-content" id="mobile-accordion-control">
+                    <div class="nav-controls-section" style="padding: 16px;">
+                        <div class="nav-control-group">
+                            <label class="nav-label">VELOCIDAD NAVE</label>
+                            <div class="nav-speed-display" id="nav-speed-display-mobile">100%</div>
+                            <input type="range" id="nav-speed-slider-mobile" min="0" max="100" value="100" class="nav-slider">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra Inferior Sticky para Móvil -->
+        <div class="mobile-bottom-bar mobile-only" id="mobile-bottom-bar" style="display: none;">
+            <div class="mobile-voyage-info">
+                <div class="mobile-voyage-row">
+                    <span class="mobile-voyage-label">Tiempo de tramo:</span>
+                    <span class="mobile-voyage-value" id="mobile-tranche-timer">00:00</span>
+                    <span class="mobile-voyage-separator">-</span>
+                    <span class="mobile-voyage-label">Años de viaje:</span>
+                    <span class="mobile-voyage-value" id="mobile-calendar">AÑO 0</span>
+                </div>
+                <div class="mobile-voyage-progress">
+                    <div class="mobile-voyage-endpoint">🌍</div>
+                    <div class="mobile-voyage-track">
+                        <div class="mobile-voyage-line">
+                            <div class="mobile-voyage-fill" id="mobile-voyage-fill"></div>
+                        </div>
+                        <div class="mobile-voyage-label-text">VIAJE</div>
+                    </div>
+                    <div class="mobile-voyage-endpoint">🪐</div>
+                </div>
+                <div class="mobile-voyage-row">
+                    <span class="mobile-voyage-label">Tramo:</span>
+                    <span class="mobile-voyage-value" id="mobile-tranche-count">0/10</span>
+                </div>
+            </div>
+            <div class="mobile-start-button-container">
+                <button id="mobile-start-btn" class="mobile-start-btn" onclick="startGame()">INICIAR TRAMO</button>
+                <button id="mobile-pause-btn" class="mobile-start-btn" onclick="pauseGame()" style="display: none;">PAUSAR</button>
+                <button id="mobile-resume-btn" class="mobile-start-btn" onclick="resumeGame()" style="display: none;">REANUDAR</button>
+            </div>
+        </div>
+
+        <!-- Área Principal del Escritorio - Desktop Only -->
+        <div class="desktop-main-area desktop-only">
             <!-- Iconos del Escritorio -->
             <div class="desktop-icons">
                 <div class="desktop-icon" id="icon-logbook" ondblclick="openLogbookPopup()">
@@ -162,13 +284,21 @@
             </div>
         </div>
 
-        <!-- Botón Toggle para Sidebar en Móvil -->
-        <button class="mobile-crew-toggle" id="mobile-crew-toggle" onclick="toggleMobileCrew()" style="display: none;">
-            👥 TRIPULACIÓN
-        </button>
+        <!-- Sidebar Izquierdo: Mapa de la Nave - Desktop Only -->
+        <div class="ship-map-sidebar desktop-only" id="ship-map-sidebar">
+            <div class="sidebar-header">
+                <h3>🗺️ MAPA DE LA NAVE</h3>
+                <button class="sidebar-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="ship-map-container" id="ship-map-container">
+                    <!-- Se genera dinámicamente con JS -->
+                </div>
+            </div>
+        </div>
 
-        <!-- Panel Lateral de Tripulación (SIEMPRE VISIBLE) -->
-        <div class="crew-sidebar" id="crew-sidebar">
+        <!-- Panel Lateral de Tripulación - Desktop Only -->
+        <div class="crew-sidebar desktop-only" id="crew-sidebar">
             <div class="sidebar-header">
                 <h3>🚀 TRIPULACIÓN</h3>
             </div>
@@ -404,6 +534,7 @@
     <script src="scripts/4-crew-data.js"></script>
     <script src="scripts/5-messages-data.js"></script>
     <script src="scripts/7-events-data.js"></script>
+    <script src="scripts/10-ship-map.js"></script>
     <script src="scripts/6-main.js"></script>
 </body>
 </html>

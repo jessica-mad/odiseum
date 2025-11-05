@@ -86,7 +86,33 @@ class NavigationControls {
     }
 
     updateGameSpeed(speed) {
-        // Esta función será llamada cuando se implemente el sistema de velocidad
+        // Sincronizar con el slider del popup de trip management
+        const speedControl = document.getElementById('speed-control');
+        if (speedControl) {
+            speedControl.value = speed;
+        }
+
+        // Actualizar display del popup
+        const speedValue = document.getElementById('speed-value');
+        if (speedValue) {
+            speedValue.textContent = speed;
+        }
+
+        // Sincronizar con controles móviles
+        const mobileSlider = document.getElementById('nav-speed-slider-mobile');
+        const mobileDisplay = document.getElementById('nav-speed-display-mobile');
+        if (mobileSlider) {
+            mobileSlider.value = speed;
+        }
+        if (mobileDisplay) {
+            mobileDisplay.textContent = `${speed}%`;
+        }
+
+        // Actualizar pronóstico de viaje
+        if (typeof updateVoyageForecastDisplay === 'function') {
+            updateVoyageForecastDisplay();
+        }
+
         if (terminal) {
             terminal.info(`Velocidad de nave ajustada a ${speed}%`);
         }
@@ -106,6 +132,31 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupMobileControls() {
     const mobileToggle = document.getElementById('mobile-crew-toggle');
     const crewSidebar = document.getElementById('crew-sidebar');
+
+    // Setup mobile speed slider
+    const mobileSlider = document.getElementById('nav-speed-slider-mobile');
+    const mobileDisplay = document.getElementById('nav-speed-display-mobile');
+    if (mobileSlider && mobileDisplay) {
+        mobileSlider.addEventListener('input', (e) => {
+            const speed = e.target.value;
+            mobileDisplay.textContent = `${speed}%`;
+
+            // Sync with desktop controls
+            const desktopSlider = document.getElementById('nav-speed-slider');
+            const desktopDisplay = document.getElementById('nav-speed-display');
+            if (desktopSlider) {
+                desktopSlider.value = speed;
+            }
+            if (desktopDisplay) {
+                desktopDisplay.textContent = `${speed}%`;
+            }
+
+            // Update game speed through nav controls
+            if (navControls) {
+                navControls.updateGameSpeed(speed);
+            }
+        });
+    }
 
     // Mostrar/ocultar botón toggle según tamaño de pantalla
     function checkScreenSize() {

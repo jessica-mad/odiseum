@@ -95,6 +95,13 @@ function namePlayer() {
 
     playerName = name;
     document.getElementById('playerName').textContent = playerName;
+
+    // Update mobile player name
+    const playerNameMobile = document.getElementById('playerName-mobile');
+    if (playerNameMobile) {
+        playerNameMobile.textContent = playerName;
+    }
+
     document.getElementById('initial-screen').style.display = 'none';
 
     showIntroOverlay();
@@ -212,7 +219,13 @@ function initializeGame() {
     
     // Configurar ventanas arrastrables
     setupDraggableWindows();
-    
+
+    // Configurar z-index de popups
+    setupPopupZIndex();
+
+    // Inicializar vista móvil/escritorio
+    initializeMobileView();
+
     // Inicializar progreso del viaje
     gameLoop.updateTripProgress();
     

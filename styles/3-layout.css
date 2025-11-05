@@ -61,11 +61,30 @@
     flex-direction: column;
 }
 
-/* === BARRA DE TÍTULO PRINCIPAL === */
+/* === VISIBILITY CLASSES === */
+.desktop-only {
+    display: flex !important;
+}
+
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+    }
+}
+
+/* === BARRA DE TÍTULO PRINCIPAL - DESKTOP === */
 .title-bar-main {
     background: var(--color-terminal-bg-light);
     color: var(--color-terminal-green);
-    padding: 6px 10px;
+    padding: 6px 16px;
     font-size: var(--font-size-xl);
     font-family: var(--font-monaco);
     display: flex;
@@ -76,8 +95,65 @@
     box-shadow: 0 2px 10px rgba(0, 255, 65, 0.2);
 }
 
+.top-bar-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.top-bar-section.center {
+    justify-content: center;
+}
+
+.top-bar-section:last-child {
+    justify-content: flex-end;
+}
+
 .player-name-display {
     font-size: var(--font-size-md);
+}
+
+/* === BARRAS DE TÍTULO - MOBILE === */
+.title-bar-mobile {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-terminal-bg-light);
+    border-bottom: 2px solid var(--color-terminal-green);
+}
+
+.mobile-top-bar-first {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+}
+
+.mobile-top-bar-second {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 12px;
+}
+
+.mobile-top-bar-first .title-text {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+}
+
+.mobile-top-bar-first .player-name-display {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+}
+
+.mission-title-mobile {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* === BARRA DE DETALLES / MENÚ === */
@@ -186,7 +262,7 @@
     position: fixed;
     right: 0;
     top: calc(var(--title-bar-height) + var(--details-bar-height));
-    bottom: 240px; /* Above navigation console */
+    bottom: 0; /* 100% altura */
     width: var(--crew-sidebar-width);
     background: var(--color-terminal-bg);
     border-left: 3px solid var(--color-terminal-green);

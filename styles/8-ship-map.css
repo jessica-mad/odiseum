@@ -1,0 +1,516 @@
+/* ============================================
+   MAPA DE LA NAVE CON GRILLA - ODISEUM V2.0
+   ============================================ */
+
+/* === BOTÓN TOGGLE DEL MAPA === */
+.map-toggle-btn {
+    padding: 6px 14px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.5);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+}
+
+.map-toggle-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    text-shadow: none;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+    transform: translateY(-1px);
+}
+
+.map-toggle-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
+/* === SIDEBAR IZQUIERDO DEL MAPA === */
+.ship-map-sidebar {
+    position: fixed;
+    left: 0;
+    top: calc(var(--title-bar-height) + var(--details-bar-height) + var(--resource-strip-height, 50px));
+    bottom: var(--voyage-visualizer-height, 260px);
+    width: 400px;
+    background: var(--color-terminal-bg);
+    border-right: 3px solid var(--color-terminal-green);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+    display: none;
+    flex-direction: column;
+    z-index: var(--z-sidebar, 100);
+    overflow: hidden;
+}
+
+.ship-map-sidebar.visible {
+    display: flex;
+}
+
+.ship-map-sidebar .sidebar-header {
+    background: var(--color-terminal-bg-light);
+    border-bottom: 2px solid var(--color-terminal-green);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ship-map-sidebar .sidebar-header h3 {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+    margin: 0;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+    letter-spacing: 1px;
+}
+
+.sidebar-close-btn {
+    background: transparent;
+    border: 1px solid var(--color-terminal-green);
+    color: var(--color-terminal-green);
+    font-size: 20px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.sidebar-close-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    transform: scale(1.1);
+}
+
+.ship-map-sidebar .sidebar-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* === CONTENEDOR DEL MAPA === */
+.ship-map-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* === WRAPPER DEL MAPA === */
+.ship-map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* === OVERLAY DE TRIPULANTES === */
+.ship-map-crew-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* === GRILLA DEL MAPA (25x25) === */
+.ship-map-grid {
+    position: relative;
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(25, 1fr);
+    grid-template-rows: repeat(25, 1fr);
+    gap: 0.5px;
+    padding: 4px;
+    background: var(--color-terminal-bg);
+    overflow: hidden;
+}
+
+/* === CELDAS DE LA GRILLA === */
+.grid-cell {
+    position: relative;
+    border: 1px solid rgba(0, 255, 65, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    min-height: 0;
+}
+
+.grid-cell:hover {
+    border-color: rgba(0, 255, 65, 0.4);
+}
+
+/* Celdas vacías */
+.cell-empty {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: rgba(0, 255, 65, 0.03);
+}
+
+/* Pasillos */
+.cell-corridor {
+    background: linear-gradient(135deg,
+        rgba(0, 255, 65, 0.04) 0%,
+        rgba(0, 255, 65, 0.08) 50%,
+        rgba(0, 255, 65, 0.04) 100%);
+    border-color: rgba(0, 255, 65, 0.25);
+}
+
+/* Puente de mando */
+.cell-bridge {
+    background: radial-gradient(circle,
+        rgba(0, 255, 65, 0.2) 0%,
+        rgba(0, 255, 65, 0.12) 100%);
+    border-color: rgba(0, 255, 65, 0.5);
+    box-shadow: inset 0 0 8px rgba(0, 255, 65, 0.25);
+}
+
+/* Enfermería */
+.cell-medbay {
+    background: radial-gradient(circle,
+        rgba(255, 68, 68, 0.2) 0%,
+        rgba(255, 68, 68, 0.12) 100%);
+    border-color: rgba(255, 68, 68, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 68, 68, 0.18);
+}
+
+/* Cocina */
+.cell-kitchen {
+    background: radial-gradient(circle,
+        rgba(255, 170, 68, 0.2) 0%,
+        rgba(255, 170, 68, 0.12) 100%);
+    border-color: rgba(255, 170, 68, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 170, 68, 0.18);
+}
+
+/* Cápsulas de sueño */
+.cell-capsules {
+    background: radial-gradient(circle,
+        rgba(68, 136, 255, 0.2) 0%,
+        rgba(68, 136, 255, 0.12) 100%);
+    border-color: rgba(68, 136, 255, 0.5);
+    box-shadow: inset 0 0 8px rgba(68, 136, 255, 0.18);
+}
+
+/* Bodega */
+.cell-cargo {
+    background: radial-gradient(circle,
+        rgba(136, 136, 136, 0.2) 0%,
+        rgba(136, 136, 136, 0.12) 100%);
+    border-color: rgba(136, 136, 136, 0.5);
+    box-shadow: inset 0 0 8px rgba(136, 136, 136, 0.18);
+}
+
+/* Ingeniería */
+.cell-engineering {
+    background: radial-gradient(circle,
+        rgba(255, 136, 0, 0.2) 0%,
+        rgba(255, 136, 0, 0.12) 100%);
+    border-color: rgba(255, 136, 0, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 136, 0, 0.18);
+}
+
+/* Invernadero */
+.cell-greenhouse {
+    background: radial-gradient(circle,
+        rgba(68, 255, 68, 0.2) 0%,
+        rgba(68, 255, 68, 0.12) 100%);
+    border-color: rgba(68, 255, 68, 0.5);
+    box-shadow: inset 0 0 8px rgba(68, 255, 68, 0.18);
+}
+
+/* Labels de celdas */
+.cell-label {
+    font-size: 10px;
+    opacity: 0.4;
+    filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.25));
+    pointer-events: none;
+}
+
+.grid-cell:hover .cell-label {
+    opacity: 0.7;
+}
+
+/* === MARCADORES DE TRIPULANTES EN OVERLAY === */
+.crew-marker-overlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    z-index: 10;
+    cursor: pointer;
+
+    /* Transiciones suaves al cambiar de posición */
+    transition:
+        top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.3s ease;
+
+    pointer-events: auto;
+}
+
+.crew-marker-overlay:hover {
+    transform: scale(1.15);
+    z-index: 20;
+}
+
+/* Icono del tripulante en grilla */
+.crew-icon-grid {
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 65, 0.6));
+    transition: all 0.3s ease;
+}
+
+.crew-marker-overlay:hover .crew-icon-grid {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.9));
+    transform: scale(1.2);
+}
+
+/* Estados visuales */
+.crew-marker-overlay.active .crew-icon-grid {
+    animation: icon-pulse-active 2s ease-in-out infinite;
+}
+
+.crew-marker-overlay.sleeping .crew-icon-grid {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 5px rgba(68, 136, 255, 0.6));
+    animation: icon-pulse-slow 3s ease-in-out infinite;
+}
+
+.crew-marker-overlay.resting .crew-icon-grid {
+    filter: drop-shadow(0 0 5px rgba(255, 170, 68, 0.6));
+    animation: icon-pulse-medium 2.5s ease-in-out infinite;
+}
+
+.crew-marker-overlay.dead .crew-icon-grid {
+    opacity: 0.3;
+    filter: grayscale(100%) drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+    animation: none;
+}
+
+@keyframes icon-pulse-active {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 6px rgba(0, 255, 65, 0.6));
+    }
+    50% {
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.8));
+    }
+}
+
+@keyframes icon-pulse-slow {
+    0%, 100% {
+        transform: scale(0.95);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+}
+
+@keyframes icon-pulse-medium {
+    0%, 100% {
+        transform: scale(0.98);
+        filter: drop-shadow(0 0 5px rgba(255, 170, 68, 0.6));
+    }
+    50% {
+        transform: scale(1.02);
+        filter: drop-shadow(0 0 8px rgba(255, 170, 68, 0.8));
+    }
+}
+
+/* Nombre del tripulante */
+.crew-name-grid {
+    font-family: var(--font-monaco);
+    font-size: 6px;
+    color: var(--color-terminal-green);
+    background: var(--color-terminal-bg);
+    padding: 0.5px 1px;
+    border: 0.5px solid var(--color-terminal-green);
+    border-radius: 1px;
+    white-space: nowrap;
+    text-shadow: 0 0 2px rgba(0, 255, 65, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.crew-marker-overlay:hover .crew-name-grid {
+    opacity: 1;
+}
+
+.crew-marker-overlay.dead .crew-name-grid {
+    color: #888;
+    border-color: #888;
+    text-shadow: none;
+}
+
+/* === SISTEMA DE ACORDEONES MÓVIL === */
+@media (max-width: 768px) {
+    .ship-map-container {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: 400px;
+        border: none;
+        border-top: 2px solid var(--color-terminal-green);
+        border-bottom: 2px solid var(--color-terminal-green);
+        margin: 0;
+        display: none;
+    }
+
+    .ship-map-container.mobile-expanded {
+        display: flex;
+    }
+
+    .mobile-accordion {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background: var(--color-terminal-bg);
+    }
+
+    .mobile-accordion-item {
+        border-bottom: 1px solid var(--color-terminal-green-dim);
+    }
+
+    .mobile-accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--color-terminal-bg-light);
+        color: var(--color-terminal-green);
+        font-family: var(--font-monaco);
+        font-size: var(--font-size-md);
+        cursor: pointer;
+        border: none;
+        width: 100%;
+        text-align: left;
+        transition: background 0.2s ease;
+    }
+
+    .mobile-accordion-header:hover {
+        background: rgba(0, 255, 65, 0.1);
+    }
+
+    .mobile-accordion-header.active {
+        background: rgba(0, 255, 65, 0.15);
+        border-bottom: 2px solid var(--color-terminal-green);
+    }
+
+    .mobile-accordion-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-accordion-header.active .mobile-accordion-icon {
+        transform: rotate(90deg);
+    }
+
+    .mobile-accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .mobile-accordion-content.active {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    /* Ocultar elementos de escritorio en móvil */
+    .voyage-visualizer,
+    .desktop-icons,
+    .terminal-notification-area {
+        display: none !important;
+    }
+
+    /* Ajustar crew sidebar para móvil */
+    .crew-sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: 400px;
+        border: none;
+        border-top: 1px solid var(--color-terminal-green-dim);
+    }
+
+    /* Ocultar botón de toggle de mapa en móvil */
+    .map-toggle-btn {
+        display: none !important;
+    }
+
+    /* Ajustar resource strip para móvil */
+    .resource-strip {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 4px;
+    }
+
+    .resource-chip {
+        font-size: 10px;
+        padding: 4px 6px;
+        min-width: 80px;
+    }
+
+    /* Ajustar details bar para móvil */
+    .details-bar {
+        flex-direction: column;
+        height: auto;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .mission-title {
+        font-size: 12px;
+    }
+
+    /* Ajustar desktop para acomodar acordeones */
+    .desktop {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow-y: auto;
+    }
+}
+
+@media (min-width: 769px) and (max-height: 700px) {
+    .ship-map-container {
+        bottom: 200px;
+    }
+
+    .crew-icon-grid {
+        font-size: 18px;
+    }
+
+    .cell-label {
+        font-size: 12px;
+    }
+}
+
+/* Pequeños ajustes para pantallas más pequeñas */
+@media (min-width: 769px) and (max-width: 1200px) {
+    .crew-icon-grid {
+        font-size: 20px;
+    }
+
+    .cell-label {
+        font-size: 14px;
+    }
+}

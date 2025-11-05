@@ -95,12 +95,13 @@ class AwakeBenefitSystem {
             return;
         }
 
-        if (this.nextMedicalIndex >= patients.length) {
-            this.nextMedicalIndex = 0;
-        }
+        // Encontrar al paciente más enfermo (menor healthNeed)
+        const sickestPatient = patients.reduce((sickest, current) => {
+            return current.healthNeed < sickest.healthNeed ? current : sickest;
+        });
 
         const healRate = this.isCaptainAwake ? 1.2 : 1.0;
-        const patient = patients[this.nextMedicalIndex];
+        const patient = sickestPatient;
 
         patient.healthNeed = Math.min(100, patient.healthNeed + healRate);
         patient.updateConsoleCrewState();
@@ -112,8 +113,6 @@ class AwakeBenefitSystem {
             doctor.currentActivity = `Atendiendo a ${patient.name}`;
             doctor.updateMiniCard();
         }
-
-        this.nextMedicalIndex = (this.nextMedicalIndex + 1) % patients.length;
 
         if (typeof gameLoop !== 'undefined' && gameLoop) {
             gameLoop.updateCrewPopupIfOpen();
@@ -253,6 +252,11 @@ class GameLoop {
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.eventTriggeredThisTranche = false;
 
+        // Reproducir sonido de inicio de tramo
+        if (typeof playTrancheSound === 'function') {
+            playTrancheSound();
+        }
+
         // Actualizar UI de botones
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
@@ -383,6 +387,11 @@ class GameLoop {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
+        // Detener sonido de tramo
+        if (typeof stopTrancheSound === 'function') {
+            stopTrancheSound();
+        }
+
         this.gameState = GAME_STATES.PAUSED;
         this.eventTriggeredThisTranche = false;
 
@@ -432,6 +441,11 @@ class GameLoop {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
+        // Detener sonido de tramo
+        if (typeof stopTrancheSound === 'function') {
+            stopTrancheSound();
+        }
+
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
 
         document.getElementById('pause-button').style.display = 'none';
@@ -454,6 +468,11 @@ class GameLoop {
         if (this.gameState !== GAME_STATES.TRANCHE_PAUSED) return;
 
         this.gameState = GAME_STATES.IN_TRANCHE;
+
+        // Reiniciar sonido de tramo
+        if (typeof playTrancheSound === 'function') {
+            playTrancheSound();
+        }
 
         // Reiniciar ambos intervalos
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
@@ -731,6 +750,18 @@ class EventSystem {
             gameLoop.pause();
         }
 
+        // Reproducir sonido de alarma 2 segundos antes del popup
+        if (typeof playEventAlarmSound === 'function') {
+            playEventAlarmSound();
+        }
+
+        // Esperar 2 segundos antes de mostrar el popup
+        setTimeout(() => {
+            this.showEventPopup(event);
+        }, 2000);
+    }
+
+    showEventPopup(event) {
         const overlay = document.createElement('div');
         overlay.className = 'event-overlay';
         overlay.id = 'event-overlay';

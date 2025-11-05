@@ -2,6 +2,212 @@
 // GESTIÓN DE UI - ODISEUM V2.0
 // ============================================
 
+/* === GESTIÓN DE Z-INDEX DE POPUPS === */
+let currentZIndex = 1000;
+
+function bringToFront(popup) {
+    currentZIndex++;
+    popup.style.zIndex = currentZIndex;
+}
+
+function setupPopupZIndex() {
+    const popups = document.querySelectorAll('.window.interface');
+    popups.forEach(popup => {
+        popup.addEventListener('mousedown', () => {
+            bringToFront(popup);
+        });
+    });
+}
+
+/* === SISTEMA DE ACORDEONES MÓVIL === */
+let currentOpenAccordion = null;
+
+function toggleMobileAccordion(section) {
+    const header = event.currentTarget;
+    const content = document.getElementById(`mobile-accordion-${section}`);
+
+    // Si ya estaba abierto, cerrarlo
+    if (currentOpenAccordion === section) {
+        header.classList.remove('active');
+        content.classList.remove('active');
+        currentOpenAccordion = null;
+        return;
+    }
+
+    // Cerrar el acordeón previamente abierto
+    if (currentOpenAccordion) {
+        const prevHeader = document.querySelector(`[onclick="toggleMobileAccordion('${currentOpenAccordion}')"]`);
+        const prevContent = document.getElementById(`mobile-accordion-${currentOpenAccordion}`);
+        if (prevHeader) prevHeader.classList.remove('active');
+        if (prevContent) prevContent.classList.remove('active');
+    }
+
+    // Abrir el nuevo acordeón
+    header.classList.add('active');
+    content.classList.add('active');
+    currentOpenAccordion = section;
+
+    // Si es el mapa, moverlo al contenedor del acordeón
+    if (section === 'map') {
+        const mapContainer = document.getElementById('ship-map-container');
+        const mapAccordion = document.getElementById('mobile-accordion-map');
+        if (mapContainer && mapAccordion) {
+            mapAccordion.appendChild(mapContainer);
+            mapContainer.style.display = 'flex';
+        }
+    }
+}
+
+function initializeMobileView() {
+    const isMobile = window.innerWidth <= 768;
+    const mobileAccordion = document.getElementById('mobile-accordion');
+    const mobileBottomBar = document.getElementById('mobile-bottom-bar');
+    const mobileTitleBar = document.querySelector('.title-bar-mobile');
+
+    if (isMobile) {
+        // Mostrar elementos móviles
+        if (mobileAccordion) mobileAccordion.style.display = 'flex';
+        if (mobileBottomBar) mobileBottomBar.style.display = 'flex';
+        if (mobileTitleBar) mobileTitleBar.style.display = 'flex';
+
+        // Llenar acordeones
+        updateMobileResources();
+        updateMobileCrew();
+        updateMobileLogbook();
+        updateMobileTerminal();
+
+        // Sincronizar valores con desktop
+        syncMobileValues();
+
+        // Centrar popups
+        document.querySelectorAll('.window.interface').forEach(popup => {
+            popup.style.position = 'fixed';
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.maxWidth = '90vw';
+            popup.style.maxHeight = '90vh';
+            popup.style.overflow = 'auto';
+        });
+    } else {
+        // Ocultar elementos móviles - handled by CSS .mobile-only
+        if (mobileAccordion) mobileAccordion.style.display = 'none';
+        if (mobileBottomBar) mobileBottomBar.style.display = 'none';
+        if (mobileTitleBar) mobileTitleBar.style.display = 'none';
+    }
+}
+
+function updateMobileResources() {
+    const container = document.getElementById('resources-mobile-container');
+    if (!container) return;
+
+    const resources = [
+        { name: 'Energía', indicator: 'indicator-energy', value: 'resource-strip-energy' },
+        { name: 'Alimentos', indicator: 'indicator-food', value: 'resource-strip-food' },
+        { name: 'Agua', indicator: 'indicator-water', value: 'resource-strip-water' },
+        { name: 'Oxígeno', indicator: 'indicator-oxygen', value: 'resource-strip-oxygen' },
+        { name: 'Medicinas', indicator: 'indicator-medicine', value: 'resource-strip-medicine' },
+        { name: 'Datos', indicator: 'indicator-data', value: 'resource-strip-data' },
+        { name: 'Combustible', indicator: 'indicator-fuel', value: 'resource-strip-fuel' }
+    ];
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    resources.forEach(resource => {
+        const valueElem = document.getElementById(resource.value);
+        const indicatorElem = document.getElementById(resource.indicator);
+        const value = valueElem ? valueElem.textContent : '0/0';
+        const indicatorClass = indicatorElem ? indicatorElem.className : 'resource-indicator full';
+
+        html += `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: 4px;">
+                <span class="${indicatorClass}"></span>
+                <span style="flex: 1; font-family: var(--font-monaco); font-size: 14px; color: var(--color-terminal-green);">${resource.name}</span>
+                <span style="font-family: var(--font-monaco); font-size: 12px; color: var(--color-terminal-green);">${value}</span>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+function updateMobileCrew() {
+    const container = document.getElementById('crew-mobile-container');
+    if (!container) return;
+
+    const crewCardsContainer = document.getElementById('crew-cards-container');
+    if (crewCardsContainer) {
+        container.innerHTML = crewCardsContainer.innerHTML;
+    }
+}
+
+function updateMobileLogbook() {
+    const container = document.getElementById('logbook-mobile-container');
+    if (!container) return;
+
+    const logbookEntries = document.getElementById('logbook-entries');
+    if (logbookEntries) {
+        container.innerHTML = logbookEntries.innerHTML;
+    }
+}
+
+function updateMobileTerminal() {
+    const container = document.getElementById('terminal-notifications-mobile');
+    if (!container) return;
+
+    const terminalNotifications = document.getElementById('terminal-notifications');
+    if (terminalNotifications) {
+        container.innerHTML = terminalNotifications.innerHTML;
+    }
+}
+
+function syncMobileValues() {
+    // Sync timer
+    const trancheTimer = document.getElementById('tranche-timer');
+    const mobileTrancheTimer = document.getElementById('mobile-tranche-timer');
+    if (trancheTimer && mobileTrancheTimer) {
+        mobileTrancheTimer.textContent = trancheTimer.textContent;
+    }
+
+    // Sync calendar
+    const calendar = document.getElementById('calendar');
+    const mobileCalendar = document.getElementById('mobile-calendar');
+    if (calendar && mobileCalendar) {
+        mobileCalendar.textContent = calendar.textContent;
+    }
+
+    // Sync speed display (for bottom bar if needed)
+    const navSpeedDisplay = document.getElementById('nav-speed-display');
+    const navSpeedDisplayMobile = document.getElementById('nav-speed-display-mobile');
+    if (navSpeedDisplay && navSpeedDisplayMobile) {
+        navSpeedDisplayMobile.textContent = navSpeedDisplay.textContent;
+    }
+
+    // Sync speed slider
+    const navSpeedSlider = document.getElementById('nav-speed-slider');
+    const navSpeedSliderMobile = document.getElementById('nav-speed-slider-mobile');
+    if (navSpeedSlider && navSpeedSliderMobile) {
+        navSpeedSliderMobile.value = navSpeedSlider.value;
+    }
+
+    // Sync voyage progress
+    const voyageProgressFill = document.getElementById('voyage-progress-fill');
+    const mobileVoyageFill = document.getElementById('mobile-voyage-fill');
+    if (voyageProgressFill && mobileVoyageFill) {
+        mobileVoyageFill.style.width = voyageProgressFill.style.width;
+    }
+
+    // Sync tranche count (assuming it's available somewhere)
+    // This will be updated by game loop, placeholder for now
+    const mobileTrancheCount = document.getElementById('mobile-tranche-count');
+    if (mobileTrancheCount && typeof currentTranche !== 'undefined' && typeof totalTranches !== 'undefined') {
+        mobileTrancheCount.textContent = `${currentTranche}/${totalTranches}`;
+    }
+}
+
+// Inicializar vista móvil al cargar y redimensionar
+window.addEventListener('resize', initializeMobileView);
+
 /* === GESTIÓN DE VENTANAS ARRASTRABLES === */
 function setupDraggableWindows() {
     const windows = document.querySelectorAll('.window');
@@ -413,6 +619,53 @@ function updateWakeSleepFromPopup() {
     }
 }
 
+/* === SISTEMA DE SONIDO === */
+let tramoAudio = null; // Variable global para controlar el audio de tramo
+
+function playClickSound() {
+    try {
+        const audio = new Audio('assets/sounds/button-needs.aac');
+        audio.volume = 0.3;
+        audio.play().catch(err => console.log('Audio playback failed:', err));
+    } catch (err) {
+        console.log('Audio error:', err);
+    }
+}
+
+function playTrancheSound() {
+    try {
+        // Detener audio anterior si existe
+        if (tramoAudio) {
+            tramoAudio.pause();
+            tramoAudio.currentTime = 0;
+        }
+
+        tramoAudio = new Audio('assets/sounds/tramo.mp3');
+        tramoAudio.volume = 0.4;
+        tramoAudio.loop = true; // Loop infinito
+        tramoAudio.play().catch(err => console.log('Audio playback failed:', err));
+    } catch (err) {
+        console.log('Audio error:', err);
+    }
+}
+
+function stopTrancheSound() {
+    if (tramoAudio) {
+        tramoAudio.pause();
+        tramoAudio.currentTime = 0;
+    }
+}
+
+function playEventAlarmSound() {
+    try {
+        const audio = new Audio('assets/sounds/alarm-event.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log('Audio playback failed:', err));
+    } catch (err) {
+        console.log('Audio error:', err);
+    }
+}
+
 /* === GESTIÓN RÁPIDA DESDE MINI-CARDS === */
 function quickManage(crewName, type) {
     if (!crewControlsAvailable()) return;
@@ -422,6 +675,7 @@ function quickManage(crewName, type) {
 
     if (type === 'food') {
         if (Food.quantity >= 10) {
+            playClickSound();
             Food.consume(10);
             crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
             Food.updateResourceUI();
@@ -434,6 +688,7 @@ function quickManage(crewName, type) {
         }
     } else if (type === 'health') {
         if (Medicine.quantity >= 5) {
+            playClickSound();
             Medicine.consume(5);
             crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
             Medicine.updateResourceUI();

@@ -377,7 +377,7 @@ class Crew {
         const card = document.createElement('div');
         card.className = `crew-mini-card ${this.getOverallStatus()}`;
         card.id = `mini-card-${this.id}`;
-        
+
         if (!this.isAlive) {
             card.onclick = null;
             card.innerHTML = `
@@ -389,20 +389,11 @@ class Crew {
             `;
             return card;
         }
-        
+
         card.onclick = () => openCrewManagementPopup(this.name);
-        
-        card.innerHTML = `
-            <div class="crew-card-header">
-                <span class="crew-card-name">${this.name}</span>
-                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
-            </div>
-            <div class="crew-card-age" id="mini-age-${this.id}">
-                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
-            </div>
-            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
-                ${this.state === 'Despierto' ? '👁️ DESPIERTO' : '💤 ENCAPSULADO'}
-            </div>
+
+        // Si está despierto: mostrar solo info básica, sin necesidades ni controles
+        const needsAndActionsHTML = this.state === 'Despierto' ? '' : `
             <div class="crew-card-needs" id="mini-needs-${this.id}">
                 ${this.generateNeedBars()}
             </div>
@@ -413,6 +404,20 @@ class Crew {
                     ${this.state === 'Despierto' ? '💤' : '👁️'}
                 </button>
             </div>
+        `;
+
+        card.innerHTML = `
+            <div class="crew-card-header">
+                <span class="crew-card-name">${this.name}</span>
+                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
+            </div>
+            <div class="crew-card-age" id="mini-age-${this.id}">
+                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
+            </div>
+            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
+                ${this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO'}
+            </div>
+            ${needsAndActionsHTML}
             <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: none;"></div>
             <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: none;">
                 🤖 Auto-gestionando
@@ -470,7 +475,7 @@ class Crew {
     updateMiniCard() {
         const card = document.getElementById(`mini-card-${this.id}`);
         if (!card) return;
-        
+
         if (!this.isAlive) {
             card.className = 'crew-mini-card dead';
             card.onclick = null;
@@ -483,51 +488,46 @@ class Crew {
             `;
             return;
         }
-        
-        card.className = `crew-mini-card ${this.getOverallStatus()}`;
-        
-        const statusElement = document.getElementById(`mini-status-${this.id}`);
-        if (statusElement) {
-            statusElement.textContent = this.isAlive ? '❤️' : '💀';
-        }
-        
-        const ageElement = document.getElementById(`mini-age-${this.id}`);
-        if (ageElement) {
-            const ageText = `${this.initialAge} → ${this.biologicalAge.toFixed(1)} años`;
-            ageElement.textContent = ageText;
-            ageElement.className = 'crew-card-age';
-            if (this.state === 'Despierto' && gameState === GAME_STATES.IN_TRANCHE) {
-                ageElement.classList.add('aging');
-            }
-        }
-        
-        const stateElement = document.getElementById(`mini-state-${this.id}`);
-        if (stateElement) {
-            stateElement.textContent = this.state === 'Despierto' ? '👁️ DESPIERTO' : '💤 ENCAPSULADO';
-            stateElement.className = `crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}`;
-        }
-        
-        const needsContainer = document.getElementById(`mini-needs-${this.id}`);
-        if (needsContainer) {
-            needsContainer.innerHTML = this.generateNeedBars();
-        }
-        
-        const autoIndicator = document.getElementById(`auto-manage-${this.id}`);
-        if (autoIndicator) {
-            autoIndicator.style.display = this.autoManaging ? 'block' : 'none';
-        }
 
-        const benefitElement = document.getElementById(`crew-benefit-${this.id}`);
-        if (benefitElement) {
-            const benefitText = this.getAwakeBenefitDescription();
-            if (benefitText) {
-                benefitElement.textContent = benefitText;
-                benefitElement.style.display = 'block';
-            } else {
-                benefitElement.textContent = '';
-                benefitElement.style.display = 'none';
-            }
-        }
+        // Rebuild entire card to reflect state changes
+        card.className = `crew-mini-card ${this.getOverallStatus()}`;
+        card.onclick = () => openCrewManagementPopup(this.name);
+
+        // Conditional rendering: hide needs/controls if awake
+        const needsAndActionsHTML = this.state === 'Despierto' ? '' : `
+            <div class="crew-card-needs" id="mini-needs-${this.id}">
+                ${this.generateNeedBars()}
+            </div>
+            <div class="crew-card-actions">
+                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'food')">🍕</button>
+                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'health')">❤️</button>
+                <button class="crew-card-btn" onclick="event.stopPropagation(); updateWakeSleep('${this.name}')">
+                    ${this.state === 'Despierto' ? '💤' : '👁️'}
+                </button>
+            </div>
+        `;
+
+        const ageClass = (this.state === 'Despierto' && gameState === GAME_STATES.IN_TRANCHE) ? 'crew-card-age aging' : 'crew-card-age';
+
+        card.innerHTML = `
+            <div class="crew-card-header">
+                <span class="crew-card-name">${this.name}</span>
+                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
+            </div>
+            <div class="${ageClass}" id="mini-age-${this.id}">
+                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
+            </div>
+            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
+                ${this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO'}
+            </div>
+            ${needsAndActionsHTML}
+            <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: ${this.getAwakeBenefitDescription() ? 'block' : 'none'};">
+                ${this.getAwakeBenefitDescription()}
+            </div>
+            <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: ${this.autoManaging ? 'block' : 'none'};">
+                🤖 Auto-gestionando
+            </div>
+        `;
     }
 }
 
@@ -570,12 +570,12 @@ class Resource {
     updateResourceUI() {
         const meter = document.getElementById(this.id);
         const amountSpan = document.getElementById(this.amount);
-        
+
         if (meter) {
             meter.value = this.quantity;
             meter.max = this.limiteStock;
         }
-        
+
         if (amountSpan) {
             amountSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
         }
@@ -584,6 +584,31 @@ class Resource {
             const stripSpan = document.getElementById(this.stripId);
             if (stripSpan) {
                 stripSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
+            }
+
+            // Actualizar indicador de color (old system, still needed for mobile accordion)
+            const indicatorId = this.stripId.replace('resource-strip-', 'indicator-');
+            const indicator = document.getElementById(indicatorId);
+            const percentage = (this.quantity / this.limiteStock) * 100;
+
+            let colorClass = 'full';
+            if (percentage < 15) {
+                colorClass = 'critical';
+            } else if (percentage < 40) {
+                colorClass = 'low';
+            } else if (percentage < 70) {
+                colorClass = 'medium';
+            }
+
+            if (indicator) {
+                indicator.className = 'resource-indicator ' + colorClass;
+            }
+
+            // Actualizar color del resource chip (new system)
+            const chipId = this.stripId.replace('resource-strip-', 'resource-chip-');
+            const chip = document.getElementById(chipId);
+            if (chip) {
+                chip.className = 'resource-chip ' + colorClass;
             }
         }
     }
