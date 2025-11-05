@@ -235,9 +235,19 @@ class PanelManager {
      */
     updateMapPanel() {
         // El mapa ya se actualiza automáticamente con el sistema existente
-        // Solo necesitamos asegurarnos de que esté visible
+        // Solo necesitamos asegurarnos de que esté visible y actualizar ubicaciones
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
-            shipMapSystem.updateAllSections();
+            // Re-inicializar el mapa si el contenedor está vacío
+            const mapContainer = document.getElementById('ship-map-container');
+            if (mapContainer && !mapContainer.hasChildNodes()) {
+                console.log('🗺️ Re-inicializando mapa en panel');
+                shipMapSystem.createMapUI();
+            }
+            // Actualizar ubicaciones de tripulantes
+            if (typeof shipMapSystem.updateCrewLocations === 'function') {
+                shipMapSystem.updateCrewLocations();
+            }
+            console.log('🗺️ Panel de mapa actualizado');
         }
     }
 

@@ -720,17 +720,19 @@ function quickManage(crewName, type) {
             new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
         }
     } else if (type === 'higiene') {
-        if (Waste.quantity < Waste.limiteStock - 10) {
+        if (Water.quantity >= 5) {
             playClickSound();
+            Water.consume(5);
             crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - 30);
-            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + 5);
+            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + 3);
+            Water.updateResourceUI();
             Waste.updateResourceUI();
             crewMember.updateMiniCard();
             if (typeof gameLoop !== 'undefined' && gameLoop) {
                 gameLoop.updateCrewPopupIfOpen();
             }
         } else {
-            new Notification('Los tanques de residuos están llenos', NOTIFICATION_TYPES.ALERT);
+            new Notification('No hay suficiente agua', NOTIFICATION_TYPES.ALERT);
         }
     } else if (type === 'entretenimiento') {
         playClickSound();
