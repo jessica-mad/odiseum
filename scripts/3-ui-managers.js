@@ -988,3 +988,88 @@ function updateVoyageVisualizer() {
 
     updateVoyageForecastDisplay();
 }
+
+/* === CONTROLES RÁPIDOS DE TRIPULACIÓN === */
+/**
+ * Encapsula a todos los tripulantes vivos
+ */
+function sleepAllCrew() {
+    if (!crewControlsAvailable()) {
+        new Notification('No se puede cambiar el estado durante el tramo', NOTIFICATION_TYPES.ALERT);
+        return;
+    }
+
+    if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+    let count = 0;
+    crewMembers.forEach(crew => {
+        if (crew.isAlive && crew.state === 'Despierto') {
+            crew.state = 'Encapsulado';
+            crew.updateConsoleCrewState();
+            crew.updateMiniCard();
+            count++;
+        }
+    });
+
+    // Refrescar sistema de beneficios
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+        if (typeof updateVoyageVisualizer === 'function') {
+            updateVoyageVisualizer();
+        }
+    }
+
+    // Actualizar panel de tripulación si está abierto
+    if (typeof panelManager !== 'undefined' && panelManager.getCurrentPanel() === 'crew') {
+        panelManager.updateCrewPanel();
+    }
+
+    logbook.addEntry(
+        `${count} tripulantes encapsulados mediante control rápido`,
+        LOG_TYPES.EVENT
+    );
+
+    new Notification(`${count} tripulantes encapsulados`, NOTIFICATION_TYPES.SUCCESS);
+}
+
+/**
+ * Despierta a todos los tripulantes vivos
+ */
+function wakeAllCrew() {
+    if (!crewControlsAvailable()) {
+        new Notification('No se puede cambiar el estado durante el tramo', NOTIFICATION_TYPES.ALERT);
+        return;
+    }
+
+    if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+    let count = 0;
+    crewMembers.forEach(crew => {
+        if (crew.isAlive && crew.state === 'Encapsulado') {
+            crew.state = 'Despierto';
+            crew.updateConsoleCrewState();
+            crew.updateMiniCard();
+            count++;
+        }
+    });
+
+    // Refrescar sistema de beneficios
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+        if (typeof updateVoyageVisualizer === 'function') {
+            updateVoyageVisualizer();
+        }
+    }
+
+    // Actualizar panel de tripulación si está abierto
+    if (typeof panelManager !== 'undefined' && panelManager.getCurrentPanel() === 'crew') {
+        panelManager.updateCrewPanel();
+    }
+
+    logbook.addEntry(
+        `${count} tripulantes despertados mediante control rápido`,
+        LOG_TYPES.EVENT
+    );
+
+    new Notification(`${count} tripulantes despertados`, NOTIFICATION_TYPES.SUCCESS);
+}

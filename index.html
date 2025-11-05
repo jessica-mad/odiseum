@@ -288,25 +288,10 @@
              PANELES DESPLEGABLES - PAPERS PLEASE STYLE
              ============================================ -->
 
-        <!-- TABS VERTICALES -->
-        <div id="panel-tab-map" class="panel-tab-vertical panel-tab-left desktop-only">
-            MAPA
-        </div>
-
-        <div id="panel-tab-crew" class="panel-tab-vertical panel-tab-right desktop-only">
-            TRIPULACIÓN
-        </div>
-
-        <!-- TAB HORIZONTAL -->
-        <div id="panel-tab-control" class="panel-tab-horizontal desktop-only">
-            CONTROL
-        </div>
-
         <!-- PANEL IZQUIERDO: MAPA -->
         <div id="panel-map" class="panel-left desktop-only">
             <div class="panel-header">
                 <h3>🗺️ MAPA DE LA NAVE</h3>
-                <button class="panel-close-btn">×</button>
             </div>
             <div class="panel-content">
                 <div class="ship-map-container" id="ship-map-container">
@@ -315,11 +300,15 @@
             </div>
         </div>
 
+        <!-- TAB IZQUIERDO (MAPA) -->
+        <div id="panel-tab-map" class="panel-tab-vertical panel-tab-left desktop-only">
+            MAPA
+        </div>
+
         <!-- PANEL DERECHO: TRIPULACIÓN -->
         <div id="panel-crew" class="panel-right desktop-only">
             <div class="panel-header">
                 <h3>🚀 TRIPULACIÓN</h3>
-                <button class="panel-close-btn">×</button>
             </div>
             <div class="panel-sorting">
                 <label for="crew-sort-select">Ordenar por:</label>
@@ -327,47 +316,45 @@
                     <!-- Se genera dinámicamente con JS -->
                 </select>
             </div>
-            <div class="panel-content" id="panel-crew-cards-container">
-                <!-- Se genera dinámicamente con JS -->
+            <div class="panel-content panel-crew-content">
+                <div class="crew-columns">
+                    <div class="crew-column">
+                        <div class="crew-column-header">OPERATIVOS</div>
+                        <div class="crew-column-content" id="panel-crew-awake">
+                            <!-- Tripulantes despiertos -->
+                        </div>
+                    </div>
+                    <div class="crew-column">
+                        <div class="crew-column-header">CRIOSTASIS</div>
+                        <div class="crew-column-content" id="panel-crew-asleep">
+                            <!-- Tripulantes en cápsulas -->
+                        </div>
+                    </div>
+                </div>
+                <div class="crew-quick-controls">
+                    <button class="crew-control-btn sleep-all" onclick="sleepAllCrew()" title="Encapsular a todos">
+                        💤
+                    </button>
+                    <button class="crew-control-btn wake-all" onclick="wakeAllCrew()" title="Despertar a todos">
+                        ⚡
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- PANEL INFERIOR: CONTROL -->
+        <!-- TAB DERECHO (TRIPULACIÓN) -->
+        <div id="panel-tab-crew" class="panel-tab-vertical panel-tab-right desktop-only">
+            TRIPULACIÓN
+        </div>
+
+        <!-- PANEL INFERIOR: CONTROL (usa el voyage-visualizer existente) -->
         <div id="panel-control" class="panel-bottom desktop-only">
-            <div class="panel-header">
-                <h3>⚙️ CONTROL DE VIAJE</h3>
-                <button class="panel-close-btn">×</button>
-            </div>
-            <div class="panel-control-content">
-                <div class="panel-control-row">
-                    <div class="panel-control-group">
-                        <span class="panel-control-label">Velocidad Actual</span>
-                        <div class="panel-control-value" id="panel-speed-display">100%</div>
-                    </div>
-                    <div class="panel-control-group">
-                        <span class="panel-control-label">Combustible</span>
-                        <div class="panel-control-value" id="panel-fuel-display">0/0 UA</div>
-                    </div>
-                    <div class="panel-control-group">
-                        <span class="panel-control-label">Progreso Viaje</span>
-                        <div class="panel-control-value" id="panel-progress-display">0%</div>
-                    </div>
-                </div>
-                <div class="panel-control-row">
-                    <div class="panel-control-group">
-                        <span class="panel-control-label">Distancia Recorrida</span>
-                        <div class="panel-control-value" id="panel-distance-display">0 UA</div>
-                    </div>
-                    <div class="panel-control-group">
-                        <span class="panel-control-label">Distancia Total</span>
-                        <div class="panel-control-value" id="panel-total-distance-display">3000 UA</div>
-                    </div>
-                    <div class="panel-control-group">
-                        <span class="panel-control-label">Tiempo de Viaje</span>
-                        <div class="panel-control-value" id="panel-time-display">AÑO 0</div>
-                    </div>
-                </div>
-            </div>
+            <!-- El contenido se moverá aquí desde voyage-visualizer -->
+        </div>
+
+        <!-- TAB HORIZONTAL (CONTROL) -->
+        <div id="panel-tab-control" class="panel-tab-horizontal desktop-only">
+            CONTROL
         </div>
 
         <!-- Sidebars antiguos (ocultos, mantener compatibilidad) -->

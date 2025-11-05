@@ -199,14 +199,8 @@ function initializeGame() {
     // Inicializar relaciones entre tripulantes
     crewMembers.forEach(crew => crew.initializeRelationships(crewMembers));
     
-    // Generar mini-cards en el panel lateral
-    const container = document.getElementById('panel-crew-cards-container') ||
-                     document.getElementById('crew-cards-container');
-    if (container) {
-        crewMembers.forEach(crew => {
-            container.appendChild(crew.createMiniCard());
-        });
-    }
+    // Las mini-cards se generan automáticamente cuando se abre el panel de tripulación
+    // No necesitamos llenar el contenedor aquí
     
     // Cargar mensajes cuánticos
     loadQuantumMessages();

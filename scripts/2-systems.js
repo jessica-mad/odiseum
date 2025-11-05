@@ -1215,16 +1215,10 @@ class SortingSystem {
     }
     
     rebuildCrewSidebar(sortedCrew) {
-        // Usar el nuevo contenedor de paneles o el antiguo como fallback
-        const container = document.getElementById('panel-crew-cards-container') ||
-                         document.getElementById('crew-cards-container');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        sortedCrew.forEach(crew => {
-            container.appendChild(crew.createMiniCard());
-        });
+        // Actualizar usando el panel manager si está disponible
+        if (typeof panelManager !== 'undefined' && panelManager) {
+            panelManager.updateCrewPanel();
+        }
     }
 }
 

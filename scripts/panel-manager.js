@@ -30,6 +30,9 @@ class PanelManager {
         this.panels.crew = document.getElementById('panel-crew');
         this.panels.control = document.getElementById('panel-control');
 
+        // Mover el voyage-visualizer al panel de control
+        this.moveVoyageVisualizerToPanel();
+
         // Configurar event listeners para los tabs
         this.setupTabListeners();
 
@@ -40,6 +43,27 @@ class PanelManager {
         this.setupOutsideClickListener();
 
         console.log('✅ Panel Manager inicializado');
+    }
+
+    /**
+     * Mueve el voyage-visualizer existente al panel de control
+     */
+    moveVoyageVisualizerToPanel() {
+        const voyageVisualizer = document.getElementById('voyage-visualizer');
+        const controlPanel = document.getElementById('panel-control');
+
+        if (voyageVisualizer && controlPanel) {
+            // Remover clases que lo hacen fijo
+            voyageVisualizer.style.position = 'relative';
+            voyageVisualizer.style.bottom = 'auto';
+            voyageVisualizer.style.left = 'auto';
+            voyageVisualizer.style.right = 'auto';
+
+            // Mover al panel de control
+            controlPanel.appendChild(voyageVisualizer);
+
+            console.log('✅ Voyage visualizer movido al panel de control');
+        }
     }
 
     /**
@@ -65,20 +89,11 @@ class PanelManager {
 
     /**
      * Configura los event listeners para los botones de cierre
+     * NOTA: Ya no hay botones X, los paneles se cierran con los tabs
      */
     setupCloseListeners() {
-        Object.keys(this.panels).forEach(panelName => {
-            const panel = this.panels[panelName];
-            if (panel) {
-                const closeBtn = panel.querySelector('.panel-close-btn');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.closePanel(panelName);
-                    });
-                }
-            }
-        });
+        // Los paneles ahora se cierran solo con los tabs (toggle)
+        // Esta función se mantiene por compatibilidad pero no hace nada
     }
 
     /**
@@ -231,66 +246,38 @@ class PanelManager {
     }
 
     /**
-     * Actualiza el contenido del panel de tripulación
+     * Actualiza el contenido del panel de tripulación (dos columnas)
      */
     updateCrewPanel() {
-        const container = document.getElementById('panel-crew-cards-container');
-        if (!container) return;
+        const awakeContainer = document.getElementById('panel-crew-awake');
+        const asleepContainer = document.getElementById('panel-crew-asleep');
 
-        // El contenido ya se actualiza automáticamente con el sistema existente
-        // Este método puede ser usado para forzar una actualización si es necesario
-        if (typeof crewMembers !== 'undefined') {
-            // El sistema de crew cards ya se maneja en otros archivos
-            // Solo actualizamos si hay cambios pendientes
-        }
+        if (!awakeContainer || !asleepContainer) return;
+        if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+        // Limpiar contenedores
+        awakeContainer.innerHTML = '';
+        asleepContainer.innerHTML = '';
+
+        // Separar tripulantes por estado
+        crewMembers.forEach(crew => {
+            const miniCard = crew.miniCard || crew.createMiniCard();
+
+            if (crew.state === 'Despierto') {
+                awakeContainer.appendChild(miniCard.cloneNode(true));
+            } else {
+                asleepContainer.appendChild(miniCard.cloneNode(true));
+            }
+        });
     }
 
     /**
      * Actualiza el contenido del panel de control
+     * El panel de control ahora usa directamente el voyage-visualizer
      */
     updateControlPanel() {
-        // Actualizar velocidad
-        const speedControl = document.getElementById('speed-control') ||
-                            document.getElementById('nav-speed-slider');
-        const panelSpeedDisplay = document.getElementById('panel-speed-display');
-        if (speedControl && panelSpeedDisplay) {
-            const speedValue = speedControl.value;
-            panelSpeedDisplay.textContent = `${speedValue}%`;
-        }
-
-        // Actualizar combustible
-        const panelFuelDisplay = document.getElementById('panel-fuel-display');
-        if (panelFuelDisplay && typeof Fuel !== 'undefined') {
-            panelFuelDisplay.textContent = `${Fuel.quantity}/${Fuel.maxCapacity} UA`;
-        }
-
-        // Actualizar progreso
-        const panelProgressDisplay = document.getElementById('panel-progress-display');
-        if (panelProgressDisplay && typeof distanceTraveled !== 'undefined' && typeof TOTAL_MISSION_DISTANCE !== 'undefined') {
-            const progressPercent = TOTAL_MISSION_DISTANCE > 0
-                ? Math.min(100, (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100)
-                : 0;
-            panelProgressDisplay.textContent = `${progressPercent.toFixed(1)}%`;
-        }
-
-        // Actualizar distancia
-        const panelDistanceDisplay = document.getElementById('panel-distance-display');
-        if (panelDistanceDisplay && typeof distanceTraveled !== 'undefined') {
-            panelDistanceDisplay.textContent = `${Math.round(distanceTraveled)} UA`;
-        }
-
-        // Actualizar distancia total
-        const panelTotalDistanceDisplay = document.getElementById('panel-total-distance-display');
-        if (panelTotalDistanceDisplay && typeof TOTAL_MISSION_DISTANCE !== 'undefined') {
-            panelTotalDistanceDisplay.textContent = `${TOTAL_MISSION_DISTANCE} UA`;
-        }
-
-        // Actualizar tiempo
-        const panelTimeDisplay = document.getElementById('panel-time-display');
-        const calendar = document.getElementById('calendar');
-        if (panelTimeDisplay && calendar) {
-            panelTimeDisplay.textContent = calendar.textContent;
-        }
+        // El voyage-visualizer se actualiza automáticamente
+        // Este método se mantiene por compatibilidad
     }
 
     /**
