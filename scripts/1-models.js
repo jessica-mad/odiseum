@@ -591,8 +591,10 @@ class Crew {
         const card = document.getElementById(`mini-card-${this.id}`);
         if (!card) return;
 
+        // Para actualizaciones, simplemente actualizar la clase de estado
+        card.className = `crew-mini-card ${this.getOverallStatus()}`;
+
         if (!this.isAlive) {
-            card.className = 'crew-mini-card dead';
             card.onclick = null;
             card.innerHTML = `
                 <div class="crew-card-header">
@@ -604,45 +606,40 @@ class Crew {
             return;
         }
 
-        // Rebuild entire card to reflect state changes
-        card.className = `crew-mini-card ${this.getOverallStatus()}`;
         card.onclick = () => openCrewManagementPopup(this.name);
 
-        // Conditional rendering: hide needs/controls if awake
-        const needsAndActionsHTML = this.state === 'Despierto' ? '' : `
-            <div class="crew-card-needs" id="mini-needs-${this.id}">
-                ${this.generateNeedBars()}
-            </div>
-            <div class="crew-card-actions">
-                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'food')">🍕</button>
-                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'health')">❤️</button>
-                <button class="crew-card-btn" onclick="event.stopPropagation(); updateWakeSleep('${this.name}')">
-                    ${this.state === 'Despierto' ? '💤' : '👁️'}
-                </button>
-            </div>
-        `;
+        // USAR EL MISMO DISEÑO QUE createMiniCard()
+        // OPERATIVO: mostrar beneficio, ubicación y pensamiento
+        if (this.state === 'Despierto') {
+            const benefit = this.getAwakeBenefitDescription();
+            const location = this.getCurrentLocation();
+            const thought = this.getCurrentThought();
 
-        const ageClass = (this.state === 'Despierto' && gameState === GAME_STATES.IN_TRANCHE) ? 'crew-card-age aging' : 'crew-card-age';
-
-        card.innerHTML = `
-            <div class="crew-card-header">
-                <span class="crew-card-name">${this.name}</span>
-                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
-            </div>
-            <div class="${ageClass}" id="mini-age-${this.id}">
-                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
-            </div>
-            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
-                ${this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO'}
-            </div>
-            ${needsAndActionsHTML}
-            <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: ${this.getAwakeBenefitDescription() ? 'block' : 'none'};">
-                ${this.getAwakeBenefitDescription()}
-            </div>
-            <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: ${this.autoManaging ? 'block' : 'none'};">
-                🤖 Auto-gestionando
-            </div>
-        `;
+            card.innerHTML = `
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
+                </div>
+                ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                <div class="crew-card-location">
+                    📍 ${location}
+                </div>
+                <div class="crew-card-thought">
+                    <div class="thought-marquee">${thought}</div>
+                </div>
+            `;
+        } else {
+            // CRIOSTASIS: mostrar necesidades con barras
+            card.innerHTML = `
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
+                </div>
+                <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">
+                    ${this.generateAdvancedNeedBars()}
+                </div>
+            `;
+        }
     }
 }
 

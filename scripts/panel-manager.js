@@ -322,6 +322,8 @@ class PanelManager {
 
                 // Solo cambiar si es diferente
                 if (crew.state !== targetState) {
+                    console.log(`🔄 Cambiando ${crew.name} de ${crew.state} a ${targetState}`);
+
                     crew.state = targetState;
                     crew.updateConsoleCrewState();
 
@@ -333,8 +335,10 @@ class PanelManager {
                         }
                     }
 
-                    // Actualizar panel
-                    this.updateCrewPanel();
+                    // Actualizar panel - esto recrea todas las cards
+                    setTimeout(() => {
+                        this.updateCrewPanel();
+                    }, 50);
 
                     // Log y notificación
                     const action = targetState === 'Despierto' ? 'despertado' : 'encapsulado';
