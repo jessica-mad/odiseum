@@ -966,11 +966,11 @@
 
 /* === TERMINAL DE NOTIFICACIONES === */
 .terminal-notification-area {
-    position: absolute;
-    top: 100px;
+    position: fixed;
+    bottom: 260px;
     left: 120px;
-    right: calc(var(--crew-sidebar-width) + 40px);
-    bottom: calc(240px + 40px);
+    right: calc(var(--crew-sidebar-width) + 20px);
+    height: 150px;
     background: var(--color-terminal-bg);
     border: 3px solid var(--color-terminal-green);
     box-shadow:
@@ -979,6 +979,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    z-index: var(--z-desktop);
 }
 
 .terminal-header {

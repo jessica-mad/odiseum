@@ -186,7 +186,7 @@
     position: fixed;
     right: 0;
     top: calc(var(--title-bar-height) + var(--details-bar-height));
-    bottom: 240px; /* Above navigation console */
+    bottom: 0; /* 100% altura */
     width: var(--crew-sidebar-width);
     background: var(--color-terminal-bg);
     border-left: 3px solid var(--color-terminal-green);

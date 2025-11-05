@@ -1,0 +1,270 @@
+/* ============================================
+   MAPA DE LA NAVE - ODISEUM V2.0
+   ============================================ */
+
+/* === CONTENEDOR DEL MAPA === */
+.ship-map-container {
+    position: fixed;
+    left: 120px;
+    top: calc(var(--title-bar-height) + var(--details-bar-height) + 60px);
+    right: calc(var(--crew-sidebar-width) + 20px);
+    bottom: 260px;
+    background: var(--color-terminal-bg);
+    border: 3px solid var(--color-terminal-green);
+    box-shadow:
+        0 0 20px rgba(0, 255, 65, 0.3),
+        inset 0 0 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-desktop);
+    pointer-events: auto;
+}
+
+/* === TÍTULO DEL MAPA === */
+.ship-map-title {
+    background: var(--color-terminal-bg-light);
+    border-bottom: 2px solid var(--color-terminal-green);
+    padding: 8px 12px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+/* === CANVAS DEL MAPA === */
+.ship-map-canvas {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background:
+        linear-gradient(transparent 0%, rgba(0, 255, 65, 0.03) 50%, transparent 100%),
+        radial-gradient(ellipse at center, rgba(0, 255, 65, 0.05) 0%, transparent 70%);
+}
+
+/* === OUTLINE SVG DE LA NAVE === */
+.ship-outline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* === ZONAS DE LA NAVE === */
+.ship-zones {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.ship-zone {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: help;
+    transition: all 0.2s ease;
+}
+
+.ship-zone:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.zone-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 65, 0.5));
+    animation: zone-pulse 3s ease-in-out infinite;
+}
+
+.zone-label {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    background: var(--color-terminal-bg-light);
+    padding: 2px 6px;
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 3px;
+    white-space: nowrap;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.7);
+    opacity: 0.9;
+}
+
+@keyframes zone-pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* === MARCADORES DE TRIPULANTES === */
+.ship-crew-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.crew-marker {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.3s ease;
+}
+
+.crew-marker:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    z-index: 10;
+}
+
+.crew-marker.moving {
+    animation: crew-move 1s ease-in-out;
+}
+
+@keyframes crew-move {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3);
+    }
+}
+
+/* === DOT DEL MARCADOR === */
+.crew-marker-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--color-terminal-green);
+    background: var(--color-terminal-green);
+    box-shadow:
+        0 0 8px rgba(0, 255, 65, 0.8),
+        inset 0 0 4px rgba(255, 255, 255, 0.5);
+    animation: marker-pulse 2s ease-in-out infinite;
+}
+
+.crew-marker.active .crew-marker-dot {
+    background: var(--color-terminal-green);
+    border-color: var(--color-terminal-green);
+    animation: marker-pulse-active 1.5s ease-in-out infinite;
+}
+
+.crew-marker.sleeping .crew-marker-dot {
+    background: #4488ff;
+    border-color: #6699ff;
+    box-shadow:
+        0 0 8px rgba(68, 136, 255, 0.8),
+        inset 0 0 4px rgba(255, 255, 255, 0.3);
+    animation: marker-pulse-slow 3s ease-in-out infinite;
+}
+
+.crew-marker.resting .crew-marker-dot {
+    background: #ffaa44;
+    border-color: #ffbb55;
+    box-shadow:
+        0 0 8px rgba(255, 170, 68, 0.8),
+        inset 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.crew-marker.dead .crew-marker-dot {
+    background: #666;
+    border-color: #888;
+    box-shadow: none;
+    opacity: 0.5;
+    animation: none;
+}
+
+@keyframes marker-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes marker-pulse-active {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow:
+            0 0 8px rgba(0, 255, 65, 0.8),
+            inset 0 0 4px rgba(255, 255, 255, 0.5);
+    }
+    50% {
+        transform: scale(1.2);
+        box-shadow:
+            0 0 12px rgba(0, 255, 65, 1),
+            inset 0 0 6px rgba(255, 255, 255, 0.7);
+    }
+}
+
+@keyframes marker-pulse-slow {
+    0%, 100% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* === LABEL DEL MARCADOR === */
+.crew-marker-label {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    background: var(--color-terminal-bg);
+    padding: 1px 4px;
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 2px;
+    white-space: nowrap;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.7);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.crew-marker:hover .crew-marker-label {
+    opacity: 1;
+}
+
+.crew-marker.dead .crew-marker-label {
+    color: #888;
+    border-color: #888;
+    text-shadow: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .ship-map-container {
+        display: none; /* Ocultar en móviles */
+    }
+}
+
+/* === AJUSTE SI LA CONSOLA SE HACE MÁS PEQUEÑA === */
+@media (min-width: 769px) and (max-height: 700px) {
+    .ship-map-container {
+        bottom: 200px;
+    }
+}
