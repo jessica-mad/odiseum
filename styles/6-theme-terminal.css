@@ -23,13 +23,69 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
+    padding: 6px 12px;
     background: var(--color-terminal-bg-light);
     border: 1px solid var(--color-terminal-green-dark);
     border-radius: 0;
     min-width: 140px;
     justify-content: space-between;
     box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.05);
+    transition: all 0.3s ease;
+}
+
+/* Resource chip color states */
+.resource-chip.full {
+    background: rgba(0, 255, 65, 0.15);
+    border-color: var(--color-terminal-green);
+    color: var(--color-terminal-green);
+}
+
+.resource-chip.medium {
+    background: rgba(255, 170, 0, 0.15);
+    border-color: #ffaa00;
+    color: #ffaa00;
+}
+
+.resource-chip.low {
+    background: rgba(255, 136, 0, 0.15);
+    border-color: #ff8800;
+    color: #ff8800;
+}
+
+.resource-chip.critical {
+    background: rgba(255, 68, 68, 0.15);
+    border-color: #ff4444;
+    color: #ff4444;
+    animation: pulse-chip-critical 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-chip-critical {
+    0%, 100% {
+        box-shadow: inset 0 0 10px rgba(255, 68, 68, 0.2), 0 0 8px rgba(255, 68, 68, 0.3);
+    }
+    50% {
+        box-shadow: inset 0 0 20px rgba(255, 68, 68, 0.3), 0 0 12px rgba(255, 68, 68, 0.5);
+    }
+}
+
+.resource-chip.full .resource-label,
+.resource-chip.full .resource-value {
+    color: var(--color-terminal-green);
+}
+
+.resource-chip.medium .resource-label,
+.resource-chip.medium .resource-value {
+    color: #ffaa00;
+}
+
+.resource-chip.low .resource-label,
+.resource-chip.low .resource-value {
+    color: #ff8800;
+}
+
+.resource-chip.critical .resource-label,
+.resource-chip.critical .resource-value {
+    color: #ff4444;
 }
 
 .resource-indicator {
@@ -1365,6 +1421,132 @@
     }
 }
 
+/* === MOBILE BOTTOM BAR (STICKY) === */
+.mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-terminal-bg);
+    border-top: 3px solid var(--color-terminal-green);
+    box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.3);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 999;
+}
+
+.mobile-voyage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--font-monaco);
+}
+
+.mobile-voyage-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mobile-voyage-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    text-transform: uppercase;
+}
+
+.mobile-voyage-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+.mobile-voyage-separator {
+    color: var(--color-terminal-green-dark);
+}
+
+.mobile-voyage-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.mobile-voyage-endpoint {
+    font-size: 20px;
+}
+
+.mobile-voyage-track {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.mobile-voyage-line {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+.mobile-voyage-fill {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    height: 4px;
+    background: var(--color-terminal-green);
+    box-shadow: 0 0 10px var(--color-terminal-green);
+    transition: width 0.6s ease-out;
+    border: 1px solid var(--color-terminal-green);
+}
+
+.mobile-voyage-label-text {
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mobile-start-button-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.mobile-start-btn {
+    flex: 1;
+    max-width: 300px;
+    padding: 12px 16px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.mobile-start-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+}
+
+.mobile-start-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: var(--color-terminal-green-dark);
+}
+
 /* === ESTILOS PARA PANTALLAS MUY PEQUEÑAS === */
 @media (max-width: 480px) {
     .title-bar-main {
@@ -1406,5 +1588,23 @@
 
     .planet-icon {
         font-size: 16px;
+    }
+
+    .mobile-bottom-bar {
+        padding: 8px 12px;
+    }
+
+    .mobile-voyage-label,
+    .mobile-voyage-value {
+        font-size: 10px;
+    }
+
+    .mobile-voyage-endpoint {
+        font-size: 16px;
+    }
+
+    .mobile-start-btn {
+        padding: 10px 12px;
+        font-size: 11px;
     }
 }

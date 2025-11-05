@@ -61,23 +61,23 @@ function toggleMobileAccordion(section) {
 function initializeMobileView() {
     const isMobile = window.innerWidth <= 768;
     const mobileAccordion = document.getElementById('mobile-accordion');
-    const desktopArea = document.querySelector('.desktop-main-area');
-    const voyageVisualizer = document.querySelector('.voyage-visualizer');
-    const crewSidebar = document.querySelector('.crew-sidebar');
-    const mapSidebar = document.getElementById('ship-map-sidebar');
+    const mobileBottomBar = document.getElementById('mobile-bottom-bar');
+    const mobileTitleBar = document.querySelector('.title-bar-mobile');
 
     if (isMobile) {
-        // Mostrar acordeones
+        // Mostrar elementos móviles
         if (mobileAccordion) mobileAccordion.style.display = 'flex';
+        if (mobileBottomBar) mobileBottomBar.style.display = 'flex';
+        if (mobileTitleBar) mobileTitleBar.style.display = 'flex';
 
-        // Ocultar elementos de escritorio
-        if (desktopArea) desktopArea.style.display = 'none';
-        if (voyageVisualizer) voyageVisualizer.style.display = 'none';
-        if (crewSidebar) crewSidebar.style.display = 'none';
-        if (mapSidebar) mapSidebar.style.display = 'none';
-
-        // Llenar acordeón de recursos
+        // Llenar acordeones
         updateMobileResources();
+        updateMobileCrew();
+        updateMobileLogbook();
+        updateMobileTerminal();
+
+        // Sincronizar valores con desktop
+        syncMobileValues();
 
         // Centrar popups
         document.querySelectorAll('.window.interface').forEach(popup => {
@@ -90,11 +90,10 @@ function initializeMobileView() {
             popup.style.overflow = 'auto';
         });
     } else {
-        // Mostrar vista de escritorio
+        // Ocultar elementos móviles - handled by CSS .mobile-only
         if (mobileAccordion) mobileAccordion.style.display = 'none';
-        if (desktopArea) desktopArea.style.display = 'block';
-        if (voyageVisualizer) voyageVisualizer.style.display = 'block';
-        if (crewSidebar) crewSidebar.style.display = 'flex';
+        if (mobileBottomBar) mobileBottomBar.style.display = 'none';
+        if (mobileTitleBar) mobileTitleBar.style.display = 'none';
     }
 }
 
@@ -130,6 +129,80 @@ function updateMobileResources() {
     html += '</div>';
 
     container.innerHTML = html;
+}
+
+function updateMobileCrew() {
+    const container = document.getElementById('crew-mobile-container');
+    if (!container) return;
+
+    const crewCardsContainer = document.getElementById('crew-cards-container');
+    if (crewCardsContainer) {
+        container.innerHTML = crewCardsContainer.innerHTML;
+    }
+}
+
+function updateMobileLogbook() {
+    const container = document.getElementById('logbook-mobile-container');
+    if (!container) return;
+
+    const logbookEntries = document.getElementById('logbook-entries');
+    if (logbookEntries) {
+        container.innerHTML = logbookEntries.innerHTML;
+    }
+}
+
+function updateMobileTerminal() {
+    const container = document.getElementById('terminal-notifications-mobile');
+    if (!container) return;
+
+    const terminalNotifications = document.getElementById('terminal-notifications');
+    if (terminalNotifications) {
+        container.innerHTML = terminalNotifications.innerHTML;
+    }
+}
+
+function syncMobileValues() {
+    // Sync timer
+    const trancheTimer = document.getElementById('tranche-timer');
+    const mobileTrancheTimer = document.getElementById('mobile-tranche-timer');
+    if (trancheTimer && mobileTrancheTimer) {
+        mobileTrancheTimer.textContent = trancheTimer.textContent;
+    }
+
+    // Sync calendar
+    const calendar = document.getElementById('calendar');
+    const mobileCalendar = document.getElementById('mobile-calendar');
+    if (calendar && mobileCalendar) {
+        mobileCalendar.textContent = calendar.textContent;
+    }
+
+    // Sync speed display (for bottom bar if needed)
+    const navSpeedDisplay = document.getElementById('nav-speed-display');
+    const navSpeedDisplayMobile = document.getElementById('nav-speed-display-mobile');
+    if (navSpeedDisplay && navSpeedDisplayMobile) {
+        navSpeedDisplayMobile.textContent = navSpeedDisplay.textContent;
+    }
+
+    // Sync speed slider
+    const navSpeedSlider = document.getElementById('nav-speed-slider');
+    const navSpeedSliderMobile = document.getElementById('nav-speed-slider-mobile');
+    if (navSpeedSlider && navSpeedSliderMobile) {
+        navSpeedSliderMobile.value = navSpeedSlider.value;
+    }
+
+    // Sync voyage progress
+    const voyageProgressFill = document.getElementById('voyage-progress-fill');
+    const mobileVoyageFill = document.getElementById('mobile-voyage-fill');
+    if (voyageProgressFill && mobileVoyageFill) {
+        mobileVoyageFill.style.width = voyageProgressFill.style.width;
+    }
+
+    // Sync tranche count (assuming it's available somewhere)
+    // This will be updated by game loop, placeholder for now
+    const mobileTrancheCount = document.getElementById('mobile-tranche-count');
+    if (mobileTrancheCount && typeof currentTranche !== 'undefined' && typeof totalTranches !== 'undefined') {
+        mobileTrancheCount.textContent = `${currentTranche}/${totalTranches}`;
+    }
 }
 
 // Inicializar vista móvil al cargar y redimensionar

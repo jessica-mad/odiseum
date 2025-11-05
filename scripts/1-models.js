@@ -586,22 +586,29 @@ class Resource {
                 stripSpan.textContent = `${Math.round(this.quantity)}/${this.limiteStock}`;
             }
 
-            // Actualizar indicador de color
+            // Actualizar indicador de color (old system, still needed for mobile accordion)
             const indicatorId = this.stripId.replace('resource-strip-', 'indicator-');
             const indicator = document.getElementById(indicatorId);
-            if (indicator) {
-                const percentage = (this.quantity / this.limiteStock) * 100;
-                indicator.className = 'resource-indicator';
+            const percentage = (this.quantity / this.limiteStock) * 100;
 
-                if (percentage >= 70) {
-                    indicator.classList.add('full');
-                } else if (percentage >= 40) {
-                    indicator.classList.add('medium');
-                } else if (percentage >= 15) {
-                    indicator.classList.add('low');
-                } else {
-                    indicator.classList.add('critical');
-                }
+            let colorClass = 'full';
+            if (percentage < 15) {
+                colorClass = 'critical';
+            } else if (percentage < 40) {
+                colorClass = 'low';
+            } else if (percentage < 70) {
+                colorClass = 'medium';
+            }
+
+            if (indicator) {
+                indicator.className = 'resource-indicator ' + colorClass;
+            }
+
+            // Actualizar color del resource chip (new system)
+            const chipId = this.stripId.replace('resource-strip-', 'resource-chip-');
+            const chip = document.getElementById(chipId);
+            if (chip) {
+                chip.className = 'resource-chip ' + colorClass;
             }
         }
     }
