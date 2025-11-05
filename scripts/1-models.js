@@ -377,7 +377,7 @@ class Crew {
         const card = document.createElement('div');
         card.className = `crew-mini-card ${this.getOverallStatus()}`;
         card.id = `mini-card-${this.id}`;
-        
+
         if (!this.isAlive) {
             card.onclick = null;
             card.innerHTML = `
@@ -389,9 +389,15 @@ class Crew {
             `;
             return card;
         }
-        
+
+        // Ocultar preview de tripulantes despiertos - se gestionan solos
+        if (this.state === 'Despierto') {
+            card.style.display = 'none';
+            return card;
+        }
+
         card.onclick = () => openCrewManagementPopup(this.name);
-        
+
         card.innerHTML = `
             <div class="crew-card-header">
                 <span class="crew-card-name">${this.name}</span>
@@ -470,8 +476,9 @@ class Crew {
     updateMiniCard() {
         const card = document.getElementById(`mini-card-${this.id}`);
         if (!card) return;
-        
+
         if (!this.isAlive) {
+            card.style.display = 'block';
             card.className = 'crew-mini-card dead';
             card.onclick = null;
             card.innerHTML = `
@@ -483,14 +490,22 @@ class Crew {
             `;
             return;
         }
-        
+
+        // Ocultar preview de tripulantes despiertos - se gestionan solos
+        if (this.state === 'Despierto') {
+            card.style.display = 'none';
+            return;
+        }
+
+        // Mostrar la card si está encapsulado
+        card.style.display = 'block';
         card.className = `crew-mini-card ${this.getOverallStatus()}`;
-        
+
         const statusElement = document.getElementById(`mini-status-${this.id}`);
         if (statusElement) {
             statusElement.textContent = this.isAlive ? '❤️' : '💀';
         }
-        
+
         const ageElement = document.getElementById(`mini-age-${this.id}`);
         if (ageElement) {
             const ageText = `${this.initialAge} → ${this.biologicalAge.toFixed(1)} años`;
@@ -500,18 +515,18 @@ class Crew {
                 ageElement.classList.add('aging');
             }
         }
-        
+
         const stateElement = document.getElementById(`mini-state-${this.id}`);
         if (stateElement) {
             stateElement.textContent = this.state === 'Despierto' ? '👁️ DESPIERTO' : '💤 ENCAPSULADO';
             stateElement.className = `crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}`;
         }
-        
+
         const needsContainer = document.getElementById(`mini-needs-${this.id}`);
         if (needsContainer) {
             needsContainer.innerHTML = this.generateNeedBars();
         }
-        
+
         const autoIndicator = document.getElementById(`auto-manage-${this.id}`);
         if (autoIndicator) {
             autoIndicator.style.display = this.autoManaging ? 'block' : 'none';

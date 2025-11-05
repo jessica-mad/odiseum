@@ -95,12 +95,13 @@ class AwakeBenefitSystem {
             return;
         }
 
-        if (this.nextMedicalIndex >= patients.length) {
-            this.nextMedicalIndex = 0;
-        }
+        // Encontrar al paciente más enfermo (menor healthNeed)
+        const sickestPatient = patients.reduce((sickest, current) => {
+            return current.healthNeed < sickest.healthNeed ? current : sickest;
+        });
 
         const healRate = this.isCaptainAwake ? 1.2 : 1.0;
-        const patient = patients[this.nextMedicalIndex];
+        const patient = sickestPatient;
 
         patient.healthNeed = Math.min(100, patient.healthNeed + healRate);
         patient.updateConsoleCrewState();
@@ -112,8 +113,6 @@ class AwakeBenefitSystem {
             doctor.currentActivity = `Atendiendo a ${patient.name}`;
             doctor.updateMiniCard();
         }
-
-        this.nextMedicalIndex = (this.nextMedicalIndex + 1) % patients.length;
 
         if (typeof gameLoop !== 'undefined' && gameLoop) {
             gameLoop.updateCrewPopupIfOpen();
