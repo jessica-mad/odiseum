@@ -387,6 +387,11 @@ class GameLoop {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
+        // Detener sonido de tramo
+        if (typeof stopTrancheSound === 'function') {
+            stopTrancheSound();
+        }
+
         this.gameState = GAME_STATES.PAUSED;
         this.eventTriggeredThisTranche = false;
 
@@ -436,6 +441,11 @@ class GameLoop {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
+        // Detener sonido de tramo
+        if (typeof stopTrancheSound === 'function') {
+            stopTrancheSound();
+        }
+
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
 
         document.getElementById('pause-button').style.display = 'none';
@@ -458,6 +468,11 @@ class GameLoop {
         if (this.gameState !== GAME_STATES.TRANCHE_PAUSED) return;
 
         this.gameState = GAME_STATES.IN_TRANCHE;
+
+        // Reiniciar sonido de tramo
+        if (typeof playTrancheSound === 'function') {
+            playTrancheSound();
+        }
 
         // Reiniciar ambos intervalos
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);

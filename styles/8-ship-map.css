@@ -2,6 +2,34 @@
    MAPA DE LA NAVE CON GRILLA - ODISEUM V2.0
    ============================================ */
 
+/* === BOTÓN TOGGLE DEL MAPA === */
+.map-toggle-btn {
+    padding: 6px 14px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.5);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+}
+
+.map-toggle-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    text-shadow: none;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+    transform: translateY(-1px);
+}
+
+.map-toggle-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
 /* === CONTENEDOR DEL MAPA === */
 .ship-map-container {
     position: fixed;
@@ -28,10 +56,35 @@
     font-family: var(--font-monaco);
     font-size: var(--font-size-md);
     color: var(--color-terminal-green);
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-weight: bold;
     letter-spacing: 2px;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+.map-close-btn {
+    background: transparent;
+    border: 1px solid var(--color-terminal-green);
+    color: var(--color-terminal-green);
+    font-size: 20px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.map-close-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    transform: scale(1.1);
 }
 
 /* === GRILLA DEL MAPA (18x12) === */

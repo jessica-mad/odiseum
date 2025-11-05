@@ -414,9 +414,11 @@ function updateWakeSleepFromPopup() {
 }
 
 /* === SISTEMA DE SONIDO === */
+let tramoAudio = null; // Variable global para controlar el audio de tramo
+
 function playClickSound() {
     try {
-        const audio = new Audio('assets/sounds/button-needs.mp3');
+        const audio = new Audio('assets/sounds/button-needs.aac');
         audio.volume = 0.3;
         audio.play().catch(err => console.log('Audio playback failed:', err));
     } catch (err) {
@@ -426,11 +428,25 @@ function playClickSound() {
 
 function playTrancheSound() {
     try {
-        const audio = new Audio('assets/sounds/tramo.mp3');
-        audio.volume = 0.4;
-        audio.play().catch(err => console.log('Audio playback failed:', err));
+        // Detener audio anterior si existe
+        if (tramoAudio) {
+            tramoAudio.pause();
+            tramoAudio.currentTime = 0;
+        }
+
+        tramoAudio = new Audio('assets/sounds/tramo.mp3');
+        tramoAudio.volume = 0.4;
+        tramoAudio.loop = true; // Loop infinito
+        tramoAudio.play().catch(err => console.log('Audio playback failed:', err));
     } catch (err) {
         console.log('Audio error:', err);
+    }
+}
+
+function stopTrancheSound() {
+    if (tramoAudio) {
+        tramoAudio.pause();
+        tramoAudio.currentTime = 0;
     }
 }
 

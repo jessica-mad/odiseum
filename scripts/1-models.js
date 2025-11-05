@@ -489,50 +489,45 @@ class Crew {
             return;
         }
 
+        // Rebuild entire card to reflect state changes
         card.className = `crew-mini-card ${this.getOverallStatus()}`;
+        card.onclick = () => openCrewManagementPopup(this.name);
 
-        const statusElement = document.getElementById(`mini-status-${this.id}`);
-        if (statusElement) {
-            statusElement.textContent = this.isAlive ? '❤️' : '💀';
-        }
+        // Conditional rendering: hide needs/controls if awake
+        const needsAndActionsHTML = this.state === 'Despierto' ? '' : `
+            <div class="crew-card-needs" id="mini-needs-${this.id}">
+                ${this.generateNeedBars()}
+            </div>
+            <div class="crew-card-actions">
+                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'food')">🍕</button>
+                <button class="crew-card-btn" onclick="event.stopPropagation(); quickManage('${this.name}', 'health')">❤️</button>
+                <button class="crew-card-btn" onclick="event.stopPropagation(); updateWakeSleep('${this.name}')">
+                    ${this.state === 'Despierto' ? '💤' : '👁️'}
+                </button>
+            </div>
+        `;
 
-        const ageElement = document.getElementById(`mini-age-${this.id}`);
-        if (ageElement) {
-            const ageText = `${this.initialAge} → ${this.biologicalAge.toFixed(1)} años`;
-            ageElement.textContent = ageText;
-            ageElement.className = 'crew-card-age';
-            if (this.state === 'Despierto' && gameState === GAME_STATES.IN_TRANCHE) {
-                ageElement.classList.add('aging');
-            }
-        }
+        const ageClass = (this.state === 'Despierto' && gameState === GAME_STATES.IN_TRANCHE) ? 'crew-card-age aging' : 'crew-card-age';
 
-        const stateElement = document.getElementById(`mini-state-${this.id}`);
-        if (stateElement) {
-            stateElement.textContent = this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO';
-            stateElement.className = `crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}`;
-        }
-
-        const needsContainer = document.getElementById(`mini-needs-${this.id}`);
-        if (needsContainer) {
-            needsContainer.innerHTML = this.generateNeedBars();
-        }
-
-        const autoIndicator = document.getElementById(`auto-manage-${this.id}`);
-        if (autoIndicator) {
-            autoIndicator.style.display = this.autoManaging ? 'block' : 'none';
-        }
-
-        const benefitElement = document.getElementById(`crew-benefit-${this.id}`);
-        if (benefitElement) {
-            const benefitText = this.getAwakeBenefitDescription();
-            if (benefitText) {
-                benefitElement.textContent = benefitText;
-                benefitElement.style.display = 'block';
-            } else {
-                benefitElement.textContent = '';
-                benefitElement.style.display = 'none';
-            }
-        }
+        card.innerHTML = `
+            <div class="crew-card-header">
+                <span class="crew-card-name">${this.name}</span>
+                <span class="crew-card-status" id="mini-status-${this.id}">${this.isAlive ? '❤️' : '💀'}</span>
+            </div>
+            <div class="${ageClass}" id="mini-age-${this.id}">
+                ${this.initialAge} → ${this.biologicalAge.toFixed(1)} años
+            </div>
+            <div class="crew-card-state ${this.state === 'Despierto' ? 'awake' : 'capsule'}" id="mini-state-${this.id}">
+                ${this.state === 'Despierto' ? '👁️ OPERATIVO' : '💤 ENCAPSULADO'}
+            </div>
+            ${needsAndActionsHTML}
+            <div class="crew-card-benefit" id="crew-benefit-${this.id}" style="display: ${this.getAwakeBenefitDescription() ? 'block' : 'none'};">
+                ${this.getAwakeBenefitDescription()}
+            </div>
+            <div id="auto-manage-${this.id}" class="auto-manage-indicator" style="display: ${this.autoManaging ? 'block' : 'none'};">
+                🤖 Auto-gestionando
+            </div>
+        `;
     }
 }
 
