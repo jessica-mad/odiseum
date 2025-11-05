@@ -16,7 +16,13 @@ class ShipMapSystem {
         };
 
         this.crewLocations = {};
-        this.movingCrew = new Map(); // Para animaciones de movimiento
+        this.crewIcons = {
+            'Cpt. Rivera': '👨‍✈️',
+            'Dra. Chen': '👩‍⚕️',
+            'Ing. Patel': '👨‍🔧',
+            'Dr. Johnson': '👨‍🔬',
+            'Chef Dubois': '👨‍🍳'
+        };
     }
 
     initialize() {
@@ -30,7 +36,7 @@ class ShipMapSystem {
 
         mapContainer.innerHTML = `
             <div class="ship-map-title">
-                <span>🚀 MAPA DE LA NAVE</span>
+                <span>🚀 MAPA DE LA NAVE - ODISEUM</span>
             </div>
             <div class="ship-map-canvas" id="ship-map-canvas">
                 <svg class="ship-outline" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -79,6 +85,29 @@ class ShipMapSystem {
                 <div class="zone-label">${zone.name}</div>
             </div>
         `).join('');
+    }
+
+    getCrewIcon(crew) {
+        // Primero intentar obtener el icono personalizado
+        if (this.crewIcons[crew.name]) {
+            return this.crewIcons[crew.name];
+        }
+
+        // Fallback según el rol
+        switch (crew.role) {
+            case 'commander':
+                return '👨‍✈️';
+            case 'doctor':
+                return '👩‍⚕️';
+            case 'engineer':
+                return '👨‍🔧';
+            case 'cook':
+                return '👨‍🍳';
+            case 'scientist':
+                return '👨‍🔬';
+            default:
+                return '👤';
+        }
     }
 
     getCrewZone(crew) {
@@ -139,10 +168,7 @@ class ShipMapSystem {
         const markersContainer = document.getElementById('ship-crew-markers');
         if (!markersContainer) return;
 
-        // Limpiar marcadores anteriores
-        markersContainer.innerHTML = '';
-
-        // Crear nuevos marcadores
+        // Actualizar o crear marcadores
         crewMembers.forEach(crew => {
             const zone = this.getCrewZone(crew);
             if (!zone || !this.zones[zone]) return;
@@ -150,53 +176,107 @@ class ShipMapSystem {
             const oldZone = this.crewLocations[crew.id];
             this.crewLocations[crew.id] = zone;
 
-            // Crear marcador
-            const marker = document.createElement('div');
-            marker.className = 'crew-marker';
-            marker.id = `crew-marker-${crew.id}`;
-            marker.dataset.crewId = crew.id;
-            marker.title = `${crew.name} - ${crew.position}`;
+            // Buscar marcador existente
+            let marker = document.getElementById(`crew-marker-${crew.id}`);
 
-            // Añadir estado visual
-            if (!crew.isAlive) {
-                marker.classList.add('dead');
-            } else if (crew.state === 'Encapsulado') {
-                marker.classList.add('sleeping');
-            } else if (crew.state === CREW_STATES.RESTING) {
-                marker.classList.add('resting');
+            if (!marker) {
+                // Crear nuevo marcador
+                marker = this.createCrewMarker(crew, zone);
+                markersContainer.appendChild(marker);
             } else {
-                marker.classList.add('active');
+                // Actualizar marcador existente
+                this.updateCrewMarker(marker, crew, zone, oldZone);
             }
-
-            // Posicionar en la zona
-            const zoneData = this.zones[zone];
-            const offsetX = (Math.random() - 0.5) * 8; // Desplazamiento aleatorio
-            const offsetY = (Math.random() - 0.5) * 8;
-
-            marker.style.left = `${zoneData.x + offsetX}%`;
-            marker.style.top = `${zoneData.y + offsetY}%`;
-
-            // Contenido del marcador
-            marker.innerHTML = `
-                <div class="crew-marker-dot"></div>
-                <div class="crew-marker-label">${crew.name.split(' ')[0]}</div>
-            `;
-
-            // Click para abrir ficha
-            marker.onclick = () => {
-                if (typeof openCrewManagementPopup === 'function') {
-                    openCrewManagementPopup(crew.name);
-                }
-            };
-
-            // Animar si cambió de zona
-            if (oldZone && oldZone !== zone && crew.isAlive) {
-                marker.classList.add('moving');
-                setTimeout(() => marker.classList.remove('moving'), 1000);
-            }
-
-            markersContainer.appendChild(marker);
         });
+
+        // Limpiar marcadores de tripulantes que ya no existen
+        const allMarkers = markersContainer.querySelectorAll('.crew-marker');
+        allMarkers.forEach(marker => {
+            const crewId = parseInt(marker.dataset.crewId);
+            const exists = crewMembers.some(c => c.id === crewId);
+            if (!exists) {
+                marker.remove();
+            }
+        });
+    }
+
+    createCrewMarker(crew, zone) {
+        const marker = document.createElement('div');
+        marker.className = 'crew-marker';
+        marker.id = `crew-marker-${crew.id}`;
+        marker.dataset.crewId = crew.id;
+        marker.title = `${crew.name} - ${crew.position}`;
+
+        // Añadir estado visual
+        this.setMarkerState(marker, crew);
+
+        // Posicionar en la zona con offset aleatorio
+        this.positionMarker(marker, zone);
+
+        // Contenido del marcador - ICONO en lugar de punto
+        const icon = this.getCrewIcon(crew);
+        marker.innerHTML = `
+            <div class="crew-marker-icon">${icon}</div>
+            <div class="crew-marker-label">${crew.name.split(' ')[0]}</div>
+        `;
+
+        // Click para abrir ficha
+        marker.onclick = () => {
+            if (typeof openCrewManagementPopup === 'function') {
+                openCrewManagementPopup(crew.name);
+            }
+        };
+
+        return marker;
+    }
+
+    updateCrewMarker(marker, crew, zone, oldZone) {
+        // Actualizar estado visual
+        this.setMarkerState(marker, crew);
+
+        // Actualizar icono
+        const iconElement = marker.querySelector('.crew-marker-icon');
+        if (iconElement) {
+            iconElement.textContent = this.getCrewIcon(crew);
+        }
+
+        // Si cambió de zona, animar movimiento
+        if (oldZone && oldZone !== zone && crew.isAlive) {
+            marker.classList.add('moving');
+            setTimeout(() => marker.classList.remove('moving'), 1000);
+        }
+
+        // Actualizar posición con transición suave
+        this.positionMarker(marker, zone);
+    }
+
+    setMarkerState(marker, crew) {
+        // Limpiar clases de estado
+        marker.classList.remove('active', 'sleeping', 'resting', 'dead');
+
+        // Añadir clase según estado
+        if (!crew.isAlive) {
+            marker.classList.add('dead');
+        } else if (crew.state === 'Encapsulado') {
+            marker.classList.add('sleeping');
+        } else if (crew.state === CREW_STATES.RESTING) {
+            marker.classList.add('resting');
+        } else {
+            marker.classList.add('active');
+        }
+    }
+
+    positionMarker(marker, zone) {
+        const zoneData = this.zones[zone];
+
+        // Offset aleatorio pero consistente (usar ID del marcador como seed)
+        const crewId = parseInt(marker.dataset.crewId);
+        const seed = crewId * 123.456; // Simple seed
+        const offsetX = (Math.sin(seed) * 8); // -8 a +8
+        const offsetY = (Math.cos(seed) * 8);
+
+        marker.style.left = `${zoneData.x + offsetX}%`;
+        marker.style.top = `${zoneData.y + offsetY}%`;
     }
 
     // Actualizar el mapa periódicamente

@@ -252,6 +252,11 @@ class GameLoop {
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.eventTriggeredThisTranche = false;
 
+        // Reproducir sonido de inicio de tramo
+        if (typeof playTrancheSound === 'function') {
+            playTrancheSound();
+        }
+
         // Actualizar UI de botones
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
