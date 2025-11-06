@@ -111,6 +111,7 @@
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
     gap: 8px;
     position: relative;
 }
@@ -119,7 +120,7 @@
 .ship-map-zoom-controls {
     position: absolute;
     top: 8px;
-    left: 8px;
+    right: 8px;
     display: flex;
     gap: 4px;
     z-index: 20;
@@ -168,6 +169,7 @@
     justify-content: center;
     position: relative;
     min-width: 0;
+    min-height: 0;
 }
 
 /* === WRAPPER DEL MAPA === */
@@ -220,29 +222,35 @@
 
 /* === PANEL DE ESTADO DE SALAS === */
 .ship-map-rooms-status {
-    width: 220px;
+    width: 100%;
+    height: 140px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
+    gap: 6px;
+    overflow-y: hidden;
     padding: 8px;
     background: rgba(0, 0, 0, 0.3);
-    border-left: 2px solid var(--color-terminal-green);
+    border-top: 2px solid var(--color-terminal-green);
+    flex-shrink: 0;
 }
 
 .rooms-status-title {
     font-family: var(--font-monaco);
     font-size: var(--font-size-sm);
     color: var(--color-terminal-green);
-    margin: 0 0 8px 0;
+    margin: 0;
     text-align: center;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+    flex-shrink: 0;
 }
 
 .rooms-status-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
 }
 
 .room-status-card {
