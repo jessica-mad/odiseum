@@ -42,6 +42,9 @@ class PanelManager {
         // Cerrar panel al hacer click fuera
         this.setupOutsideClickListener();
 
+        // Configurar controles de teclado (solo desktop)
+        this.setupKeyboardListeners();
+
         console.log('✅ Panel Manager inicializado');
     }
 
@@ -121,6 +124,66 @@ class PanelManager {
             // Cerrar paneles donde se hizo click fuera
             clickedOutside.forEach(panelName => this.closePanel(panelName));
         });
+    }
+
+    /**
+     * Configura los controles de teclado para paneles (solo desktop)
+     * W/ArrowUp: Abre panel de control
+     * D/ArrowRight: Abre panel de mapa
+     * A/ArrowLeft: Abre panel de tripulación
+     * S/ArrowDown: Cierra panel de control
+     */
+    setupKeyboardListeners() {
+        document.addEventListener('keydown', (e) => {
+            // Solo aplicar en desktop (pantallas > 768px)
+            if (window.innerWidth <= 768) return;
+
+            // No ejecutar si hay un input o textarea enfocado
+            const activeElement = document.activeElement;
+            if (activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.isContentEditable) {
+                return;
+            }
+
+            // No ejecutar si hay un popup abierto
+            if (document.querySelector('.window.interface')) {
+                return;
+            }
+
+            const key = e.key.toLowerCase();
+
+            // W o Flecha Arriba: Abrir panel de control
+            if (key === 'w' || key === 'arrowup') {
+                e.preventDefault();
+                if (!this.openPanels.has('control')) {
+                    this.togglePanel('control');
+                }
+            }
+            // D o Flecha Derecha: Abrir panel de mapa
+            else if (key === 'd' || key === 'arrowright') {
+                e.preventDefault();
+                if (!this.openPanels.has('map')) {
+                    this.togglePanel('map');
+                }
+            }
+            // A o Flecha Izquierda: Abrir panel de tripulación
+            else if (key === 'a' || key === 'arrowleft') {
+                e.preventDefault();
+                if (!this.openPanels.has('crew')) {
+                    this.togglePanel('crew');
+                }
+            }
+            // S o Flecha Abajo: Cerrar panel de control
+            else if (key === 's' || key === 'arrowdown') {
+                e.preventDefault();
+                if (this.openPanels.has('control')) {
+                    this.closePanel('control');
+                }
+            }
+        });
+
+        console.log('⌨️  Controles de teclado activados: W/↑=Control, D/→=Mapa, A/←=Crew, S/↓=Cerrar');
     }
 
     /**
