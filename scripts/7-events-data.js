@@ -1860,5 +1860,366 @@ Nunca lo sabrá.`,
                 chainEvent: null
             }
         }
+    },
+
+    // EVENTOS GENERALES
+    {
+        id: 'general_event_01',
+        character: 'Tripulación',
+        icon: '🛰️',
+        title: 'Basura Espacial VIP',
+        trigger: {
+            minTranche: 1,
+            maxTranche: 3,
+            requiredAlive: [],
+            requiredAwake: ['Capitán Silva'],
+            requiredAsleep: [],
+            resourceMin: { energy: 50 },
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['space_junk_looted'],
+            probability: 0.5
+        },
+        description: `Los sensores detectan un satélite abandonado de la Primera Expedición flotando a 2 km.
+
+Johnson menciona que puede tener piezas valiosas. Chen advierte sobre posible contaminación radiactiva. Silva añade que también podría explotar.
+
+Rodriguez calcula que recuperarlo costaría energía, pero podría contener datos científicos, piezas de repuesto, o absolutamente nada.
+
+"Es como una caja misteriosa del espacio. ¿Tesoro o trampa?"`,
+
+        optionA: {
+            label: '🎁 "Fortune favors the bold. TRÁIGANLO A BORDO."',
+            requires: { energy: 50 },
+            costs: { energy: 50 },
+            wakeUp: ['Ing. Rodriguez'],
+            result: 'loot'
+        },
+
+        optionB: {
+            label: '🚫 "No vale la pena el riesgo. Sigamos la ruta."',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'ignore'
+        },
+
+        outcomes: {
+            loot: {
+                successRate: 0.6,
+                success: {
+                    flag: 'space_junk_treasure',
+                    resourceDeltas: { data: 150, medicine: 50, energy: 100 },
+                    affectedCrew: {
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'excited',
+                            skillModifier: 1.05,
+                            entertainmentDelta: 15,
+                            personalThought: 'Aposté y gané. La fortuna favorece a los audaces.',
+                            relationships: { 'Capitán Silva': 10 }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'satisfied',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 10,
+                            personalThought: 'Recuperar basura espacial fue más satisfactorio de lo esperado.',
+                            relationships: { 'Lt. Johnson': 5 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'pleased',
+                            skillModifier: 1.0,
+                            personalThought: 'Buena decisión. A veces el riesgo vale la pena.',
+                            relationships: { 'Lt. Johnson': 5 }
+                        }
+                    },
+                    narrative: `Rodriguez y Johnson realizan EVA para recuperar el satélite.
+
+Dentro encuentran banco de baterías intacto, kit médico sellado, y archivos de la Primera Expedición.
+
+✅ +150 Datos científicos
+✅ +50 Medicina
+✅ +100 Energía (baterías recuperadas)
+✅ Johnson: +5% eficiencia, +15 Entretenimiento
+✅ Rodriguez: +10 Entretenimiento
+✅ Relaciones mejoradas
+
+"Black Friday espacial. Todo gratis."`,
+                    chainEvent: null
+                },
+                failure: {
+                    flag: 'space_junk_disaster',
+                    resourceDeltas: { energy: -50, oxygen: -30 },
+                    affectedCrew: {
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'disappointed',
+                            skillModifier: 0.95,
+                            healthDelta: -10,
+                            personalThought: 'Aposté y perdí. La próxima vez escucharé a Chen.',
+                            relationships: { 'Dra. Chen': 5 }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'frustrated',
+                            skillModifier: 0.95,
+                            restDelta: -10,
+                            personalThought: 'Desperdicié energía en basura literal. Frustrante.',
+                            relationships: {}
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'smug',
+                            skillModifier: 1.0,
+                            personalThought: 'Les advertí. Nadie escucha a la doctora.',
+                            relationships: { 'Lt. Johnson': 5 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'regretful',
+                            skillModifier: 1.0,
+                            personalThought: 'Mala apuesta. Desperdicié recursos.',
+                            relationships: {}
+                        }
+                    },
+                    narrative: `Rodriguez y Johnson abren el satélite. Interior: vacío completo.
+
+Solo encuentran una nota: "Los primeros ya tomaron lo bueno. -Tripulación Alpha"
+
+El satélite además liberó gas tóxico residual al abrirse.
+
+❌ -50 Energía (gastada en recuperación)
+❌ -30 Oxígeno (contaminación)
+⚠️ Johnson: -5% eficiencia, -10 Salud
+⚠️ Rodriguez: -10 Descanso
+
+Chen comenta que lo había advertido.`,
+                    chainEvent: null
+                }
+            },
+            ignore: {
+                flag: 'space_junk_ignored',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Lt. Johnson': {
+                        trauma: null,
+                        emotionalState: 'regretful',
+                        skillModifier: 1.0,
+                        entertainmentDelta: -5,
+                        personalThought: '¿Y si había tesoro? Nunca lo sabré.',
+                        relationships: {}
+                    },
+                    'Dra. Chen': {
+                        trauma: null,
+                        emotionalState: 'relieved',
+                        skillModifier: 1.0,
+                        personalThought: 'Decisión prudente. Evitamos riesgo innecesario.',
+                        relationships: {}
+                    }
+                },
+                narrative: `La nave continúa su ruta. El satélite se aleja en la oscuridad.
+
+Johnson lo observa por la ventana con expresión melancólica.
+
+✅ Recursos conservados
+⚠️ Johnson: -5 Entretenimiento (curiosidad insatisfecha)
+
+Esa noche, Johnson sueña con tesoros espaciales perdidos.`,
+                chainEvent: null
+            }
+        }
+    },
+
+    {
+        id: 'general_event_02',
+        character: 'Tripulación',
+        icon: '📦',
+        title: 'La Cápsula del Tiempo',
+        trigger: {
+            minTranche: 1,
+            maxTranche: 3,
+            requiredAlive: [],
+            requiredAwake: ['Lt. Johnson'],
+            requiredAsleep: [],
+            resourceMin: { energy: 40 },
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['time_capsule_opened'],
+            probability: 0.45
+        },
+        description: `Los sensores detectan una cápsula de la Tierra flotando en la ruta. Marcas: "Proyecto Génesis - No abrir hasta Nueva Tierra".
+
+Johnson sugiere abrirla ahora. Patel menciona que podría contener música, películas, o mensajes de seres queridos.
+
+Silva señala que también podría ser solo burocracia gubernamental del 2035.
+
+Rodriguez calcula que abrirla consumiría energía, pero el boost moral podría valer la pena.
+
+"Kinder Sorpresa espacial. ¿Juguete o decepción?"`,
+
+        optionA: {
+            label: '🎁 "ÁBRELA. Necesitamos algo que nos recuerde a casa."',
+            requires: { energy: 40 },
+            costs: { energy: 40 },
+            wakeUp: [],
+            result: 'open'
+        },
+
+        optionB: {
+            label: '📋 "Respetemos las instrucciones. Esperamos a Nueva Tierra."',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'wait'
+        },
+
+        outcomes: {
+            open: {
+                successRate: 0.7,
+                success: {
+                    flag: 'time_capsule_treasure',
+                    resourceDeltas: { energy: -40, data: 80 },
+                    affectedCrew: {
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'nostalgic_happy',
+                            skillModifier: 1.1,
+                            entertainmentDelta: 30,
+                            personalThought: 'La música de la Tierra. Mamá escuchaba esto. Vale la pena llegar.',
+                            relationships: {
+                                'Chef Patel': 10,
+                                'Capitán Silva': 5
+                            }
+                        },
+                        'Chef Patel': {
+                            trauma: null,
+                            emotionalState: 'emotional',
+                            skillModifier: 1.05,
+                            entertainmentDelta: 25,
+                            personalThought: 'Recetas de mi abuela. Las cocinaré en Nueva Tierra para mis nietos.',
+                            relationships: { 'Lt. Johnson': 10 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'sentimental',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 20,
+                            personalThought: 'Fotos de Elena y Sofía. Vale la pena cada sacrificio.',
+                            relationships: { 'Lt. Johnson': 5 }
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'touched',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 20,
+                            personalThought: 'Mensajes de familias. Esto es por lo que luchamos.',
+                            relationships: {}
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'hopeful',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 15,
+                            personalThought: 'Música que Marco y yo escuchábamos. Buenos recuerdos.',
+                            relationships: {}
+                        }
+                    },
+                    narrative: `La cápsula contiene: música clásica de la Tierra, películas, recetas tradicionales, fotos de familias, y mensajes de esperanza.
+
+Toda la tripulación pasa la noche viendo películas antiguas y llorando de nostalgia.
+
+✅ +80 Datos (entretenimiento archivado)
+✅ TODOS: +15-30 Entretenimiento (boost moral masivo)
+✅ Eficiencia: +5-10% temporalmente
+✅ Relaciones mejoradas
+
+Patel cocina recetas de la cápsula. Johnson pone música de los 2020s.
+
+"Vale la pena llegar."`,
+                    chainEvent: null
+                },
+                failure: {
+                    flag: 'time_capsule_disappointment',
+                    resourceDeltas: { energy: -40 },
+                    affectedCrew: {
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'disappointed',
+                            skillModifier: 0.95,
+                            entertainmentDelta: -10,
+                            personalThought: 'Abrimos la cápsula para... ¿informes fiscales? Decepcionante.',
+                            relationships: {}
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'annoyed',
+                            skillModifier: 1.0,
+                            personalThought: 'Desperdiciamos energía en burocracia. Típico del gobierno.',
+                            relationships: {}
+                        },
+                        'Chef Patel': {
+                            trauma: null,
+                            emotionalState: 'let_down',
+                            skillModifier: 1.0,
+                            entertainmentDelta: -5,
+                            personalThought: 'Esperaba recetas. Encontré formularios del IRS.',
+                            relationships: {}
+                        }
+                    },
+                    narrative: `La cápsula contiene: informes fiscales del 2035, manuales de procedimientos gubernamentales, y 47 copias del mismo memo sobre "Protocolo de Cápsulas Temporales".
+
+Silencio incómodo en la sala.
+
+❌ -40 Energía (desperdiciada)
+⚠️ TODOS: -5-10 Entretenimiento (decepción masiva)
+⚠️ Johnson: -5% eficiencia (frustración)
+
+Johnson mira la cápsula con odio: "¿Quién aprobó esto?"
+
+Silva suspira: "Burócratas."
+
+Nadie vuelve a hablar de la cápsula.`,
+                    chainEvent: null
+                }
+            },
+            wait: {
+                flag: 'time_capsule_respected',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Capitán Silva': {
+                        trauma: null,
+                        emotionalState: 'disciplined',
+                        skillModifier: 1.0,
+                        personalThought: 'Seguimos las reglas. Eso nos mantendrá con vida.',
+                        relationships: {}
+                    },
+                    'Lt. Johnson': {
+                        trauma: null,
+                        emotionalState: 'curious',
+                        skillModifier: 1.0,
+                        entertainmentDelta: -5,
+                        personalThought: '¿Qué habrá dentro? La curiosidad me mata.',
+                        relationships: {}
+                    }
+                },
+                narrative: `Silva decide respetar las instrucciones. La cápsula continúa su viaje hacia Nueva Tierra.
+
+Johnson la observa alejarse con expresión melancólica.
+
+✅ Energía conservada
+⚠️ Johnson: -5 Entretenimiento (curiosidad insatisfecha)
+
+Durante semanas, la tripulación especula sobre el contenido.
+
+Johnson: "¿Y si había música de mamá?"
+Silva: "O formularios del IRS."
+Johnson: "Nunca lo sabremos."
+
+La incertidumbre persiste.`,
+                chainEvent: null
+            }
+        }
     }
 ];
