@@ -240,31 +240,41 @@ function updateMobileResources() {
     if (!container) return;
 
     const resources = [
-        { name: 'Energía', indicator: 'indicator-energy', value: 'resource-strip-energy' },
-        { name: 'Alimentos', indicator: 'indicator-food', value: 'resource-strip-food' },
-        { name: 'Agua', indicator: 'indicator-water', value: 'resource-strip-water' },
-        { name: 'Oxígeno', indicator: 'indicator-oxygen', value: 'resource-strip-oxygen' },
-        { name: 'Medicinas', indicator: 'indicator-medicine', value: 'resource-strip-medicine' },
-        { name: 'Datos', indicator: 'indicator-data', value: 'resource-strip-data' },
-        { name: 'Combustible', indicator: 'indicator-fuel', value: 'resource-strip-fuel' }
+        { name: 'Energía', resource: Energy },
+        { name: 'Alimentos', resource: Food },
+        { name: 'Agua', resource: Water },
+        { name: 'Oxígeno', resource: Oxygen },
+        { name: 'Medicinas', resource: Medicine },
+        { name: 'Datos', resource: Data },
+        { name: 'Combustible', resource: Fuel }
     ];
 
-    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
-    resources.forEach(resource => {
-        const valueElem = document.getElementById(resource.value);
-        const indicatorElem = document.getElementById(resource.indicator);
-        const value = valueElem ? valueElem.textContent : '0/0';
-        const indicatorClass = indicatorElem ? indicatorElem.className : 'resource-indicator full';
+    let html = '';
+    resources.forEach(item => {
+        if (!item.resource) return;
+
+        const current = Math.round(item.resource.quantity);
+        const max = item.resource.limiteStock;
+        const percentage = (item.resource.quantity / item.resource.limiteStock) * 100;
+
+        // Calcular clase de color según porcentaje
+        let colorClass = 'full';
+        if (percentage < 15) {
+            colorClass = 'critical';
+        } else if (percentage < 40) {
+            colorClass = 'low';
+        } else if (percentage < 70) {
+            colorClass = 'medium';
+        }
 
         html += `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: 4px;">
-                <span class="${indicatorClass}"></span>
-                <span style="flex: 1; font-family: var(--font-monaco); font-size: 14px; color: var(--color-terminal-green);">${resource.name}</span>
-                <span style="font-family: var(--font-monaco); font-size: 12px; color: var(--color-terminal-green);">${value}</span>
+            <div class="resource-item-mobile">
+                <span class="resource-indicator ${colorClass}"></span>
+                <span class="resource-label">${item.name}</span>
+                <span class="resource-value">${current}/${max}</span>
             </div>
         `;
     });
-    html += '</div>';
 
     container.innerHTML = html;
 }
