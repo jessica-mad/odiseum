@@ -43,6 +43,10 @@ class Crew {
         this.emotionalState = 'stable';
         this.skillModifier = 1.0;
         this.eventMemories = [];
+
+        // Caché para pensamientos (evitar actualización constante en UI)
+        this.lastThought = '';
+        this.lastUIUpdate = 0;
     }
 
     getEffectiveSkillMultiplier() {
@@ -229,11 +233,31 @@ class Crew {
         }
 
         // Auto-gestionar salud (medicina)
-        if (this.healthNeed < AUTO_MANAGE_CONFIG.medicine.threshold && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
+        // Si healthNeed < 100, intentar curar hasta que esté completamente sano
+        if (this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
             Medicine.consume(AUTO_MANAGE_CONFIG.medicine.cost);
-            const recovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
+
+            // Bonus si la Dra. Chen está despierta
+            let drChenAwake = false;
+            if (typeof crewMembers !== 'undefined' && crewMembers) {
+                const drChen = crewMembers.find(c => c.position === 'Médica' && c.name === 'Dra. Chen');
+                if (drChen && drChen.state === 'Despierto' && drChen.isAlive) {
+                    drChenAwake = true;
+                }
+            }
+
+            // Recuperación base con multiplicador de eficiencia
+            let recovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
+
+            // Bonus de +50% si la Dra. Chen está despierta
+            if (drChenAwake) {
+                recovery *= 1.5;
+                autoManageActions.push('fue atendido por la Dra. Chen');
+            } else {
+                autoManageActions.push('tomó medicina');
+            }
+
             this.healthNeed = Math.min(100, this.healthNeed + recovery);
-            autoManageActions.push('tomó medicina');
             this.currentActivity = 'resting';
         }
 
@@ -484,48 +508,66 @@ class Crew {
 
     getCurrentThought() {
         try {
-            // Pensamientos según necesidades y estado
+            // Pensamientos según necesidades y estado (prioritarios)
+            let priorityThought = null;
             if (this.foodNeed < 30) {
-                return '💭 Tengo tanta hambre... Necesito comer algo pronto.';
-            }
-            if (this.healthNeed < 30) {
-                return '💭 No me siento bien... Necesito atención médica.';
-            }
-            if (this.wasteNeed > 80) {
-                return '💭 Necesito ir al baño urgentemente...';
+                priorityThought = '💭 Tengo tanta hambre... Necesito comer algo pronto.';
+            } else if (this.healthNeed < 30) {
+                priorityThought = '💭 No me siento bien... Necesito atención médica.';
+            } else if (this.wasteNeed > 80) {
+                priorityThought = '💭 Necesito ir al baño urgentemente...';
             }
 
-            // Pensamientos aleatorios según especialidad
+            // Si hay pensamiento prioritario, devolverlo y actualizarlo en caché
+            if (priorityThought) {
+                this.lastThought = priorityThought;
+                return priorityThought;
+            }
+
+            // Si ya tenemos un pensamiento cacheado reciente, devolverlo (no cambiar constantemente)
+            const currentTime = Date.now();
+            // Cambiar pensamiento solo cada 30 segundos (30000 ms)
+            if (this.lastThought && (currentTime - this.lastUIUpdate) < 30000) {
+                return this.lastThought;
+            }
+
+            // Generar nuevo pensamiento aleatorio
             const thoughts = {
-                'Navegante': [
+                'Capitán': [
                     '💭 Los cálculos de trayectoria están perfectos hoy.',
                     '💭 Me pregunto qué encontraremos en la Nueva Tierra.',
                     '💭 Mantener el rumbo es mi responsabilidad.'
                 ],
-                'Ingeniera': [
-                    '💭 Los sistemas están funcionando óptimamente.',
-                    '💭 Debería revisar los conductos de ventilación.',
-                    '💭 Esta nave es una maravilla de ingeniería.'
-                ],
-                'Doctora': [
+                'Médica': [
                     '💭 Todos parecen estar en buena salud.',
                     '💭 Espero no tener que usar el quirófano.',
                     '💭 La medicina preventiva es clave en el espacio.'
                 ],
-                'Botánica': [
-                    '💭 Las plantas están creciendo bien este ciclo.',
-                    '💭 El oxígeno generado es suficiente.',
-                    '💭 Me encanta cuidar del invernadero.'
+                'Ingeniero': [
+                    '💭 Los sistemas están funcionando óptimamente.',
+                    '💭 Debería revisar los conductos de ventilación.',
+                    '💭 Esta nave es una maravilla de ingeniería.'
                 ],
-                'Geóloga': [
-                    '💭 Los análisis de muestras son fascinantes.',
-                    '💭 Qué minerales tendrá la Nueva Tierra...',
-                    '💭 La geología espacial nunca deja de sorprenderme.'
+                'Navegante': [
+                    '💭 Los cálculos de navegación son precisos.',
+                    '💭 Me encanta estudiar las estrellas.',
+                    '💭 Cada día más cerca del destino.'
+                ],
+                'Chef': [
+                    '💭 Las plantas están creciendo bien este ciclo.',
+                    '💭 Debería preparar algo especial hoy.',
+                    '💭 Me encanta cuidar del invernadero.'
                 ]
             };
 
             const crewThoughts = thoughts[this.position] || ['💭 Todo va bien.'];
-            return crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
+            const newThought = crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
+
+            // Actualizar caché
+            this.lastThought = newThought;
+            this.lastUIUpdate = currentTime;
+
+            return newThought;
         } catch (error) {
             console.warn(`⚠️ Error obteniendo pensamiento para ${this.name}:`, error);
             return '💭 Todo va bien.';
