@@ -190,10 +190,21 @@ function setupPanelCarouselGestures(panel) {
             // Prevenir scroll si es horizontal
             e.preventDefault();
 
-            // Aplicar transformación en tiempo real
-            const translateX = diffX;
+            // Límites tipo Instagram
+            const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+            let translateX = diffX;
 
-            // No permitir arrastre si no hay panel en esa dirección
+            // Primer panel (resources): inmóvil hacia la derecha
+            if (currentIndex === 0 && diffX > 0) {
+                return; // No hacer nada
+            }
+
+            // Último panel (speed): rubber band effect hacia la izquierda
+            if (currentIndex === panelOrder.length - 1 && diffX < 0) {
+                translateX = diffX / 3; // Dividir por 3 para crear resistencia
+            }
+
+            // No permitir arrastre si no hay panel en esa dirección (casos normales)
             if ((diffX > 0 && !prevPanel) || (diffX < 0 && !nextPanel)) {
                 return;
             }
@@ -205,7 +216,13 @@ function setupPanelCarouselGestures(panel) {
             }
 
             if (nextPanel && diffX < 0) {
-                nextPanel.style.transform = `translateY(0) translateX(${100 + (diffX / window.innerWidth * 100)}%)`;
+                const progress = diffX / window.innerWidth * 100;
+                // En el último panel, también aplicar resistencia al panel siguiente
+                if (currentIndex === panelOrder.length - 1) {
+                    nextPanel.style.transform = `translateY(0) translateX(${100 + (progress / 3)}%)`;
+                } else {
+                    nextPanel.style.transform = `translateY(0) translateX(${100 + progress}%)`;
+                }
             }
         }
     });
@@ -218,7 +235,7 @@ function setupPanelCarouselGestures(panel) {
         }
 
         const diffX = currentTouchX - touchStartX;
-        const threshold = window.innerWidth * 0.3; // 30% del ancho de pantalla
+        const threshold = window.innerWidth * 0.15; // 15% del ancho de pantalla (antes era 30%)
 
         // Reactivar transiciones
         panel.classList.remove('dragging');
@@ -233,6 +250,18 @@ function setupPanelCarouselGestures(panel) {
         }
 
         const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+
+        // Límites: si estás en el último panel y swipe izquierda, siempre volver (rubber band)
+        if (currentIndex === panelOrder.length - 1 && diffX < 0) {
+            // Rubber band: siempre volver al panel actual
+            panel.style.transform = `translateY(0) translateX(0)`;
+            if (nextPanel) nextPanel.style.transform = `translateY(0) translateX(100%)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+            }, 300);
+            return;
+        }
 
         // Decidir si completar la transición o volver
         if (diffX > threshold && currentIndex > 0) {
