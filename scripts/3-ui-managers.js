@@ -55,6 +55,7 @@ function toggleMobileAccordion(panelName) {
 
     // Configurar gestos de arrastre
     setupPanelSwipeGestures(panel);
+    setupPanelCarouselGestures(panel);
 
     // Actualizar contenido según el panel
     if (panelName === 'resources') {
@@ -121,6 +122,58 @@ function setupPanelSwipeGestures(panel) {
         panelStartY = 0;
         panelCurrentY = 0;
     });
+}
+
+// Sistema de carrusel: swipe horizontal para cambiar entre paneles
+function setupPanelCarouselGestures(panel) {
+    const body = panel.querySelector('.mobile-panel-body');
+    if (!body) return;
+
+    const panelOrder = ['resources', 'crew', 'map', 'speed'];
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isHorizontalSwipe = false;
+
+    body.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isHorizontalSwipe = false;
+    }, { passive: true });
+
+    body.addEventListener('touchmove', (e) => {
+        const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+        const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+
+        // Detectar si es un swipe horizontal (más movimiento X que Y)
+        if (diffX > diffY && diffX > 10) {
+            isHorizontalSwipe = true;
+        }
+    }, { passive: true });
+
+    body.addEventListener('touchend', (e) => {
+        if (!isHorizontalSwipe) return;
+
+        touchEndX = e.changedTouches[0].clientX;
+        touchEndY = e.changedTouches[0].clientY;
+
+        const diffX = touchEndX - touchStartX;
+        const diffY = Math.abs(touchEndY - touchStartY);
+
+        // Solo procesar si el swipe es principalmente horizontal
+        if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
+            const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+
+            if (diffX < 0 && currentIndex < panelOrder.length - 1) {
+                // Swipe izquierda: siguiente panel
+                toggleMobileAccordion(panelOrder[currentIndex + 1]);
+            } else if (diffX > 0 && currentIndex > 0) {
+                // Swipe derecha: panel anterior
+                toggleMobileAccordion(panelOrder[currentIndex - 1]);
+            }
+        }
+    }, { passive: true });
 }
 
 function updateMobileMapPanel() {
@@ -567,9 +620,14 @@ function closeLogbookPopup(event) {
 }
 
 function openCrewManagementPopup(name) {
+    // No abrir fichas individuales en móvil
+    if (window.innerWidth <= 768) {
+        return;
+    }
+
     const crewMember = crewMembers.find(c => c.name === name);
     if (!crewMember) return;
-    
+
     document.getElementById('crew-name').textContent = crewMember.name;
     document.getElementById('crew-age').textContent = crewMember.initialAge;
     document.getElementById('crew-bio-age').textContent = crewMember.biologicalAge.toFixed(1);
