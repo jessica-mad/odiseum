@@ -153,42 +153,51 @@ class PanelManager {
 
             const key = e.key.toLowerCase();
 
-            // Debug: mostrar tecla presionada
-            console.log('🎮 Tecla presionada:', e.key, '→', key);
-
             // W o Flecha Arriba: Abrir panel de control
             if (key === 'w' || key === 'arrowup') {
+                console.log('⬆️  W/↑ presionada - Abriendo panel de control');
                 e.preventDefault();
                 if (!this.openPanels.has('control')) {
                     // Cerrar paneles laterales si están abiertos
                     if (this.openPanels.has('map')) this.closePanel('map');
                     if (this.openPanels.has('crew')) this.closePanel('crew');
                     this.openPanel('control');
+                } else {
+                    console.log('   ℹ️ Panel de control ya está abierto');
                 }
             }
             // D o Flecha Derecha: Abrir panel de mapa
             else if (key === 'd' || key === 'arrowright') {
+                console.log('➡️  D/→ presionada - Abriendo panel de mapa');
                 e.preventDefault();
                 if (!this.openPanels.has('map')) {
                     // Cerrar control si está abierto
                     if (this.openPanels.has('control')) this.closePanel('control');
                     this.openPanel('map');
+                } else {
+                    console.log('   ℹ️ Panel de mapa ya está abierto');
                 }
             }
             // A o Flecha Izquierda: Abrir panel de tripulación
             else if (key === 'a' || key === 'arrowleft') {
+                console.log('⬅️  A/← presionada - Abriendo panel de tripulación');
                 e.preventDefault();
                 if (!this.openPanels.has('crew')) {
                     // Cerrar control si está abierto
                     if (this.openPanels.has('control')) this.closePanel('control');
                     this.openPanel('crew');
+                } else {
+                    console.log('   ℹ️ Panel de crew ya está abierto');
                 }
             }
             // S o Flecha Abajo: Cerrar panel de control
             else if (key === 's' || key === 'arrowdown') {
+                console.log('⬇️  S/↓ presionada - Cerrando panel de control');
                 e.preventDefault();
                 if (this.openPanels.has('control')) {
                     this.closePanel('control');
+                } else {
+                    console.log('   ℹ️ Panel de control no está abierto');
                 }
             }
         });
