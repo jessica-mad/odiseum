@@ -37,10 +37,16 @@ class TimeSystem {
             desktopCalendar.textContent = display;
         }
 
-        // Actualizar calendario móvil
+        // Actualizar calendario móvil (footer)
         const mobileCalendar = document.getElementById('mobile-calendar');
         if (mobileCalendar) {
             mobileCalendar.textContent = display;
+        }
+
+        // Actualizar año en top bar 2 móvil
+        const mobileYearDisplay = document.getElementById('mobile-year-display');
+        if (mobileYearDisplay) {
+            mobileYearDisplay.textContent = `AÑO ${this.currentYear.toFixed(1)}`;
         }
     }
 }

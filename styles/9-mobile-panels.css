@@ -1,192 +1,282 @@
 /* ============================================
-   MOBILE PANELS - ESTILO ARCHIVADOR
+   MOBILE VERSION - ACCORDION TABS
    Odiseum V2.0
    ============================================ */
 
-/* Solo aplicar estilos en móvil */
+/* Solo aplicar en móvil */
 @media (max-width: 768px) {
 
-/* === TERMINAL MÓVIL FIJO === */
-.mobile-terminal-area {
+/* === TOP BAR 1 === */
+.mobile-top-bar-1 {
     position: fixed;
-    top: 78px; /* Después de los 2 top bars */
+    top: 0;
     left: 0;
     right: 0;
-    height: 120px;
-    background: var(--color-terminal-bg);
-    border-bottom: 2px solid var(--color-terminal-green-dark);
-    overflow: hidden;
-    z-index: 50; /* Menor z-index para que los paneles lo tapen */
+    height: 40px;
+    background: var(--color-terminal-bg-light);
+    border-bottom: 2px solid var(--color-terminal-green);
     display: flex !important;
-    flex-direction: column;
-    justify-content: flex-end;
-    pointer-events: none; /* No interfiere con clics */
-}
-
-.terminal-content-mobile {
-    padding: 8px 12px;
-    font-family: var(--font-monaco);
-    font-size: 11px;
-    color: var(--color-terminal-green);
-    line-height: 1.4;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.terminal-content-mobile .terminal-line {
-    opacity: 0.9;
-    transition: opacity 0.3s ease;
-}
-
-/* === ACORDEONES MÓVILES - SOBRE EL STICKY BAR === */
-.mobile-accordion {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 160px; /* Justo sobre la barra inferior */
-    display: flex !important;
-    flex-direction: column-reverse; /* Los tabs se apilan de abajo hacia arriba */
-    gap: 0;
-    z-index: 100; /* Mayor z-index para tapar el terminal */
-    pointer-events: auto;
-}
-
-/* Tabs - Como viñetas de archivador cerrado */
-.mobile-panel-tab {
-    background: linear-gradient(180deg,
-        var(--color-terminal-bg-light) 0%,
-        var(--color-terminal-bg) 100%);
-    border: 2px solid var(--color-terminal-green);
-    border-bottom: 1px solid var(--color-terminal-green-dark);
-    padding: 10px 16px;
-    display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    position: relative;
-    z-index: 1;
-}
-
-.mobile-panel-tab:first-child {
-    border-bottom: 2px solid var(--color-terminal-green);
-}
-
-.mobile-panel-tab:hover {
-    background: linear-gradient(180deg,
-        rgba(0, 255, 65, 0.15) 0%,
-        var(--color-terminal-bg-light) 100%);
-    box-shadow: 0 2px 12px rgba(0, 255, 65, 0.3);
-}
-
-.mobile-panel-tab.active {
-    background: var(--color-terminal-bg);
-    border-bottom: none;
-    box-shadow: 0 -4px 15px rgba(0, 255, 65, 0.4);
-    z-index: 150;
-}
-
-.mobile-panel-tab .tab-label {
+    padding: 0 16px;
+    z-index: 1000;
     font-family: var(--font-monaco);
-    font-size: 13px;
+}
+
+.mobile-game-title {
+    font-size: 14px;
     font-weight: bold;
     color: var(--color-terminal-green);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.mobile-panel-tab.active .tab-label {
+.mobile-player-name {
+    font-size: 12px;
     color: var(--color-terminal-green);
-    text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
 }
 
-.mobile-panel-tab .tab-indicator {
-    font-size: 16px;
+/* === TOP BAR 2 === */
+.mobile-top-bar-2 {
+    position: fixed;
+    top: 40px;
+    left: 0;
+    right: 0;
+    height: 35px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    z-index: 1000;
+    font-family: var(--font-monaco);
+}
+
+.mobile-mission-title {
+    font-size: 12px;
     color: var(--color-terminal-green);
-    transition: transform 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.mobile-panel-tab.active .tab-indicator {
-    transform: rotate(180deg);
+.mobile-separator {
+    color: var(--color-terminal-green-dark);
+    font-size: 14px;
 }
 
-/* Contenido de Paneles - Se despliegan desde abajo hacia arriba */
-.mobile-panel-content {
+.mobile-year-display {
+    font-size: 12px;
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+/* === CONTENT AREA (Terminal) === */
+.mobile-content-area {
+    position: fixed;
+    top: 75px; /* Después de top bar 1 (40px) + top bar 2 (35px) */
+    left: 0;
+    right: 0;
+    bottom: 210px; /* Espacio para tabs (50px) + footer (160px) */
+    background: var(--color-terminal-bg);
+    overflow-y: auto;
+    z-index: 50;
+    display: flex !important;
+    flex-direction: column;
+}
+
+.mobile-terminal {
+    padding: 16px;
+    font-family: var(--font-monaco);
+    font-size: 12px;
+    color: var(--color-terminal-green);
+    line-height: 1.6;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobile-terminal .terminal-line {
+    opacity: 0.9;
+}
+
+/* === VIÑETAS (Tabs del Acordeón) === */
+.mobile-tabs {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 160px; /* Sobre la barra inferior */
-    top: auto;
-    max-height: 0;
+    bottom: 160px; /* Justo encima del footer */
+    height: 50px;
+    background: var(--color-terminal-bg-light);
+    border-top: 2px solid var(--color-terminal-green);
+    border-bottom: 2px solid var(--color-terminal-green);
+    display: flex !important;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 900;
+    box-shadow: 0 -4px 15px rgba(0, 255, 65, 0.2);
+}
+
+.mobile-tab {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-right: 1px solid var(--color-terminal-green-dark);
+    background: linear-gradient(180deg,
+        rgba(0, 255, 65, 0.03) 0%,
+        rgba(0, 255, 65, 0.01) 100%);
+}
+
+.mobile-tab:last-child {
+    border-right: none;
+}
+
+.mobile-tab:hover {
+    background: linear-gradient(180deg,
+        rgba(0, 255, 65, 0.15) 0%,
+        rgba(0, 255, 65, 0.08) 100%);
+}
+
+.mobile-tab.active {
     background: var(--color-terminal-bg);
-    border: 2px solid var(--color-terminal-green);
+    box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+.mobile-tab .tab-icon {
+    font-size: 24px;
+    transition: transform 0.2s ease;
+}
+
+.mobile-tab:hover .tab-icon {
+    transform: scale(1.1);
+}
+
+.mobile-tab.active .tab-icon {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.8));
+}
+
+/* === PANELES DEL ACORDEÓN === */
+.mobile-accordion-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 160px; /* NUNCA cubre el footer */
+    background: var(--color-terminal-bg);
+    border: 3px solid var(--color-terminal-green);
     border-bottom: none;
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 140;
-    box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.2);
+    z-index: 1100;
+    display: none;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -8px 30px rgba(0, 255, 65, 0.4);
 }
 
-.mobile-panel-content.open {
-    max-height: calc(100vh - 78px - 160px); /* Full height desde top bars hasta bottom bar */
+.mobile-accordion-panel.open {
+    display: flex;
+    transform: translateY(0);
+}
+
+/* Header del Panel (Viñeta activa) */
+.mobile-panel-header {
+    background: linear-gradient(180deg,
+        var(--color-terminal-bg-light) 0%,
+        var(--color-terminal-bg) 100%);
+    border-bottom: 3px solid var(--color-terminal-green);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.2);
+    flex-shrink: 0;
+}
+
+.mobile-panel-header:active {
+    background: rgba(0, 255, 65, 0.1);
+}
+
+.panel-header-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.6));
+}
+
+.panel-header-title {
+    flex: 1;
+    font-family: var(--font-monaco);
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+/* Body del Panel (Contenido scrolleable) */
+.mobile-panel-body {
+    flex: 1;
     overflow-y: auto;
-}
-
-.mobile-panel-content .panel-inner {
-    padding: 16px 12px;
+    padding: 20px 16px;
+    background: var(--color-terminal-bg);
 }
 
 /* === RECURSOS MÓVIL === */
 #resources-mobile-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
-#resources-mobile-container .resource-item-mobile {
+.resource-item-mobile {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px;
+    padding: 12px;
     background: rgba(0, 255, 65, 0.05);
-    border: 1px solid rgba(0, 255, 65, 0.2);
-    border-radius: 4px;
+    border: 2px solid rgba(0, 255, 65, 0.2);
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
-#resources-mobile-container .resource-indicator {
-    width: 12px;
-    height: 12px;
+.resource-item-mobile:active {
+    background: rgba(0, 255, 65, 0.1);
+    transform: scale(0.98);
+}
+
+.resource-indicator {
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
 }
 
-#resources-mobile-container .resource-indicator.full {
+.resource-indicator.full {
     background: var(--color-alert-green);
-    box-shadow: 0 0 8px var(--color-alert-green);
+    box-shadow: 0 0 12px var(--color-alert-green);
 }
 
-#resources-mobile-container .resource-indicator.high {
-    background: var(--color-alert-green);
-    box-shadow: 0 0 8px var(--color-alert-green);
-}
-
-#resources-mobile-container .resource-indicator.medium {
+.resource-indicator.medium {
     background: #ffaa00;
-    box-shadow: 0 0 8px #ffaa00;
+    box-shadow: 0 0 12px #ffaa00;
 }
 
-#resources-mobile-container .resource-indicator.low {
+.resource-indicator.low {
     background: var(--color-alert-orange);
-    box-shadow: 0 0 8px var(--color-alert-orange);
+    box-shadow: 0 0 12px var(--color-alert-orange);
 }
 
-#resources-mobile-container .resource-indicator.critical {
+.resource-indicator.critical {
     background: var(--color-alert-red);
-    box-shadow: 0 0 8px var(--color-alert-red);
+    box-shadow: 0 0 12px var(--color-alert-red);
     animation: pulse-resource 1s infinite;
 }
 
@@ -196,32 +286,32 @@
         opacity: 1;
     }
     50% {
-        transform: scale(1.2);
+        transform: scale(1.3);
         opacity: 0.7;
     }
 }
 
-#resources-mobile-container .resource-label {
+.resource-label {
     flex: 1;
     font-family: var(--font-monaco);
-    font-size: 14px;
+    font-size: 15px;
     color: var(--color-terminal-green);
+    font-weight: 500;
 }
 
-#resources-mobile-container .resource-value {
+.resource-value {
     font-family: var(--font-monaco);
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-terminal-green);
     font-weight: bold;
 }
 
-/* === TRIPULACIÓN MÓVIL - DOS COLUMNAS CON DRAG & DROP === */
+/* === TRIPULACIÓN MÓVIL === */
 .crew-columns-mobile {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
     height: 100%;
-    padding: 12px;
 }
 
 .crew-column-mobile {
@@ -229,6 +319,7 @@
     flex-direction: column;
     background: rgba(0, 255, 65, 0.03);
     border: 2px solid var(--color-terminal-green-dark);
+    border-radius: 6px;
     overflow: hidden;
 }
 
@@ -236,8 +327,8 @@
     background: var(--color-terminal-bg-light);
     color: var(--color-terminal-green);
     font-family: var(--font-monaco);
-    font-size: 10px;
-    padding: 8px 6px;
+    font-size: 11px;
+    padding: 10px 8px;
     text-align: center;
     border-bottom: 2px solid var(--color-terminal-green-dark);
     letter-spacing: 1px;
@@ -247,11 +338,11 @@
 .crew-column-content-mobile {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-height: 200px;
+    gap: 10px;
+    min-height: 300px;
 }
 
 .crew-column-content-mobile.drag-over {
@@ -259,40 +350,69 @@
     border: 2px dashed var(--color-terminal-green);
 }
 
-/* Cards de tripulación en móvil - más compactas */
+/* Cards de tripulación más compactas en móvil */
 .crew-column-content-mobile .crew-mini-card {
     font-size: 11px;
-    padding: 8px;
+    padding: 10px;
 }
 
 .crew-column-content-mobile .crew-card-name {
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .crew-column-content-mobile .need-bar-advanced {
-    gap: 4px;
+    gap: 6px;
 }
 
 .crew-column-content-mobile .need-bar-icon-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
+    width: 26px;
+    height: 26px;
+    font-size: 15px;
 }
 
 /* === MAPA MÓVIL === */
 #map-mobile-container {
-    min-height: 300px;
+    min-height: 400px;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
 }
 
-/* === BARRA INFERIOR === */
+/* === CONTROL DE VELOCIDAD MÓVIL === */
+.speed-control-container {
+    padding: 20px;
+}
+
+.speed-control-container .nav-control-group {
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.speed-control-container .nav-label {
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.speed-control-container .nav-speed-display {
+    font-size: 32px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.speed-control-container .nav-slider {
+    width: 100%;
+}
+
+/* === FOOTER STICKY (SIEMPRE VISIBLE) === */
 .mobile-bottom-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    height: 160px;
     background: var(--color-terminal-bg);
     border-top: 3px solid var(--color-terminal-green);
     box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.3);
@@ -300,13 +420,13 @@
     display: flex !important;
     flex-direction: column;
     gap: 10px;
-    z-index: 999;
+    z-index: 9999; /* SIEMPRE por encima de todo */
 }
 
 .mobile-voyage-info {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     font-family: var(--font-monaco);
 }
 
@@ -314,18 +434,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 .mobile-voyage-label {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--color-terminal-green-dim);
     text-transform: uppercase;
 }
 
 .mobile-voyage-value {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
@@ -333,17 +453,18 @@
 
 .mobile-voyage-separator {
     color: var(--color-terminal-green-dark);
+    font-size: 16px;
 }
 
 .mobile-voyage-progress {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     justify-content: center;
 }
 
 .mobile-voyage-endpoint {
-    font-size: 18px;
+    font-size: 20px;
 }
 
 .mobile-voyage-track {
@@ -351,30 +472,32 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
 }
 
 .mobile-voyage-line {
     position: relative;
     width: 100%;
-    height: 4px;
+    height: 6px;
     background: var(--color-terminal-bg-light);
     border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
 }
 
 .mobile-voyage-fill {
     position: absolute;
     top: -1px;
     left: 0;
-    height: 4px;
+    height: 6px;
     background: var(--color-terminal-green);
     box-shadow: 0 0 10px var(--color-terminal-green);
     transition: width 0.6s ease-out;
     border: 1px solid var(--color-terminal-green);
+    border-radius: 3px;
 }
 
 .mobile-voyage-label-text {
-    font-size: 9px;
+    font-size: 10px;
     color: var(--color-terminal-green-dim);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -388,25 +511,27 @@
 
 .mobile-start-btn {
     flex: 1;
-    max-width: 300px;
-    padding: 12px 16px;
+    max-width: 320px;
+    padding: 14px 20px;
     font-family: var(--font-monaco);
-    font-size: 13px;
+    font-size: 14px;
     background: var(--color-terminal-bg);
     color: var(--color-terminal-green);
-    border: 2px solid var(--color-terminal-green);
+    border: 3px solid var(--color-terminal-green);
     cursor: pointer;
     text-transform: uppercase;
     transition: all 0.2s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    border-radius: 4px;
 }
 
-.mobile-start-btn:hover {
+.mobile-start-btn:active {
     background: var(--color-terminal-green);
     color: var(--color-terminal-bg);
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    transform: scale(0.98);
 }
 
 .mobile-start-btn:disabled {
@@ -415,64 +540,72 @@
     border-color: var(--color-terminal-green-dark);
 }
 
-/* === ANIMACIONES === */
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.mobile-panel-content.open {
-    animation: slideUp 0.4s ease-out;
-}
-
 } /* Cierre de @media (max-width: 768px) */
 
-/* === AJUSTES PARA PANTALLAS MUY PEQUEÑAS === */
+/* === PANTALLAS MUY PEQUEÑAS === */
 @media (max-width: 480px) {
-    .mobile-terminal-area {
-        height: 100px;
-        top: 70px;
+    .mobile-top-bar-1 {
+        height: 36px;
+        padding: 0 12px;
     }
 
-    .terminal-content-mobile {
-        font-size: 10px;
-        padding: 6px 10px;
+    .mobile-game-title {
+        font-size: 12px;
     }
 
-    .mobile-panel-tab .tab-label {
+    .mobile-player-name {
         font-size: 11px;
     }
 
-    .crew-columns-mobile {
-        gap: 4px;
-        padding: 8px;
+    .mobile-top-bar-2 {
+        height: 30px;
+        top: 36px;
     }
 
-    .crew-column-header-mobile {
-        font-size: 9px;
-        padding: 6px 4px;
+    .mobile-mission-title,
+    .mobile-year-display {
+        font-size: 11px;
+    }
+
+    .mobile-content-area {
+        top: 66px;
+    }
+
+    .mobile-terminal {
+        padding: 12px;
+        font-size: 11px;
+    }
+
+    .mobile-tabs {
+        height: 45px;
+    }
+
+    .mobile-tab .tab-icon {
+        font-size: 20px;
+    }
+
+    .panel-header-icon {
+        font-size: 24px;
+    }
+
+    .panel-header-title {
+        font-size: 14px;
     }
 
     .mobile-bottom-bar {
+        height: 150px;
         padding: 10px 12px;
     }
 
-    .mobile-voyage-label {
-        font-size: 9px;
+    .mobile-accordion-panel {
+        bottom: 150px;
     }
 
-    .mobile-voyage-value {
-        font-size: 11px;
+    .mobile-tabs {
+        bottom: 150px;
     }
 
-    .mobile-start-btn {
-        padding: 10px 12px;
-        font-size: 11px;
+    .mobile-content-area {
+        bottom: 195px;
     }
 }

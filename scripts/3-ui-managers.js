@@ -19,34 +19,32 @@ function setupPopupZIndex() {
     });
 }
 
-/* === SISTEMA DE PANELES MÓVIL === */
+/* === SISTEMA DE ACORDEÓN MÓVIL === */
 let currentOpenMobilePanel = null;
 
-function toggleMobilePanel(panelName) {
-    const tab = document.querySelector(`[data-panel="${panelName}"]`);
-    const content = document.getElementById(`mobile-panel-${panelName}`);
+function toggleMobileAccordion(panelName) {
+    const panel = document.getElementById(`mobile-panel-${panelName}`);
+    const tab = document.querySelector(`.mobile-tab[data-panel="${panelName}"]`);
 
-    if (!tab || !content) return;
+    if (!panel || !tab) return;
 
     // Si este panel ya está abierto, cerrarlo
     if (currentOpenMobilePanel === panelName) {
-        tab.classList.remove('active');
-        content.classList.remove('open');
-        currentOpenMobilePanel = null;
+        closeMobileAccordion();
         return;
     }
 
     // Cerrar el panel previamente abierto
     if (currentOpenMobilePanel) {
-        const prevTab = document.querySelector(`[data-panel="${currentOpenMobilePanel}"]`);
-        const prevContent = document.getElementById(`mobile-panel-${currentOpenMobilePanel}`);
+        const prevPanel = document.getElementById(`mobile-panel-${currentOpenMobilePanel}`);
+        const prevTab = document.querySelector(`.mobile-tab[data-panel="${currentOpenMobilePanel}"]`);
+        if (prevPanel) prevPanel.classList.remove('open');
         if (prevTab) prevTab.classList.remove('active');
-        if (prevContent) prevContent.classList.remove('open');
     }
 
     // Abrir el nuevo panel
+    panel.classList.add('open');
     tab.classList.add('active');
-    content.classList.add('open');
     currentOpenMobilePanel = panelName;
 
     // Actualizar contenido según el panel
@@ -56,7 +54,21 @@ function toggleMobilePanel(panelName) {
         updateMobileCrewPanel();
     } else if (panelName === 'map') {
         updateMobileMapPanel();
+    } else if (panelName === 'speed') {
+        syncMobileSpeedControl();
     }
+}
+
+function closeMobileAccordion() {
+    if (!currentOpenMobilePanel) return;
+
+    const panel = document.getElementById(`mobile-panel-${currentOpenMobilePanel}`);
+    const tab = document.querySelector(`.mobile-tab[data-panel="${currentOpenMobilePanel}"]`);
+
+    if (panel) panel.classList.remove('open');
+    if (tab) tab.classList.remove('active');
+
+    currentOpenMobilePanel = null;
 }
 
 function updateMobileMapPanel() {
@@ -163,23 +175,56 @@ function setupMobileDragAndDrop(awakeContainer, asleepContainer) {
     });
 }
 
+function syncMobileSpeedControl() {
+    const desktopSlider = document.getElementById('nav-speed-slider');
+    const mobileSlider = document.getElementById('nav-speed-slider-mobile');
+    const desktopDisplay = document.getElementById('nav-speed-display');
+    const mobileDisplay = document.getElementById('nav-speed-display-mobile');
+
+    if (desktopSlider && mobileSlider) {
+        mobileSlider.value = desktopSlider.value;
+    }
+
+    if (desktopDisplay && mobileDisplay) {
+        mobileDisplay.textContent = desktopDisplay.textContent;
+    }
+
+    // Sincronizar cambios del slider móvil con el desktop
+    if (mobileSlider && desktopSlider) {
+        mobileSlider.oninput = function() {
+            desktopSlider.value = this.value;
+            if (mobileDisplay) {
+                mobileDisplay.textContent = this.value + '%';
+            }
+            if (desktopDisplay) {
+                desktopDisplay.textContent = this.value + '%';
+            }
+            if (typeof updateVoyageForecastDisplay === 'function') {
+                updateVoyageForecastDisplay();
+            }
+        };
+    }
+}
+
 function initializeMobileView() {
     const isMobile = window.innerWidth <= 768;
-    const mobileAccordion = document.getElementById('mobile-accordion');
+    const mobileTopBar1 = document.querySelector('.mobile-top-bar-1');
+    const mobileTopBar2 = document.querySelector('.mobile-top-bar-2');
+    const mobileContentArea = document.getElementById('mobile-content-area');
+    const mobileTabs = document.getElementById('mobile-tabs');
     const mobileBottomBar = document.getElementById('mobile-bottom-bar');
-    const mobileTitleBar = document.querySelector('.title-bar-mobile');
-    const mobileTerminalArea = document.getElementById('mobile-terminal-area');
 
     if (isMobile) {
         // Mostrar elementos móviles
-        if (mobileAccordion) mobileAccordion.style.display = 'flex';
+        if (mobileTopBar1) mobileTopBar1.style.display = 'flex';
+        if (mobileTopBar2) mobileTopBar2.style.display = 'flex';
+        if (mobileContentArea) mobileContentArea.style.display = 'flex';
+        if (mobileTabs) mobileTabs.style.display = 'flex';
         if (mobileBottomBar) mobileBottomBar.style.display = 'flex';
-        if (mobileTitleBar) mobileTitleBar.style.display = 'flex';
-        if (mobileTerminalArea) mobileTerminalArea.style.display = 'flex';
 
         // Inicializar contenido
-        updateMobileResources();
         updateMobileTerminal();
+        updateMobileYearDisplay();
 
         // Sincronizar valores con desktop
         syncMobileValues();
@@ -211,16 +256,17 @@ function initializeMobileView() {
         });
     } else {
         // Ocultar elementos móviles - handled by CSS .mobile-only
-        if (mobileAccordion) mobileAccordion.style.display = 'none';
+        if (mobileTopBar1) mobileTopBar1.style.display = 'none';
+        if (mobileTopBar2) mobileTopBar2.style.display = 'none';
+        if (mobileContentArea) mobileContentArea.style.display = 'none';
+        if (mobileTabs) mobileTabs.style.display = 'none';
         if (mobileBottomBar) mobileBottomBar.style.display = 'none';
-        if (mobileTitleBar) mobileTitleBar.style.display = 'none';
-        if (mobileTerminalArea) mobileTerminalArea.style.display = 'none';
     }
 }
 
 function setupMobileTerminalObserver() {
     const desktopTerminal = document.getElementById('terminal-notifications');
-    const mobileTerminal = document.getElementById('terminal-notifications-mobile');
+    const mobileTerminal = document.getElementById('mobile-terminal');
 
     if (!desktopTerminal || !mobileTerminal) return;
 
@@ -233,6 +279,15 @@ function setupMobileTerminalObserver() {
         childList: true,
         subtree: true
     });
+}
+
+function updateMobileYearDisplay() {
+    if (typeof timeSystem === 'undefined' || !timeSystem) return;
+
+    const mobileYearDisplay = document.getElementById('mobile-year-display');
+    if (mobileYearDisplay) {
+        mobileYearDisplay.textContent = `AÑO ${timeSystem.getCurrentYear().toFixed(1)}`;
+    }
 }
 
 function updateMobileResources() {
@@ -280,17 +335,16 @@ function updateMobileResources() {
 }
 
 function updateMobileTerminal() {
-    const mobileTerminal = document.getElementById('terminal-notifications-mobile');
+    const mobileTerminal = document.getElementById('mobile-terminal');
     const desktopTerminal = document.getElementById('terminal-notifications');
 
     if (!mobileTerminal || !desktopTerminal) return;
 
-    // Copiar solo las últimas 8 líneas para que se vea el efecto scroll up
+    // Copiar todas las líneas del terminal
     const lines = Array.from(desktopTerminal.querySelectorAll('.terminal-line'));
-    const lastLines = lines.slice(-8);
 
     mobileTerminal.innerHTML = '';
-    lastLines.forEach(line => {
+    lines.forEach(line => {
         mobileTerminal.appendChild(line.cloneNode(true));
     });
 }

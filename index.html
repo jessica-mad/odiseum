@@ -55,20 +55,23 @@
             </div>
         </div>
 
-        <!-- Barras de Título - Mobile -->
-        <div class="title-bar-mobile mobile-only" style="display: none;">
-            <div class="mobile-top-bar-first">
-                <span class="title-text">ODISEUM V2.0</span>
-                <span class="player-name-display">IA: <span id="playerName-mobile">---</span></span>
-            </div>
-            <div class="mobile-top-bar-second">
-                <span class="mission-title-mobile">PROYECTO GÉNESIS - NUEVA TIERRA</span>
-            </div>
+        <!-- === VERSIÓN MÓVIL === -->
+        <!-- Top Bar 1 - Mobile -->
+        <div class="mobile-top-bar-1 mobile-only" style="display: none;">
+            <span class="mobile-game-title">ODISEUM V2.0</span>
+            <span class="mobile-player-name">IA: <span id="playerName-mobile">---</span></span>
         </div>
 
-        <!-- Terminal Móvil (Fijo arriba del contenido) -->
-        <div class="mobile-terminal-area mobile-only" id="mobile-terminal-area" style="display: none;">
-            <div class="terminal-content-mobile" id="terminal-notifications-mobile">
+        <!-- Top Bar 2 - Mobile -->
+        <div class="mobile-top-bar-2 mobile-only" style="display: none;">
+            <span class="mobile-mission-title">PROYECTO GÉNESIS</span>
+            <span class="mobile-separator">|</span>
+            <span class="mobile-year-display" id="mobile-year-display">AÑO 0</span>
+        </div>
+
+        <!-- Terminal/Content Area - Mobile -->
+        <div class="mobile-content-area mobile-only" id="mobile-content-area" style="display: none;">
+            <div class="mobile-terminal" id="mobile-terminal">
                 <div class="terminal-line">&gt; Sistema iniciado...</div>
                 <div class="terminal-line">&gt; Esperando instrucciones...</div>
             </div>
@@ -153,25 +156,43 @@
             </div>
         </div>
 
-        <!-- Sistema de Acordeones para Móvil - Estilo Archivador -->
-        <div class="mobile-accordion mobile-only" id="mobile-accordion" style="display: none;">
-            <!-- Recursos -->
-            <div class="mobile-panel-tab" data-panel="resources" onclick="toggleMobilePanel('resources')">
-                <span class="tab-label">📦 RECURSOS</span>
-                <span class="tab-indicator">▲</span>
+        <!-- Viñetas del Acordeón - Mobile -->
+        <div class="mobile-tabs mobile-only" id="mobile-tabs" style="display: none;">
+            <div class="mobile-tab" data-panel="resources" onclick="toggleMobileAccordion('resources')">
+                <span class="tab-icon">📦</span>
             </div>
-            <div class="mobile-panel-content" id="mobile-panel-resources">
-                <div id="resources-mobile-container" class="panel-inner">
+            <div class="mobile-tab" data-panel="crew" onclick="toggleMobileAccordion('crew')">
+                <span class="tab-icon">👥</span>
+            </div>
+            <div class="mobile-tab" data-panel="map" onclick="toggleMobileAccordion('map')">
+                <span class="tab-icon">🗺️</span>
+            </div>
+            <div class="mobile-tab" data-panel="speed" onclick="toggleMobileAccordion('speed')">
+                <span class="tab-icon">⚡</span>
+            </div>
+        </div>
+
+        <!-- Paneles del Acordeón - Mobile -->
+        <!-- Panel Recursos -->
+        <div class="mobile-accordion-panel" id="mobile-panel-resources" style="display: none;">
+            <div class="mobile-panel-header" onclick="closeMobileAccordion()">
+                <span class="panel-header-icon">📦</span>
+                <span class="panel-header-title">GESTIÓN DE RECURSOS</span>
+            </div>
+            <div class="mobile-panel-body">
+                <div id="resources-mobile-container">
                     <!-- Se llena con JS -->
                 </div>
             </div>
+        </div>
 
-            <!-- Tripulación -->
-            <div class="mobile-panel-tab" data-panel="crew" onclick="toggleMobilePanel('crew')">
-                <span class="tab-label">🚀 TRIPULACIÓN</span>
-                <span class="tab-indicator">▲</span>
+        <!-- Panel Tripulación -->
+        <div class="mobile-accordion-panel" id="mobile-panel-crew" style="display: none;">
+            <div class="mobile-panel-header" onclick="closeMobileAccordion()">
+                <span class="panel-header-icon">👥</span>
+                <span class="panel-header-title">TRIPULACIÓN</span>
             </div>
-            <div class="mobile-panel-content" id="mobile-panel-crew">
+            <div class="mobile-panel-body">
                 <div class="crew-columns-mobile">
                     <div class="crew-column-mobile">
                         <div class="crew-column-header-mobile">DESPIERTOS</div>
@@ -187,25 +208,29 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Mapa -->
-            <div class="mobile-panel-tab" data-panel="map" onclick="toggleMobilePanel('map')">
-                <span class="tab-label">🗺️ MAPA</span>
-                <span class="tab-indicator">▲</span>
+        <!-- Panel Mapa -->
+        <div class="mobile-accordion-panel" id="mobile-panel-map" style="display: none;">
+            <div class="mobile-panel-header" onclick="closeMobileAccordion()">
+                <span class="panel-header-icon">🗺️</span>
+                <span class="panel-header-title">MAPA DE LA NAVE</span>
             </div>
-            <div class="mobile-panel-content" id="mobile-panel-map">
-                <div id="map-mobile-container" class="panel-inner">
+            <div class="mobile-panel-body">
+                <div id="map-mobile-container">
                     <!-- El mapa se mostrará aquí -->
                 </div>
             </div>
+        </div>
 
-            <!-- Control de Velocidad -->
-            <div class="mobile-panel-tab" data-panel="control" onclick="toggleMobilePanel('control')">
-                <span class="tab-label">⚡ VELOCIDAD</span>
-                <span class="tab-indicator">▲</span>
+        <!-- Panel Velocidad -->
+        <div class="mobile-accordion-panel" id="mobile-panel-speed" style="display: none;">
+            <div class="mobile-panel-header" onclick="closeMobileAccordion()">
+                <span class="panel-header-icon">⚡</span>
+                <span class="panel-header-title">CONTROL DE VELOCIDAD</span>
             </div>
-            <div class="mobile-panel-content" id="mobile-panel-control">
-                <div class="panel-inner">
+            <div class="mobile-panel-body">
+                <div class="speed-control-container">
                     <div class="nav-control-group">
                         <label class="nav-label">VELOCIDAD NAVE</label>
                         <div class="nav-speed-display" id="nav-speed-display-mobile">100%</div>
