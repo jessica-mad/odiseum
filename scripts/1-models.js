@@ -47,6 +47,8 @@ class Crew {
         // Caché para pensamientos (evitar actualización constante en UI)
         this.lastThought = '';
         this.lastUIUpdate = 0;
+        this.personalThought = null;
+        this.personalThoughtExpiry = null;
     }
 
     getEffectiveSkillMultiplier() {
@@ -508,7 +510,16 @@ class Crew {
 
     getCurrentThought() {
         try {
-            // Pensamientos según necesidades y estado (prioritarios)
+            // 1. MÁXIMA PRIORIDAD: Pensamiento personalizado de eventos (si existe y no ha expirado)
+            if (this.personalThought && this.personalThoughtExpiry && Date.now() < this.personalThoughtExpiry) {
+                return `💭 ${this.personalThought}`;
+            } else if (this.personalThought && this.personalThoughtExpiry && Date.now() >= this.personalThoughtExpiry) {
+                // Limpiar pensamiento expirado
+                this.personalThought = null;
+                this.personalThoughtExpiry = null;
+            }
+
+            // 2. SEGUNDA PRIORIDAD: Pensamientos según necesidades críticas
             let priorityThought = null;
             if (this.foodNeed < 30) {
                 priorityThought = '💭 Tengo tanta hambre... Necesito comer algo pronto.';

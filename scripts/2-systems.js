@@ -970,7 +970,8 @@ class EventSystem {
             });
         }
 
-        const outcomeKey = option.result === 'good' ? 'good' : 'bad';
+        // Usar directamente el result como clave (gamble, safe, good, bad, repress, etc.)
+        const outcomeKey = option.result || 'bad';
         const outcome = event.outcomes?.[outcomeKey];
 
         const actualOutcome = this.applyOutcome(event, outcome, outcomeKey);
@@ -1091,6 +1092,12 @@ class EventSystem {
             crew.skillModifier = changes.skillModifier;
         }
 
+        // Guardar pensamiento personalizado del evento
+        if (changes.personalThought) {
+            crew.personalThought = changes.personalThought;
+            crew.personalThoughtExpiry = Date.now() + (120000); // Dura 2 minutos
+        }
+
         if (changes.relationships && typeof changes.relationships === 'object') {
             Object.entries(changes.relationships).forEach(([otherName, delta]) => {
                 const otherCrew = this.getCrewByName(otherName);
@@ -1125,6 +1132,53 @@ class EventSystem {
         crew.updateMiniCard();
     }
 
+    determineOutcomeClass(outcome, outcomeKey) {
+        // Outcomes explícitamente buenos
+        if (outcomeKey === 'good' || outcomeKey === 'success') return 'good';
+        // Outcomes explícitamente malos
+        if (outcomeKey === 'bad' || outcomeKey === 'failure') return 'bad';
+
+        // Analizar el contenido del outcome para determinar si es positivo o negativo
+        if (!outcome) return 'bad';
+
+        let hasTrauma = false;
+        let hasNegativeModifier = false;
+        let hasPositiveResources = false;
+        let hasNegativeResources = false;
+
+        // Revisar si hay trauma en affectedCrew
+        if (outcome.affectedCrew) {
+            Object.values(outcome.affectedCrew).forEach(changes => {
+                if (changes.trauma) hasTrauma = true;
+                if (typeof changes.skillModifier === 'number' && changes.skillModifier < 1) {
+                    hasNegativeModifier = true;
+                }
+            });
+        }
+
+        // Revisar resourceDeltas
+        if (outcome.resourceDeltas) {
+            Object.values(outcome.resourceDeltas).forEach(delta => {
+                if (delta > 0) hasPositiveResources = true;
+                if (delta < 0) hasNegativeResources = true;
+            });
+        }
+
+        // Si hay trauma, definitivamente es malo
+        if (hasTrauma) return 'bad';
+
+        // Si hay recursos positivos y no hay modificadores negativos, es bueno
+        if (hasPositiveResources && !hasNegativeModifier && !hasNegativeResources) return 'good';
+
+        // Si es 'safe' o 'repress' sin trauma, considerarlo neutro (mostrar como malo pero menos severo)
+        if (outcomeKey === 'safe' || outcomeKey === 'repress') {
+            return hasNegativeResources || hasNegativeModifier ? 'bad' : 'neutral';
+        }
+
+        // Por defecto, malo
+        return 'bad';
+    }
+
     showOutcome(event, outcome, outcomeKey) {
         if (!this.currentPopup) return;
 
@@ -1141,7 +1195,8 @@ class EventSystem {
         `;
 
         const resultContainer = document.createElement('div');
-        const resultClass = outcomeKey === 'good' ? 'good' : 'bad';
+        // Determinar si el resultado es bueno o malo analizando el outcome
+        const resultClass = this.determineOutcomeClass(outcome, outcomeKey);
         resultContainer.className = `event-result ${resultClass}`;
 
         const narrative = document.createElement('p');
