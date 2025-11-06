@@ -414,61 +414,152 @@ Chen (llorando): "Maté a 2,000."
     {
         id: 'rodriguez_event_01',
         character: 'Ing. Rodriguez',
-        icon: '⚠️',
-        title: '',
+        icon: '⚙️',
+        title: 'Perfeccionista hasta la Muerte',
         trigger: {
             minTranche: 2,
-            maxTranche: 12,
+            maxTranche: 7,
             requiredAlive: ['Ing. Rodriguez'],
-            requiredAwake: [],
+            requiredAwake: ['Ing. Rodriguez'],
             requiredAsleep: [],
-            resourceMin: {},
+            resourceMin: { energy: 100 },
             resourceMax: {},
             requiredFlags: [],
-            blockedByFlags: [],
-            probability: 0
+            blockedByFlags: ['rodriguez_reactor_crisis'],
+            probability: 0.45
         },
-        description: '',
+        description: `Rodriguez irrumpe a las 4 AM con cara de no haber dormido en 3 días.
+
+"Comandante, el reactor está fallando. Funciona al 60%.
+Perdemos energía como si tuviéramos un agujero en el tanque."
+
+"Opción 1: Parche rápido. Dura 3 meses. Es feo pero funciona.
+Opción 2: Rediseño total. Podría hacerlo 120% eficiente...
+o explotarlo todo."
+
+"Mi ex Marco me decía: 'No todo necesita ser perfecto, Rodriguez.'
+Y yo le decía: 'Entonces por qué arreglé nuestra relación 47 veces?'"
+
+"Spoiler: No funcionó. Pero este reactor sí tiene solución."`,
+
         optionA: {
-            label: '',
+            label: '🔧 Rápido, feo, y temporal. Como todas mis relaciones.',
             requires: {},
-            costs: {},
+            costs: { energy: 50, data: 30 },
             wakeUp: [],
-            result: 'good'
+            result: 'safe'
         },
+
         optionB: {
-            label: '',
-            requires: {},
-            costs: {},
-            wakeUp: [],
-            result: 'bad'
+            label: '⚡ Voy a hacer esto PERFECTO o nos vamos todos al carajo.',
+            requires: { energy: 100, data: 50 },
+            costs: { energy: 100, data: 50 },
+            wakeUp: ['Dra. Chen'],
+            result: 'gamble'
         },
+
         outcomes: {
-            good: {
-                flag: 'rodriguez_good_decision',
+            safe: {
+                flag: 'rodriguez_duct_tape',
+                resourceDeltas: { energy: -50, data: -30 },
                 affectedCrew: {
                     'Ing. Rodriguez': {
                         trauma: null,
-                        emotionalState: '',
-                        skillModifier: 1,
-                        relationships: {}
+                        emotionalState: 'ashamed',
+                        skillModifier: 0.9,
+                        personalThought: 'Marco tenía razón. Soy mediocre.',
+                        relationships: {
+                            'Lt. Johnson': -5
+                        }
                     }
                 },
-                narrative: '',
+                narrative: `Rodriguez pone cinta adhesiva cuántica.
+
+Silva: "¿Eso es... cinta?"
+Rodriguez: "Cinta ESPACIAL."
+
+✅ Reactor funciona 3 meses más
+⚠️ Sigue al 60% (ineficiente)
+⚠️ Rodriguez: -10% eficiencia
+Johnson: "Mi abuela repararía mejor."`,
                 chainEvent: null
             },
-            bad: {
-                flag: 'rodriguez_bad_decision',
-                affectedCrew: {
-                    'Ing. Rodriguez': {
-                        trauma: '',
-                        emotionalState: '',
-                        skillModifier: 1,
-                        relationships: {}
-                    }
+            gamble: {
+                successRate: 0.5,
+                success: {
+                    flag: 'rodriguez_genius',
+                    resourceDeltas: { energy: 200 },
+                    affectedCrew: {
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'proud_genius',
+                            skillModifier: 1.15,
+                            personalThought: 'Marco, ojalá vieras esto. Soy bueno en algo.',
+                            relationships: {
+                                'Capitán Silva': 10,
+                                'Dra. Chen': 10,
+                                'Lt. Johnson': 10,
+                                'Chef Patel': 10
+                            }
+                        },
+                        'Dra. Chen': {
+                            emotionalState: 'impressed',
+                            personalThought: 'Rodriguez es más brillante de lo que pensaba.',
+                            relationships: {
+                                'Ing. Rodriguez': 15
+                            }
+                        }
+                    },
+                    narrative: `72 horas después...
+
+[VRRRRRRRRR - Suena como Ferrari nuevo]
+
+✅ +200 Energía permanente
+✅ Reactor al 120%
+✅ Rodriguez: +15% eficiencia
+✅ TODOS: +10 relación
+Chen (despierta): "Imposible... pero lo hiciste."
+Johnson: "¿Puedes arreglar mi vida amorosa?"`,
+                    chainEvent: null
                 },
-                narrative: '',
-                chainEvent: null
+                failure: {
+                    flag: 'rodriguez_disaster',
+                    resourceDeltas: { energy: -300, data: -100 },
+                    affectedCrew: {
+                        'Ing. Rodriguez': {
+                            trauma: 'perfectionist_failure',
+                            emotionalState: 'broken',
+                            skillModifier: 0.75,
+                            personalThought: 'Marco me dejó porque siempre lo rompo todo. Ahora rompí la nave. Patrón confirmado.',
+                            relationships: {
+                                'Capitán Silva': -10,
+                                'Dra. Chen': -15,
+                                'Lt. Johnson': -15,
+                                'Chef Patel': -10
+                            }
+                        },
+                        'Dra. Chen': {
+                            emotionalState: 'furious',
+                            restDelta: -30,
+                            personalThought: 'Rodriguez me despertó para presenciar su desastre. Imperdonable.',
+                            relationships: {
+                                'Ing. Rodriguez': -15
+                            }
+                        }
+                    },
+                    narrative: `[BOOM. Apagón total.]
+
+Chen (recién despierta): "¿QUÉ PASÓ?"
+Rodriguez (llorando): "Lo rompí."
+
+❌ -300 Energía
+❌ -100 Datos
+⚠️ Rodriguez: Trauma, -25% eficiencia
+⚠️ Chen: -30 Descanso
+⚠️ TODOS: -15 relación
+Chen: "NUNCA me despiertes para TUS errores."`,
+                    chainEvent: null
+                }
             }
         }
     },
