@@ -973,6 +973,23 @@ class EventSystem {
             this.applyCrewChanges(crew, changes, event, actualOutcome, outcomeKey);
         });
 
+        // Manejar cambios en recursos (resourceDeltas)
+        if (actualOutcome.resourceDeltas && typeof actualOutcome.resourceDeltas === 'object') {
+            Object.entries(actualOutcome.resourceDeltas).forEach(([key, delta]) => {
+                const resource = this.getResourceByKey(key);
+                if (resource && typeof delta === 'number') {
+                    if (delta >= 0) {
+                        // Ganancia de recursos
+                        resource.quantity = Math.min(resource.limiteStock, resource.quantity + delta);
+                    } else {
+                        // Pérdida de recursos
+                        resource.consume(Math.abs(delta));
+                    }
+                    resource.updateResourceUI();
+                }
+            });
+        }
+
         if (actualOutcome.chainEvent) {
             this.pendingChainEvents.add(actualOutcome.chainEvent);
         }

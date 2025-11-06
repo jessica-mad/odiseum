@@ -156,6 +156,10 @@ Patel (preparando té): "Entiendo tu decisión."
                 successRate: 0.6,
                 success: {
                     flag: 'chen_experimental_hero',
+                    resourceDeltas: {
+                        data: 150,
+                        medicine: 50
+                    },
                     affectedCrew: {
                         'Dra. Chen': {
                             trauma: null,
@@ -368,61 +372,124 @@ Chen (llorando): "Maté a 2,000."
     {
         id: 'patel_event_01',
         character: 'Chef Patel',
-        icon: '⚠️',
-        title: '',
+        icon: '🌱',
+        title: 'Crisis en el Invernadero',
         trigger: {
-            minTranche: 5,
-            maxTranche: 20,
+            minTranche: 3,
+            maxTranche: 8,
             requiredAlive: ['Chef Patel'],
-            requiredAwake: [],
+            requiredAwake: ['Chef Patel'],
             requiredAsleep: [],
-            resourceMin: {},
+            resourceMin: { food: 100 },
             resourceMax: {},
             requiredFlags: [],
-            blockedByFlags: [],
-            probability: 0
+            blockedByFlags: ['patel_greenhouse_crisis'],
+            probability: 0.4
         },
-        description: '',
+        description: `Chef Patel entra apresurado al puente de mando, con las manos manchadas de tierra.
+
+"Comandante, tenemos un problema crítico en el invernadero. El sistema de filtrado de agua ha estado reciclando agua contaminada durante semanas. Las plantas han absorbido niveles peligrosos de metales pesados."
+
+Patel muestra análisis en su tablet: lechugas con manchas marrones, tomates deformes, hierbas marchitas.
+
+"He identificado dos opciones, pero ambas tienen riesgos..."
+
+La decisión está en tus manos. Los 10,000 embriones necesitan llegar bien alimentados, pero ¿a qué costo?`,
+
         optionA: {
-            label: '',
-            requires: {},
-            costs: {},
+            label: '🌿 Intentar salvar la cosecha actual (Arriesgado)',
+            requires: {
+                medicine: 20,
+                water: 30
+            },
+            costs: {
+                medicine: 20,
+                water: 30,
+                energy: 15
+            },
             wakeUp: [],
             result: 'good'
         },
+
         optionB: {
-            label: '',
+            label: '🔥 Quemar cosecha y empezar de nuevo (Seguro pero costoso)',
             requires: {},
-            costs: {},
+            costs: {
+                food: 150,
+                energy: 20
+            },
             wakeUp: [],
             result: 'bad'
         },
+
         outcomes: {
             good: {
-                flag: 'patel_good_decision',
+                flag: 'patel_greenhouse_saved',
+                resourceDeltas: {
+                    food: 100
+                },
                 affectedCrew: {
                     'Chef Patel': {
                         trauma: null,
-                        emotionalState: '',
-                        skillModifier: 1,
-                        relationships: {}
+                        emotionalState: 'proud',
+                        skillModifier: 1.1,
+                        relationships: {
+                            'Capitán Silva': 10,
+                            'Dra. Chen': 5
+                        }
                     }
                 },
-                narrative: '',
-                chainEvent: null
+                narrative: `Los siguientes días son tensos. Chef Patel apenas duerme, monitoreando cada planta, aplicando tratamientos de quelación con precisión quirúrgica.
+
+Día 7: Las primeras lechugas muestran mejoría. Las manchas retroceden.
+
+Día 14: Los análisis son claros - las plantas están seguras para consumo. Incluso mejor, la crisis le enseñó técnicas de purificación más eficientes.
+
+**RESULTADO:**
+✅ +100 Alimentos (cosecha recuperada)
+✅ Producción optimizada (sistema mejorado)
+✅ Chef Patel gana confianza y habilidades (+10% eficiencia)
+
+Patel añade en su bitácora personal: "Hoy salvé más que plantas. Salvé la esperanza de que podemos superar cualquier obstáculo."`,
+                chainEvent: 'patel_event_02_success'
             },
+
             bad: {
-                flag: 'patel_bad_decision',
+                flag: 'patel_greenhouse_burned',
                 affectedCrew: {
                     'Chef Patel': {
-                        trauma: '',
-                        emotionalState: '',
-                        skillModifier: 1,
+                        trauma: 'guilt',
+                        emotionalState: 'depressed',
+                        skillModifier: 0.9,
+                        restDelta: -15,
+                        relationships: {
+                            'Capitán Silva': -5,
+                            'Lt. Johnson': -10
+                        }
+                    },
+                    'ALL_CREW': {
+                        trauma: null,
+                        emotionalState: 'disappointed',
+                        skillModifier: 1.0,
+                        entertainmentDelta: -10,
                         relationships: {}
                     }
                 },
-                narrative: '',
-                chainEvent: null
+                narrative: `Las llamas consumen semanas de trabajo. Chef Patel observa en silencio cómo su jardín se convierte en cenizas.
+
+"Era lo correcto," murmura, pero sus manos tiemblan.
+
+Las semanas siguientes son difíciles. Patel replanta todo desde cero, pero las nuevas plantas son jóvenes, básicas, sin el sabor ni la variedad de antes.
+
+**RESULTADO:**
+❌ -150 Alimentos (cosecha perdida)
+⚠️ Comida será básica y poco apetitosa
+⚠️ TODA la tripulación: -10 Entretenimiento (comida horrible baja la moral)
+⚠️ Chef Patel: -15 Descanso (insomnio por culpa), -10% eficiencia
+✅ Pero al menos es seguro... ¿verdad?
+
+Patel añade en su bitácora: "Destruí mi jardín para salvar la misión. Espero que valga la pena. Los demás me miran diferente ahora."`,
+                chainEvent: 'patel_event_02_redemption'
             }
         }
     }
