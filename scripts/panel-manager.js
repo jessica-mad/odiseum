@@ -157,21 +157,28 @@ class PanelManager {
             if (key === 'w' || key === 'arrowup') {
                 e.preventDefault();
                 if (!this.openPanels.has('control')) {
-                    this.togglePanel('control');
+                    // Cerrar paneles laterales si están abiertos
+                    if (this.openPanels.has('map')) this.closePanel('map');
+                    if (this.openPanels.has('crew')) this.closePanel('crew');
+                    this.openPanel('control');
                 }
             }
             // D o Flecha Derecha: Abrir panel de mapa
             else if (key === 'd' || key === 'arrowright') {
                 e.preventDefault();
                 if (!this.openPanels.has('map')) {
-                    this.togglePanel('map');
+                    // Cerrar control si está abierto
+                    if (this.openPanels.has('control')) this.closePanel('control');
+                    this.openPanel('map');
                 }
             }
             // A o Flecha Izquierda: Abrir panel de tripulación
             else if (key === 'a' || key === 'arrowleft') {
                 e.preventDefault();
                 if (!this.openPanels.has('crew')) {
-                    this.togglePanel('crew');
+                    // Cerrar control si está abierto
+                    if (this.openPanels.has('control')) this.closePanel('control');
+                    this.openPanel('crew');
                 }
             }
             // S o Flecha Abajo: Cerrar panel de control
