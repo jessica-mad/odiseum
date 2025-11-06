@@ -3,6 +3,25 @@
    Odiseum V2.0
    ============================================ */
 
+/* Ocultar todos los elementos móviles por defecto (desktop) */
+@media (min-width: 769px) {
+    .mobile-accordion-panel,
+    .mobile-tabs,
+    .mobile-tab,
+    .mobile-top-bar-1,
+    .mobile-top-bar-2,
+    .mobile-bottom-bar,
+    .mobile-content-area,
+    .mobile-terminal,
+    #mobile-panel-speed,
+    #mobile-panel-map,
+    #mobile-panel-body,
+    #mobile-panel-crew,
+    #mobile-panel-resources {
+        display: none !important;
+    }
+}
+
 /* Solo aplicar en móvil */
 @media (max-width: 768px) {
 
