@@ -153,6 +153,9 @@ class PanelManager {
 
             const key = e.key.toLowerCase();
 
+            // Debug: mostrar tecla presionada
+            console.log('🎮 Tecla presionada:', e.key, '→', key);
+
             // W o Flecha Arriba: Abrir panel de control
             if (key === 'w' || key === 'arrowup') {
                 e.preventDefault();
