@@ -53,11 +53,11 @@ class ShipMapSystem {
         this.crewTargets = {};
         this.crewPaths = {};
         this.crewIcons = {
-            'Cpt. Rivera': '👨‍✈️',
+            'Capitán Silva': '👨‍✈️',
             'Dra. Chen': '👩‍⚕️',
-            'Ing. Patel': '👨‍🔧',
-            'Dr. Johnson': '👨‍🔬',
-            'Chef Dubois': '👨‍🍳'
+            'Ing. Rodriguez': '👨‍🔧',
+            'Lt. Johnson': '👨‍🚀',
+            'Chef Patel': '👨‍🍳'
         };
 
         this.isVisible = false; // Mapa oculto por defecto
@@ -177,6 +177,53 @@ class ShipMapSystem {
         return '';
     }
 
+    /**
+     * Convierte el tipo de celda en nombre de zona legible
+     */
+    getZoneNameFromCell(cellType) {
+        const zoneNames = {
+            'C': 'Puente de Mando',
+            'E': 'Enfermería',
+            'G': 'Sala de Máquinas',
+            'K': 'Cocina',
+            'N': 'Invernadero',
+            'D': 'Cápsulas de Sueño',
+            'B': 'Bodega',
+            'P': 'Pasillo'
+        };
+        return zoneNames[cellType] || null;
+    }
+
+    /**
+     * Obtiene la ubicación actual de un tripulante por su ID
+     * @param {number} crewId - ID del tripulante
+     * @returns {object|null} - Objeto con {name: 'Nombre de la Zona', type: 'moving'/'static'}
+     */
+    getCrewLocation(crewId) {
+        const position = this.crewLocations[crewId];
+        if (!position) return null;
+
+        const { row, col } = position;
+        const cellType = this.grid[row]?.[col];
+
+        if (!cellType || cellType === '.') return null;
+
+        // Si está en un pasillo y tiene un camino activo, está moviéndose
+        if (cellType === 'P' && this.crewPaths[crewId]) {
+            return {
+                name: 'Desplazándose...',
+                type: 'moving'
+            };
+        }
+
+        // Devolver el nombre de la zona
+        const zoneName = this.getZoneNameFromCell(cellType);
+        return zoneName ? {
+            name: zoneName,
+            type: 'static'
+        } : null;
+    }
+
     getCrewIcon(crew) {
         if (this.crewIcons[crew.name]) {
             return this.crewIcons[crew.name];
@@ -216,24 +263,37 @@ class ShipMapSystem {
                 return 'kitchen';
             }
 
-            // Mapeo de roles a zonas de trabajo
-            switch (crew.role) {
-                case 'commander':
-                    // Capitán: principalmente en Control, a Ingeniería en emergencias
-                    return 'bridge';
-                case 'doctor':
-                    return 'medbay';
-                case 'engineer':
-                    return 'engineering';
-                case 'cook':
-                    // Cocinero alterna entre Cocina e Invernadero
-                    return Math.random() < 0.6 ? 'kitchen' : 'greenhouse';
-                case 'scientist':
-                    // Científico trabaja en Invernadero
-                    return 'greenhouse';
-                default:
-                    return 'bridge';
+            // Mapeo de posiciones a zonas de trabajo
+            const position = crew.position || '';
+
+            // Navegante -> Puente de Mando (bridge)
+            if (position.includes('Navegante')) {
+                return 'bridge';
             }
+
+            // Doctora -> Enfermería (medbay)
+            if (position.includes('Doctor') || position.includes('Doctora')) {
+                return 'medbay';
+            }
+
+            // Ingeniera -> Ingeniería (engineering)
+            if (position.includes('Ingenier')) {
+                return 'engineering';
+            }
+
+            // Botánica -> Invernadero (greenhouse)
+            if (position.includes('Botánic')) {
+                return 'greenhouse';
+            }
+
+            // Geóloga -> Alterna entre Bodega y Laboratorio
+            // (usamos bodega como laboratorio)
+            if (position.includes('Geólog')) {
+                return Math.random() < 0.7 ? 'cargo' : 'bridge';
+            }
+
+            // Por defecto, van a su zona correspondiente o al puente
+            return 'bridge';
         }
 
         return 'capsules';
@@ -405,11 +465,20 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
+        // Actualizar posiciones cada 5 segundos
         setInterval(() => {
-            if (this.isVisible) {
+            this.updateCrewLocations();
+        }, 5000);
+
+        // También actualizar cada vez que cambie algo relevante
+        if (typeof addEventListener === 'function') {
+            // Escuchar cambios en el estado de los tripulantes
+            document.addEventListener('crewStateChanged', () => {
                 this.updateCrewLocations();
-            }
-        }, 3000);
+            });
+        }
+
+        console.log('✅ Auto-actualización del mapa iniciada (cada 5 segundos)');
     }
 }
 
