@@ -761,7 +761,7 @@ Patel: "¿Sí? Porque lo mataste por dentro."
         id: 'patel_event_01',
         character: 'Chef Patel',
         icon: '🌱',
-        title: 'Crisis en el Invernadero',
+        title: 'Gordon Ramsay Espacial',
         trigger: {
             minTranche: 3,
             maxTranche: 8,
@@ -774,110 +774,118 @@ Patel: "¿Sí? Porque lo mataste por dentro."
             blockedByFlags: ['patel_greenhouse_crisis'],
             probability: 0.4
         },
-        description: `Chef Patel entra apresurado al puente de mando, con las manos manchadas de tierra.
+        description: `Chef Patel irrumpe en el puente con las manos llenas de tierra y cara de funeral.
 
-"Comandante, tenemos un problema crítico en el invernadero. El sistema de filtrado de agua ha estado reciclando agua contaminada durante semanas. Las plantas han absorbido niveles peligrosos de metales pesados."
+"Comandante, las plantas están jodidas. Agua contaminada.
+Metales pesados. Básicamente cultivé verduras radioactivas."
 
-Patel muestra análisis en su tablet: lechugas con manchas marrones, tomates deformes, hierbas marchitas.
+"Puedo intentar 'curarlas' con química dudosa,
+o quemarlas todas y comer proteína en polvo sabor cartón
+durante 6 meses."
 
-"He identificado dos opciones, pero ambas tienen riesgos..."
-
-La decisión está en tus manos. Los 10,000 embriones necesitan llegar bien alimentados, pero ¿a qué costo?`,
+"También puedo rezar. Pero nunca funciona en el espacio."`,
 
         optionA: {
-            label: '🌿 Intentar salvar la cosecha actual (Arriesgado)',
-            requires: {
-                medicine: 20,
-                water: 30
-            },
-            costs: {
-                medicine: 20,
-                water: 30,
-                energy: 15
-            },
+            label: '🧪 Ciencia > Dios. Voy a drogar estas plantas hasta que sean comestibles.',
+            requires: { medicine: 20, water: 30 },
+            costs: { medicine: 20, water: 30, energy: 15 },
             wakeUp: [],
-            result: 'good'
+            result: 'gamble'
         },
 
         optionB: {
-            label: '🔥 Quemar cosecha y empezar de nuevo (Seguro pero costoso)',
+            label: '🔥 Fuck it. QUÉMALO TODO. Volveremos a la dieta de astronauta de 1960.',
             requires: {},
-            costs: {
-                food: 150,
-                energy: 20
-            },
+            costs: { food: 150, energy: 20 },
             wakeUp: [],
-            result: 'bad'
+            result: 'safe'
         },
 
         outcomes: {
-            good: {
-                flag: 'patel_greenhouse_saved',
-                resourceDeltas: {
-                    food: 100
-                },
-                affectedCrew: {
-                    'Chef Patel': {
-                        trauma: null,
-                        emotionalState: 'proud',
-                        skillModifier: 1.1,
-                        relationships: {
-                            'Capitán Silva': 10,
-                            'Dra. Chen': 5
+            gamble: {
+                successRate: 0.65,
+                success: {
+                    flag: 'patel_greenhouse_saved',
+                    resourceDeltas: { food: 100, data: 50 },
+                    affectedCrew: {
+                        'Chef Patel': {
+                            trauma: null,
+                            emotionalState: 'proud',
+                            skillModifier: 1.1,
+                            personalThought: 'Mis nietos comerán ensalada espacial. Soy una leyenda.',
+                            relationships: {
+                                'Capitán Silva': 10,
+                                'Dra. Chen': 5
+                            }
                         }
-                    }
+                    },
+                    narrative: `Semana 3: Patel prueba una lechuga. No muere.
+
+✅ +100 Alimentos
+✅ +50 Datos científicos
+✅ Patel: +10% eficiencia
+Silva: "Impresionante, chef."
+Chen: "Estadísticamente imposible. Pero bueno."`,
+                    chainEvent: null
                 },
-                narrative: `Los siguientes días son tensos. Chef Patel apenas duerme, monitoreando cada planta, aplicando tratamientos de quelación con precisión quirúrgica.
+                failure: {
+                    flag: 'patel_greenhouse_failed',
+                    resourceDeltas: { food: -150, medicine: -20, water: -30 },
+                    affectedCrew: {
+                        'Chef Patel': {
+                            trauma: 'incompetent_cook',
+                            emotionalState: 'devastated',
+                            skillModifier: 0.8,
+                            personalThought: 'Soy un fraude. Mis nietos me odiarán.',
+                            relationships: {
+                                'Capitán Silva': -15,
+                                'Dra. Chen': -15,
+                                'Lt. Johnson': -15,
+                                'Ing. Rodriguez': -15
+                            }
+                        }
+                    },
+                    narrative: `Patel: "Las plantas mutaron. Ahora son tóxicas."
+Silva: "..."
 
-Día 7: Las primeras lechugas muestran mejoría. Las manchas retroceden.
-
-Día 14: Los análisis son claros - las plantas están seguras para consumo. Incluso mejor, la crisis le enseñó técnicas de purificación más eficientes.
-
-**RESULTADO:**
-✅ +100 Alimentos (cosecha recuperada)
-✅ Producción optimizada (sistema mejorado)
-✅ Chef Patel gana confianza y habilidades (+10% eficiencia)
-
-Patel añade en su bitácora personal: "Hoy salvé más que plantas. Salvé la esperanza de que podemos superar cualquier obstáculo."`,
-                chainEvent: 'patel_event_02_success'
+❌ -150 Alimentos
+❌ -20 Medicina
+❌ -30 Agua
+⚠️ Patel: -20% eficiencia, trauma
+⚠️ TODOS: -15 relación
+Johnson: "Casi nos envenenas, viejo."`,
+                    chainEvent: null
+                }
             },
-
-            bad: {
+            safe: {
                 flag: 'patel_greenhouse_burned',
+                resourceDeltas: { food: -150, energy: -20 },
                 affectedCrew: {
                     'Chef Patel': {
                         trauma: 'guilt',
                         emotionalState: 'depressed',
                         skillModifier: 0.9,
                         restDelta: -15,
+                        personalThought: 'Mis nietos preguntarán por qué fui tan cobarde.',
                         relationships: {
                             'Capitán Silva': -5,
                             'Lt. Johnson': -10
                         }
                     },
                     'ALL_CREW': {
-                        trauma: null,
-                        emotionalState: 'disappointed',
-                        skillModifier: 1.0,
-                        entertainmentDelta: -10,
-                        relationships: {}
+                        entertainmentDelta: -10
                     }
                 },
-                narrative: `Las llamas consumen semanas de trabajo. Chef Patel observa en silencio cómo su jardín se convierte en cenizas.
+                narrative: `Patel observa las llamas consumir su jardín.
 
-"Era lo correcto," murmura, pero sus manos tiemblan.
+6 meses de proteína sintética sabor "pollo" (es cartón):
 
-Las semanas siguientes son difíciles. Patel replanta todo desde cero, pero las nuevas plantas son jóvenes, básicas, sin el sabor ni la variedad de antes.
-
-**RESULTADO:**
-❌ -150 Alimentos (cosecha perdida)
-⚠️ Comida será básica y poco apetitosa
-⚠️ TODA la tripulación: -10 Entretenimiento (comida horrible baja la moral)
-⚠️ Chef Patel: -15 Descanso (insomnio por culpa), -10% eficiencia
-✅ Pero al menos es seguro... ¿verdad?
-
-Patel añade en su bitácora: "Destruí mi jardín para salvar la misión. Espero que valga la pena. Los demás me miran diferente ahora."`,
-                chainEvent: 'patel_event_02_redemption'
+❌ -150 Alimentos
+⚠️ TODOS: -10 Entretenimiento
+⚠️ Patel: -15 Descanso
+Johnson: "Prefiero morir de hambre."
+✅ Nadie se intoxicó (aún)`,
+                chainEvent: null
             }
         }
     }
