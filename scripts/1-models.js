@@ -44,9 +44,7 @@ class Crew {
         this.skillModifier = 1.0;
         this.eventMemories = [];
 
-        // Caché para pensamientos (evitar actualización constante en UI)
-        this.lastThought = '';
-        this.lastUIUpdate = 0;
+        // Sistema de pensamientos personalizados (de eventos)
         this.personalThought = null;
         this.personalThoughtExpiry = null;
     }
@@ -529,56 +527,57 @@ class Crew {
                 priorityThought = '💭 Necesito ir al baño urgentemente...';
             }
 
-            // Si hay pensamiento prioritario, devolverlo y actualizarlo en caché
+            // Si hay pensamiento prioritario, devolverlo
             if (priorityThought) {
-                this.lastThought = priorityThought;
                 return priorityThought;
             }
 
-            // Si ya tenemos un pensamiento cacheado reciente, devolverlo (no cambiar constantemente)
-            const currentTime = Date.now();
-            // Cambiar pensamiento solo cada 30 segundos (30000 ms)
-            if (this.lastThought && (currentTime - this.lastUIUpdate) < 30000) {
-                return this.lastThought;
+            // 3. TERCERA PRIORIDAD: Pensamiento basado en estado emocional o trauma
+            if (this.trauma) {
+                const traumaThoughts = {
+                    'survivor_guilt': '💭 Sobreviví... pero a qué precio.',
+                    'perfectionist_failure': '💭 Fallé cuando más importaba.',
+                    'incompetent_cook': '💭 No puedo confiar en mis propias habilidades.',
+                    'guilt': '💭 Debería haber hecho más.',
+                    'repressed_grief': '💭 Algunas cosas es mejor no saberlas.',
+                    'isolation_paranoia': '💭 ¿Puedo confiar en alguien aquí?',
+                    'anxiety': '💭 Algo va a salir mal, lo sé.'
+                };
+                if (traumaThoughts[this.trauma]) {
+                    return traumaThoughts[this.trauma];
+                }
             }
 
-            // Generar nuevo pensamiento aleatorio
-            const thoughts = {
-                'Capitán': [
-                    '💭 Los cálculos de trayectoria están perfectos hoy.',
-                    '💭 Me pregunto qué encontraremos en la Nueva Tierra.',
-                    '💭 Mantener el rumbo es mi responsabilidad.'
-                ],
-                'Médica': [
-                    '💭 Todos parecen estar en buena salud.',
-                    '💭 Espero no tener que usar el quirófano.',
-                    '💭 La medicina preventiva es clave en el espacio.'
-                ],
-                'Ingeniero': [
-                    '💭 Los sistemas están funcionando óptimamente.',
-                    '💭 Debería revisar los conductos de ventilación.',
-                    '💭 Esta nave es una maravilla de ingeniería.'
-                ],
-                'Navegante': [
-                    '💭 Los cálculos de navegación son precisos.',
-                    '💭 Me encanta estudiar las estrellas.',
-                    '💭 Cada día más cerca del destino.'
-                ],
-                'Chef': [
-                    '💭 Las plantas están creciendo bien este ciclo.',
-                    '💭 Debería preparar algo especial hoy.',
-                    '💭 Me encanta cuidar del invernadero.'
-                ]
+            // 4. CUARTA PRIORIDAD: Pensamiento basado en estado emocional
+            if (this.emotionalState && this.emotionalState !== 'stable') {
+                const emotionalThoughts = {
+                    'proud': '💭 Hice un buen trabajo.',
+                    'proud_genius': '💭 Sabía que podía lograrlo.',
+                    'devastated': '💭 No sé cómo recuperarme de esto.',
+                    'depressed': '💭 Todo parece gris últimamente.',
+                    'ashamed': '💭 Podría haberlo hecho mejor.',
+                    'broken': '💭 Tal vez no soy lo suficientemente bueno.',
+                    'furious': '💭 Esto es inaceptable.',
+                    'impressed': '💭 Eso fue... impresionante.',
+                    'grateful': '💭 Tengo suerte de estar aquí.',
+                    'hopeful': '💭 Las cosas mejorarán.',
+                    'conflicted': '💭 No estoy seguro de haber tomado la decisión correcta.'
+                };
+                if (emotionalThoughts[this.emotionalState]) {
+                    return emotionalThoughts[this.emotionalState];
+                }
+            }
+
+            // 5. PENSAMIENTO POR DEFECTO ESTÁTICO (según posición, NO rotativo)
+            const defaultThoughts = {
+                'Capitán': '💭 Mantener el rumbo es mi responsabilidad.',
+                'Médica': '💭 La salud de la tripulación es lo primero.',
+                'Ingeniero': '💭 Los sistemas funcionan óptimamente.',
+                'Navegante': '💭 Cada día más cerca del destino.',
+                'Chef': '💭 Las plantas están creciendo bien.'
             };
 
-            const crewThoughts = thoughts[this.position] || ['💭 Todo va bien.'];
-            const newThought = crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
-
-            // Actualizar caché
-            this.lastThought = newThought;
-            this.lastUIUpdate = currentTime;
-
-            return newThought;
+            return defaultThoughts[this.position] || '💭 Todo va bien.';
         } catch (error) {
             console.warn(`⚠️ Error obteniendo pensamiento para ${this.name}:`, error);
             return '💭 Todo va bien.';
