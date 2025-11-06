@@ -272,10 +272,15 @@ class GameLoop {
             playTrancheSound();
         }
 
-        // Actualizar UI de botones
+        // Actualizar UI de botones desktop
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('playing');
+        }
 
         // Actualizar estado del viaje
         if (typeof updateVoyageStatus === 'function') {
@@ -417,10 +422,20 @@ class GameLoop {
         // Avanzar tramo
         timeSystem.advanceTranche();
 
-        // Actualizar UI de botones
+        // Actualizar UI de botones desktop
         document.getElementById('start-button').style.display = 'inline-block';
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'none';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('stopped');
+        }
+
+        // Actualizar contador de tramos móvil
+        if (typeof updateMobileTrancheCount === 'function') {
+            updateMobileTrancheCount();
+        }
 
         // Actualizar texto del botón según el tramo
         if (typeof updateStartButtonText === 'function') {
@@ -477,8 +492,14 @@ class GameLoop {
 
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
 
+        // Actualizar botones desktop
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'inline-block';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('paused');
+        }
 
         // Actualizar estado del viaje (sigue mostrando que estamos viajando)
         if (typeof updateVoyageStatus === 'function') {
@@ -507,8 +528,14 @@ class GameLoop {
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
 
+        // Actualizar botones desktop
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('playing');
+        }
 
         // Actualizar estado del viaje
         if (typeof updateVoyageStatus === 'function') {

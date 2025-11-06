@@ -19,14 +19,20 @@ function setupPopupZIndex() {
     });
 }
 
-/* === SISTEMA DE ACORDEÓN MÓVIL === */
+/* === SISTEMA DE ACORDEÓN MÓVIL CON GESTOS === */
 let currentOpenMobilePanel = null;
+let panelStartY = 0;
+let panelCurrentY = 0;
+let isDraggingPanel = false;
 
 function toggleMobileAccordion(panelName) {
     const panel = document.getElementById(`mobile-panel-${panelName}`);
     const tab = document.querySelector(`.mobile-tab[data-panel="${panelName}"]`);
 
-    if (!panel || !tab) return;
+    if (!panel || !tab) {
+        console.log('Panel o tab no encontrado:', panelName);
+        return;
+    }
 
     // Si este panel ya está abierto, cerrarlo
     if (currentOpenMobilePanel === panelName) {
@@ -46,6 +52,9 @@ function toggleMobileAccordion(panelName) {
     panel.classList.add('open');
     tab.classList.add('active');
     currentOpenMobilePanel = panelName;
+
+    // Configurar gestos de arrastre
+    setupPanelSwipeGestures(panel);
 
     // Actualizar contenido según el panel
     if (panelName === 'resources') {
@@ -69,6 +78,49 @@ function closeMobileAccordion() {
     if (tab) tab.classList.remove('active');
 
     currentOpenMobilePanel = null;
+}
+
+function setupPanelSwipeGestures(panel) {
+    const header = panel.querySelector('.mobile-panel-header');
+    if (!header) return;
+
+    // Touch events
+    header.addEventListener('touchstart', (e) => {
+        panelStartY = e.touches[0].clientY;
+        isDraggingPanel = true;
+        panel.classList.add('dragging');
+    });
+
+    header.addEventListener('touchmove', (e) => {
+        if (!isDraggingPanel) return;
+
+        panelCurrentY = e.touches[0].clientY;
+        const diff = panelCurrentY - panelStartY;
+
+        // Solo permitir arrastre hacia abajo
+        if (diff > 0) {
+            const translateY = Math.min(diff, window.innerHeight - 180);
+            panel.style.transform = `translateY(${translateY}px)`;
+        }
+    });
+
+    header.addEventListener('touchend', (e) => {
+        if (!isDraggingPanel) return;
+
+        const diff = panelCurrentY - panelStartY;
+        panel.classList.remove('dragging');
+
+        // Si arrastró más de 100px hacia abajo, cerrar el panel
+        if (diff > 100) {
+            closeMobileAccordion();
+        }
+
+        // Resetear el transform
+        panel.style.transform = '';
+        isDraggingPanel = false;
+        panelStartY = 0;
+        panelCurrentY = 0;
+    });
 }
 
 function updateMobileMapPanel() {
@@ -347,6 +399,43 @@ function updateMobileTerminal() {
     lines.forEach(line => {
         mobileTerminal.appendChild(line.cloneNode(true));
     });
+}
+
+/* === ACTUALIZACIÓN DE BOTONES MÓVILES === */
+function updateMobileButtons(state) {
+    const mobileStartBtn = document.getElementById('mobile-start-btn');
+    const mobilePauseBtn = document.getElementById('mobile-pause-btn');
+    const mobileResumeBtn = document.getElementById('mobile-resume-btn');
+
+    if (!mobileStartBtn || !mobilePauseBtn || !mobileResumeBtn) return;
+
+    if (state === 'playing') {
+        mobileStartBtn.style.display = 'none';
+        mobilePauseBtn.style.display = 'inline-block';
+        mobileResumeBtn.style.display = 'none';
+    } else if (state === 'paused') {
+        mobileStartBtn.style.display = 'none';
+        mobilePauseBtn.style.display = 'none';
+        mobileResumeBtn.style.display = 'inline-block';
+    } else if (state === 'stopped') {
+        mobileStartBtn.style.display = 'inline-block';
+        mobilePauseBtn.style.display = 'none';
+        mobileResumeBtn.style.display = 'none';
+    }
+}
+
+function updateMobileTrancheCount() {
+    const mobileTrancheCount = document.getElementById('mobile-tranche-count');
+    if (!mobileTrancheCount) return;
+
+    const currentTranche = (typeof timeSystem !== 'undefined' && timeSystem)
+        ? timeSystem.getCurrentTranche()
+        : 0;
+    const totalTranches = (typeof TOTAL_TRANCHES !== 'undefined')
+        ? TOTAL_TRANCHES
+        : 10;
+
+    mobileTrancheCount.textContent = `${currentTranche}/${totalTranches}`;
 }
 
 function syncMobileValues() {
