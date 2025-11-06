@@ -6,6 +6,20 @@
 /* Solo aplicar en móvil */
 @media (max-width: 768px) {
 
+/* === EVENTOS Y COMUNICADOS: SIEMPRE POR ENCIMA DEL FOOTER === */
+/* Los eventos y comunicados deben estar por encima del control de tramos */
+.event-overlay,
+.quantum-message-overlay,
+.victory-overlay {
+    z-index: 10000 !important; /* Por encima del footer (9999) */
+}
+
+.event-popup,
+.quantum-message-popup,
+.victory-popup {
+    z-index: 10001 !important; /* Por encima del overlay */
+}
+
 /* === OCULTAR SCROLLBARS EN MÓVIL === */
 /* Ocultar scrollbars pero mantener funcionalidad */
 .mobile-panel-body::-webkit-scrollbar,
