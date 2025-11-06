@@ -6,6 +6,34 @@
 /* Solo aplicar en móvil */
 @media (max-width: 768px) {
 
+/* === OCULTAR SCROLLBARS EN MÓVIL === */
+/* Ocultar scrollbars pero mantener funcionalidad */
+.mobile-panel-body::-webkit-scrollbar,
+.mobile-content-area::-webkit-scrollbar,
+.crew-column-content-mobile::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+}
+
+.mobile-panel-body::-webkit-scrollbar-track,
+.mobile-content-area::-webkit-scrollbar-track,
+.crew-column-content-mobile::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mobile-panel-body::-webkit-scrollbar-thumb,
+.mobile-content-area::-webkit-scrollbar-thumb,
+.crew-column-content-mobile::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 65, 0.2);
+    border-radius: 2px;
+}
+
+.mobile-panel-body::-webkit-scrollbar-thumb:hover,
+.mobile-content-area::-webkit-scrollbar-thumb:hover,
+.crew-column-content-mobile::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 65, 0.4);
+}
+
 /* === TOP BAR 1 === */
 .mobile-top-bar-1 {
     position: fixed;
@@ -24,7 +52,7 @@
 }
 
 .mobile-game-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     color: var(--color-terminal-green);
     text-transform: uppercase;
@@ -32,7 +60,7 @@
 }
 
 .mobile-player-name {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-terminal-green);
 }
 
@@ -55,7 +83,7 @@
 }
 
 .mobile-mission-title {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-terminal-green);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -67,7 +95,7 @@
 }
 
 .mobile-year-display {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-terminal-green);
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
@@ -90,7 +118,7 @@
 .mobile-terminal {
     padding: 16px;
     font-family: var(--font-monaco);
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-terminal-green);
     line-height: 1.6;
     flex: 1;
@@ -286,7 +314,7 @@
 .panel-header-title {
     flex: 1;
     font-family: var(--font-monaco);
-    font-size: 16px;
+    font-size: 17px;
     font-weight: bold;
     color: var(--color-terminal-green);
     text-transform: uppercase;
@@ -369,14 +397,14 @@
 .resource-label {
     flex: 1;
     font-family: var(--font-monaco);
-    font-size: 15px;
+    font-size: 16px;
     color: var(--color-terminal-green);
     font-weight: 500;
 }
 
 .resource-value {
     font-family: var(--font-monaco);
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
     font-weight: bold;
 }
@@ -385,16 +413,16 @@
 .crew-columns-mobile {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 6px;
     height: 100%;
 }
 
 .crew-column-mobile {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 255, 65, 0.03);
-    border: 2px solid var(--color-terminal-green-dark);
-    border-radius: 6px;
+    background: rgba(0, 255, 65, 0.02);
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 4px;
     overflow: hidden;
 }
 
@@ -402,10 +430,10 @@
     background: var(--color-terminal-bg-light);
     color: var(--color-terminal-green);
     font-family: var(--font-monaco);
-    font-size: 11px;
-    padding: 10px 8px;
+    font-size: 12px;
+    padding: 8px 6px;
     text-align: center;
-    border-bottom: 2px solid var(--color-terminal-green-dark);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
     letter-spacing: 1px;
     font-weight: bold;
 }
@@ -413,10 +441,10 @@
 .crew-column-content-mobile {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
+    padding: 6px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     min-height: 300px;
 }
 
@@ -428,21 +456,26 @@
 /* Cards de tripulación más compactas en móvil */
 .crew-column-content-mobile .crew-mini-card {
     font-size: 11px;
-    padding: 10px;
+    padding: 6px;
+    margin: 0;
+    border-width: 1px;
 }
 
 .crew-column-content-mobile .crew-card-name {
     font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .crew-column-content-mobile .need-bar-advanced {
-    gap: 6px;
+    gap: 4px;
+    margin-top: 4px;
 }
 
 .crew-column-content-mobile .need-bar-icon-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 15px;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    border-width: 1px;
 }
 
 /* === MAPA MÓVIL === */
