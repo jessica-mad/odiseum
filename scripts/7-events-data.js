@@ -568,281 +568,157 @@ Chen: "NUNCA me despiertes para TUS errores."`,
     {
         id: 'johnson_event_01',
         character: 'Lt. Johnson',
-        icon: '🎯',
-        title: 'El Atajo de Johnson',
+        icon: '📧',
+        title: 'Mamá llamó (Pero es del Pasado)',
         trigger: {
-            minTranche: 2,
+            minTranche: 4,
             maxTranche: 8,
             requiredAlive: ['Lt. Johnson'],
             requiredAwake: ['Lt. Johnson'],
             requiredAsleep: [],
-            resourceMin: { fuel: 200 },
+            resourceMin: {},
             resourceMax: {},
             requiredFlags: [],
-            blockedByFlags: ['johnson_shortcut'],
+            blockedByFlags: ['johnson_message_crisis'],
             probability: 0.5
         },
-        description: `Johnson irrumpe en el puente a las 2 AM con una sonrisa idiota.
+        description: `Johnson tiene un mensaje cuántico sin abrir hace 3 días.
 
-"¡COMANDANTE! Encontré algo increíble."
+"Comandante, es de mi mamá. Fue enviado hace 15 años luz.
+Ella tiene 71 ahora. Probablemente está muerta."
 
-Proyecta un mapa estelar: "Hay una corriente gravitacional justo aquí. Si la usamos, podríamos recortar 5 AÑOS del viaje."
+"Puedo abrirlo y llorar durante 2 semanas como un bebé,
+o borrarlo y fingir que nunca existió."
 
-Silva (medio dormido): "Johnson, son las 2 AM..."
+"¿Sabías que en el espacio no puedes llorar bien?
+Las lágrimas flotan. Es muy estúpido."
 
-Johnson: "¡CINCO AÑOS, capitán! Podría llegar a Nueva Tierra y todavía ser joven. Mis padres... podrían seguir vivos cuando regrese la señal."
-
-Silva mira los cálculos. Son... arriesgados. Muy arriesgados.
-
-Johnson (suplicante): "Tengo 29. No quiero tener 50 cuando lleguemos. Por favor."`,
+"Igual aquí. Tenemos gravedad artificial pero sigo llorando como idiota."`,
 
         optionA: {
-            label: '⚡ Usar el atajo - Velocidad máxima (60% éxito)',
-            requires: {
-                fuel: 150,
-                energy: 100
-            },
-            costs: {
-                fuel: 150,
-                energy: 100
-            },
-            wakeUp: ['Ing. Rodriguez'],
-            result: 'good'
+            label: '📧 Necesito saber si todavía me recuerda. O si ya me olvidó.',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'gamble'
         },
 
         optionB: {
-            label: '🐌 Ruta estándar - Johnson tendrá 50+ al llegar',
+            label: '🗑️ Ignorance is bliss. Además, es historia antigua. Literalmente.',
             requires: {},
-            costs: {
-                data: 30
-            },
+            costs: { entertainment: 30 },
             wakeUp: [],
-            result: 'bad'
+            result: 'repress'
         },
 
         outcomes: {
-            good: {
-                successRate: 0.6,
+            gamble: {
+                successRate: 0.5,
                 success: {
-                    flag: 'johnson_shortcut_hero',
-                    resourceDeltas: {
-                        data: 200,
-                        fuel: 50
-                    },
+                    flag: 'johnson_mother_alive',
+                    resourceDeltas: {},
                     affectedCrew: {
                         'Lt. Johnson': {
                             trauma: null,
-                            emotionalState: 'euphoric_genius',
+                            emotionalState: 'motivated',
                             skillModifier: 1.2,
+                            personalThought: 'Mamá sigue viva. Vale la pena llegar.',
                             relationships: {
-                                'Capitán Silva': 20,
-                                'Ing. Rodriguez': 15,
-                                'Chef Patel': 10,
-                                'Dra. Chen': 5
-                            }
-                        },
-                        'Ing. Rodriguez': {
-                            trauma: null,
-                            emotionalState: 'impressed',
-                            skillModifier: 1.0,
-                            relationships: {
-                                'Lt. Johnson': 15
-                            }
-                        },
-                        'Capitán Silva': {
-                            trauma: null,
-                            emotionalState: 'proud',
-                            skillModifier: 1.0,
-                            relationships: {
-                                'Lt. Johnson': 10
+                                'Capitán Silva': 15,
+                                'Dra. Chen': 10,
+                                'Ing. Rodriguez': 10,
+                                'Chef Patel': 15
                             }
                         },
                         'Chef Patel': {
-                            trauma: null,
-                            emotionalState: 'hopeful',
-                            skillModifier: 1.0,
+                            emotionalState: 'caring',
+                            personalThought: 'Johnson necesita apoyo. Le prepararé algo especial.',
                             relationships: {
                                 'Lt. Johnson': 10
                             }
+                        }
+                    },
+                    narrative: `Mamá (sonriendo): "Hijo, tengo 71. Tu padre murió.
+Pero estoy bien. Te veo en las noticias.
+Llega a salvo. Te amo."
+
+Johnson llora (lágrimas buenas).
+
+✅ Johnson: +20% eficiencia
+✅ +15 relación con TODOS
+Patel le hace su comida favorita.`,
+                    chainEvent: null
+                },
+                failure: {
+                    flag: 'johnson_mother_dead',
+                    resourceDeltas: {},
+                    affectedCrew: {
+                        'Lt. Johnson': {
+                            trauma: 'mother_dead',
+                            emotionalState: 'devastated',
+                            skillModifier: 0.8,
+                            restDelta: -20,
+                            entertainmentDelta: -15,
+                            personalThought: 'Mamá murió sola. Yo elegí las estrellas. Nunca me perdonaré.',
+                            relationships: {
+                                'Capitán Silva': -5
+                            }
                         },
                         'Dra. Chen': {
-                            trauma: null,
-                            emotionalState: 'amazed',
-                            skillModifier: 1.0,
+                            emotionalState: 'concerned',
+                            personalThought: 'Johnson necesita apoyo psicológico. Debo monitorearlo.',
                             relationships: {
                                 'Lt. Johnson': 5
                             }
                         }
                     },
-                    narrative: `Johnson (en los controles): "Entrando a la corriente en 3... 2... 1..."
+                    narrative: `Voz robótica: "María Johnson falleció hace 2 años.
+Mensaje póstumo: 'Quería verte una vez más. Lo siento.'"
 
-[La nave ACELERA]
+Johnson colapsa.
 
-Rodriguez: "¡Velocidad aumentando al 340%!"
-Silva: "Johnson, ¿seguro de esto?"
-Johnson (riendo): "¡CONFÍA EN MÍ, VIEJO!"
-
-[15 minutos de velocidad extrema]
-
-Sistema: "MANIOBRA EXITOSA. TIEMPO DE VIAJE REDUCIDO."
-
-✅ **-5 AÑOS DEL VIAJE TOTAL** (REDUCCIÓN MASIVA)
-✅ +200 Datos científicos (nueva ruta documentada)
-✅ +50 Combustible (eficiencia inesperada)
-✅ Johnson: +20% eficiencia permanente (genio confirmado)
-✅ TODAS las relaciones con Johnson mejoran significativamente
-
-Johnson (llorando de felicidad): "Mamá, papá... voy a llegar a tiempo. Todavía voy a llegar."
-
-Silva (palmada en el hombro): "Buen trabajo, chico."
-
-Chen: "Estadísticamente imposible. Pero lo hiciste."
-
-**Bitácora de Johnson:** "Hoy me convertí en leyenda. Comeré gratis en Nueva Tierra."`,
+⚠️ Johnson: Trauma, -20% eficiencia
+⚠️ -20 Descanso, -15 Entretenimiento
+Silva: "Lo siento, chico."
+Johnson: "Ya no importa llegar..."`,
                     chainEvent: null
-                },
-                failure: {
-                    flag: 'johnson_shortcut_disaster',
-                    resourceDeltas: {
-                        fuel: -300,
-                        energy: -400,
-                        oxygen: -100,
-                        water: -50
-                    },
-                    affectedCrew: {
-                        'Lt. Johnson': {
-                            trauma: 'reckless_guilt',
-                            emotionalState: 'devastated_guilt',
-                            skillModifier: 0.7,
-                            healthDelta: -15,
-                            relationships: {
-                                'Capitán Silva': -25,
-                                'Ing. Rodriguez': -15,
-                                'Dra. Chen': -15,
-                                'Chef Patel': -15
-                            }
-                        },
-                        'Ing. Rodriguez': {
-                            trauma: null,
-                            emotionalState: 'traumatized',
-                            skillModifier: 1.0,
-                            restDelta: -30,
-                            relationships: {
-                                'Lt. Johnson': -15
-                            }
-                        },
-                        'Capitán Silva': {
-                            trauma: null,
-                            emotionalState: 'furious',
-                            skillModifier: 1.0,
-                            relationships: {
-                                'Lt. Johnson': -25
-                            }
-                        },
-                        'Dra. Chen': {
-                            trauma: null,
-                            emotionalState: 'angry_scared',
-                            skillModifier: 1.0,
-                            relationships: {
-                                'Lt. Johnson': -15
-                            }
-                        },
-                        'Chef Patel': {
-                            trauma: null,
-                            emotionalState: 'shaken',
-                            skillModifier: 1.0,
-                            relationships: {
-                                'Lt. Johnson': -15
-                            }
-                        }
-                    },
-                    narrative: `[ALARMAS ROJAS POR TODOS LADOS]
-
-Johnson: "¿Por qué hay tantas alarmas?"
-Rodriguez: "¡PORQUE NOS ESTAMOS MURIENDO!"
-Silva: "¡JOHNSON, SÁCANOS DE AQUÍ!"
-
-[CRASH. EXPLOSIÓN. CAOS.]
-
-Sistema: "DAÑO CRÍTICO. MÚLTIPLES SISTEMAS COMPROMETIDOS."
-
-❌ -300 Combustible (gastado en correcciones de emergencia)
-❌ -400 Energía (sistemas sobrecargados)
-❌ -100 Oxígeno (fuga)
-❌ -50 Agua (sellado)
-⚠️ Johnson: Trauma severo (reckless_guilt), -30% eficiencia
-⚠️ Rodriguez: -30 Descanso (despertado para el apocalipsis)
-❌ TODAS las relaciones con Johnson: -15 mínimo
-❌ Silva específicamente: -25 (casi mata a todos)
-
-Silva (furioso): "¿EN QUÉ DEMONIOS ESTABAS PENSANDO?"
-Johnson (en shock): "Yo... yo solo quería..."
-Chen: "Casi nos matas. A todos."
-Rodriguez: "Me despertaste para ESTO?"
-
-Johnson colapsa en el piso, llorando.
-
-**Bitácora de Johnson:** "Maté a mis amigos. No merezco llegar a Nueva Tierra."
-
-[Johnson desarrolla ansiedad paralizante. Ya no confía en sí mismo.]`,
-                    chainEvent: 'johnson_event_02_redemption'
                 }
             },
-
-            bad: {
-                flag: 'johnson_dream_denied',
-                resourceDeltas: {
-                    data: -30
-                },
+            repress: {
+                flag: 'johnson_message_deleted',
+                resourceDeltas: { entertainment: -30 },
                 affectedCrew: {
                     'Lt. Johnson': {
-                        trauma: 'crushed_dreams',
-                        emotionalState: 'bitter_resentful',
-                        skillModifier: 0.85,
-                        entertainmentDelta: -10,
+                        trauma: 'repressed_grief',
+                        emotionalState: 'distant',
+                        skillModifier: 0.9,
+                        entertainmentDelta: -30,
+                        personalThought: 'No sé si mamá está viva. Prefiero no saberlo. ¿Eso me hace cobarde?',
                         relationships: {
-                            'Capitán Silva': -15,
-                            'Ing. Rodriguez': -5,
-                            'Dra. Chen': -5,
-                            'Chef Patel': -5
+                            'Dra. Chen': -5
+                        }
+                    },
+                    'Dra. Chen': {
+                        emotionalState: 'worried',
+                        personalThought: 'Johnson está reprimiendo algo grave. Esto explotará eventualmente.',
+                        relationships: {
+                            'Lt. Johnson': -5
                         }
                     }
                 },
-                narrative: `Silva mira a Johnson a los ojos.
+                narrative: `Johnson presiona "DELETE".
 
-"No."
+Johnson: "Ya pasó."
+Silva: "¿Seguro?"
+Johnson: "No. Pero es más fácil así."
 
-Johnson: "¿Qué?"
-Silva: "No voy a arriesgar esta misión por tu crisis existencial."
-Johnson: "Pero... capitán... cinco años..."
-Silva: "La respuesta es no. Fin de la discusión."
+Durante semanas actúa normal. Pero está... raro.
 
-Johnson se queda en silencio. Algo se rompe en su mirada.
-
-❌ -30 Datos (tiempo perdido analizando)
-⚠️ Johnson: Trauma (crushed_dreams)
-⚠️ Johnson: -15% eficiencia permanente (amargura)
-⚠️ Johnson: -15 relación con Silva (resentimiento)
-⚠️ Johnson: -5 relación con TODOS (se vuelve antisocial)
-⚠️ Johnson: -10 Entretenimiento (depresión)
-
-Semanas después...
-
-Johnson hace su trabajo. Apenas. Ya no sonríe. Ya no hace chistes.
-
-Chen: "¿Johnson, estás bien?"
-Johnson: "¿Importa?"
-
-Patel: "El chico perdió su chispa."
-Silva: "Hice lo correcto."
-Patel: "¿Sí? Porque lo mataste por dentro."
-
-**Bitácora de Johnson:** "Capitán Silva me recordó que no importo. Solo importa la misión. Llegaré a Nueva Tierra siendo un viejo amargado. Gracias, capitán."
-
-**Consecuencias a largo plazo:**
-- Johnson ya no sugiere ideas
-- Johnson eventualmente intentará algo desesperado...`,
-                chainEvent: 'johnson_event_02_breakdown'
+⚠️ -30 Entretenimiento
+⚠️ Johnson: -10% eficiencia
+⚠️ Breakdown garantizado en 2-3 tramos
+Chen: "Reprimir trauma nunca funciona."`,
+                chainEvent: null
             }
         }
     },
