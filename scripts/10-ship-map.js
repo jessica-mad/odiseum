@@ -38,15 +38,36 @@ class ShipMapSystem {
         this.rows = 25;
         this.cols = 25;
 
-        // Zonas y sus tiles principales
+        // Zonas y sus tiles principales (con sistema de averías)
         this.zones = {
-            bridge: { name: 'Control', icon: '🎮', tiles: this.findTiles('C'), color: '#00ff41' },
-            medbay: { name: 'Enfermería', icon: '🏥', tiles: this.findTiles('E'), color: '#ff4444' },
-            engineering: { name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('G'), color: '#ffaa00' },
-            kitchen: { name: 'Cocina', icon: '🍳', tiles: this.findTiles('K'), color: '#ff8844' },
-            greenhouse: { name: 'Invernadero', icon: '🌱', tiles: this.findTiles('N'), color: '#44ff44' },
-            capsules: { name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('D'), color: '#4488ff' },
-            cargo: { name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888' }
+            bridge: {
+                name: 'Control', icon: '🎮', tiles: this.findTiles('C'), color: '#00ff41',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false
+            },
+            medbay: {
+                name: 'Enfermería', icon: '🏥', tiles: this.findTiles('E'), color: '#ff4444',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.7, isBroken: false
+            },
+            engineering: {
+                name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('G'), color: '#ffaa00',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false
+            },
+            kitchen: {
+                name: 'Cocina', icon: '🍳', tiles: this.findTiles('K'), color: '#ff8844',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false
+            },
+            greenhouse: {
+                name: 'Invernadero', icon: '🌱', tiles: this.findTiles('N'), color: '#44ff44',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false
+            },
+            capsules: {
+                name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('D'), color: '#4488ff',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false
+            },
+            cargo: {
+                name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.2, isBroken: false
+            }
         };
 
         this.crewLocations = {};
@@ -61,6 +82,9 @@ class ShipMapSystem {
         };
 
         this.isVisible = false; // Mapa oculto por defecto
+        this.zoomLevel = 1; // 1 = 100%, 0.5 = 50%, 2 = 200%
+        this.minZoom = 0.5;
+        this.maxZoom = 3;
     }
 
     findTiles(type) {
@@ -105,15 +129,77 @@ class ShipMapSystem {
         if (!mapContainer) return;
 
         mapContainer.innerHTML = `
-            <div class="ship-map-wrapper">
-                <div class="ship-map-grid" id="ship-map-grid">
-                    ${this.generateGridHTML()}
-                </div>
-                <div class="ship-map-crew-overlay" id="ship-map-crew-overlay">
-                    <!-- Los tripulantes se renderizan aquí -->
+            <div class="ship-map-zoom-controls">
+                <button class="zoom-btn" id="zoom-in-btn" title="Acercar (Zoom In)">
+                    <span class="zoom-icon">+</span>
+                </button>
+                <button class="zoom-btn" id="zoom-reset-btn" title="Restablecer Zoom">
+                    <span class="zoom-icon">⊙</span>
+                </button>
+                <button class="zoom-btn" id="zoom-out-btn" title="Alejar (Zoom Out)">
+                    <span class="zoom-icon">−</span>
+                </button>
+            </div>
+            <div class="ship-map-zoom-wrapper" id="ship-map-zoom-wrapper">
+                <div class="ship-map-wrapper" id="ship-map-wrapper-inner">
+                    <div class="ship-map-grid" id="ship-map-grid">
+                        ${this.generateGridHTML()}
+                    </div>
+                    <div class="ship-map-crew-overlay" id="ship-map-crew-overlay">
+                        <!-- Los tripulantes se renderizan aquí -->
+                    </div>
                 </div>
             </div>
         `;
+
+        // Setup zoom controls
+        this.setupZoomControls();
+    }
+
+    setupZoomControls() {
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        const zoomResetBtn = document.getElementById('zoom-reset-btn');
+
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener('click', () => this.zoomIn());
+        }
+
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener('click', () => this.zoomOut());
+        }
+
+        if (zoomResetBtn) {
+            zoomResetBtn.addEventListener('click', () => this.resetZoom());
+        }
+    }
+
+    zoomIn() {
+        if (this.zoomLevel < this.maxZoom) {
+            this.zoomLevel += 0.25;
+            this.applyZoom();
+        }
+    }
+
+    zoomOut() {
+        if (this.zoomLevel > this.minZoom) {
+            this.zoomLevel -= 0.25;
+            this.applyZoom();
+        }
+    }
+
+    resetZoom() {
+        this.zoomLevel = 1;
+        this.applyZoom();
+    }
+
+    applyZoom() {
+        const wrapper = document.getElementById('ship-map-wrapper-inner');
+        if (wrapper) {
+            wrapper.style.transform = `scale(${this.zoomLevel})`;
+            wrapper.style.transformOrigin = 'center center';
+            console.log(`🔍 Zoom aplicado: ${(this.zoomLevel * 100).toFixed(0)}%`);
+        }
     }
 
     generateGridHTML() {
@@ -299,13 +385,39 @@ class ShipMapSystem {
         return 'capsules';
     }
 
-    getRandomTileInZone(zone) {
+    /**
+     * Verifica si una celda está ocupada por otro tripulante
+     */
+    isCellOccupied(row, col, excludeCrewId = null) {
+        for (const [crewId, position] of Object.entries(this.crewLocations)) {
+            if (excludeCrewId && crewId == excludeCrewId) continue;
+            if (position.row === row && position.col === col) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Obtiene una celda aleatoria libre en una zona (sin colisiones)
+     */
+    getRandomTileInZone(zone, excludeCrewId = null) {
         if (!this.zones[zone] || !this.zones[zone].tiles.length) {
             return { row: 6, col: 9 };
         }
 
         const tiles = this.zones[zone].tiles;
-        return tiles[Math.floor(Math.random() * tiles.length)];
+        const availableTiles = tiles.filter(tile =>
+            !this.isCellOccupied(tile.row, tile.col, excludeCrewId)
+        );
+
+        // Si no hay tiles disponibles, devolver uno aleatorio (fallback)
+        if (availableTiles.length === 0) {
+            console.warn(`⚠️ Zona ${zone} llena, usando tile aleatorio`);
+            return tiles[Math.floor(Math.random() * tiles.length)];
+        }
+
+        return availableTiles[Math.floor(Math.random() * availableTiles.length)];
     }
 
     findPath(start, end) {
@@ -367,7 +479,7 @@ class ShipMapSystem {
 
             if (currentTarget !== targetZone) {
                 this.crewTargets[crew.id] = targetZone;
-                const targetPos = this.getRandomTileInZone(targetZone);
+                const targetPos = this.getRandomTileInZone(targetZone, crew.id);
 
                 if (!currentPos) {
                     this.crewLocations[crew.id] = targetPos;
@@ -464,11 +576,151 @@ class ShipMapSystem {
         marker.title = `${crew.name} - ${crew.position}`;
     }
 
+    /**
+     * Sistema de averías - Degrada las zonas basándose en el uso
+     */
+    degradeZones() {
+        // Contar tripulantes activos por zona
+        const crewCountByZone = {};
+
+        crewMembers.forEach(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto') return;
+
+            const position = this.crewLocations[crew.id];
+            if (!position) return;
+
+            const cellType = this.grid[position.row]?.[position.col];
+            const zoneName = this.getCellTypeToZoneName(cellType);
+
+            if (zoneName) {
+                crewCountByZone[zoneName] = (crewCountByZone[zoneName] || 0) + 1;
+            }
+        });
+
+        // Degradar cada zona según el número de tripulantes
+        Object.keys(this.zones).forEach(zoneKey => {
+            const zone = this.zones[zoneKey];
+            const crewCount = crewCountByZone[zoneKey] || 0;
+
+            if (!zone.isBroken) {
+                // Degradación base + degradación por uso
+                const degradation = zone.degradationRate * (1 + crewCount * 0.3);
+                zone.integrity = Math.max(0, zone.integrity - degradation);
+
+                // Marcar como averiada si llega a 0
+                if (zone.integrity <= 0) {
+                    zone.isBroken = true;
+                    console.warn(`💥 ¡${zone.name} se ha averiado!`);
+                    if (typeof Notification !== 'undefined') {
+                        new Notification(`¡${zone.name} averiada! Necesita reparación`, 'ALERT');
+                    }
+                    this.markZoneAsBroken(zoneKey);
+                }
+            }
+        });
+    }
+
+    /**
+     * Convierte tipo de celda a nombre de zona para el sistema de averías
+     */
+    getCellTypeToZoneName(cellType) {
+        const mapping = {
+            'C': 'bridge',
+            'E': 'medbay',
+            'G': 'engineering',
+            'K': 'kitchen',
+            'N': 'greenhouse',
+            'D': 'capsules',
+            'B': 'cargo'
+        };
+        return mapping[cellType];
+    }
+
+    /**
+     * Marca visualmente una zona como averiada
+     */
+    markZoneAsBroken(zoneKey) {
+        const zone = this.zones[zoneKey];
+        if (!zone) return;
+
+        zone.tiles.forEach(tile => {
+            const cell = document.querySelector(
+                `.grid-cell[data-row="${tile.row}"][data-col="${tile.col}"]`
+            );
+            if (cell) {
+                cell.classList.add('cell-broken');
+            }
+        });
+    }
+
+    /**
+     * Repara una zona cuando el ingeniero pasa por ella
+     */
+    repairZone(zoneKey) {
+        const zone = this.zones[zoneKey];
+        if (!zone || !zone.isBroken) return false;
+
+        // Requiere que el ingeniero esté en la zona
+        const engineer = crewMembers.find(c =>
+            c.position && c.position.includes('Ingenier') && c.isAlive
+        );
+
+        if (!engineer) return false;
+
+        const engineerPos = this.crewLocations[engineer.id];
+        if (!engineerPos) return false;
+
+        const cellType = this.grid[engineerPos.row]?.[engineerPos.col];
+        const engineerZone = this.getCellTypeToZoneName(cellType);
+
+        if (engineerZone === zoneKey) {
+            // Reparar
+            zone.integrity = zone.maxIntegrity;
+            zone.isBroken = false;
+
+            // Quitar marcas visuales
+            zone.tiles.forEach(tile => {
+                const cell = document.querySelector(
+                    `.grid-cell[data-row="${tile.row}"][data-col="${tile.col}"]`
+                );
+                if (cell) {
+                    cell.classList.remove('cell-broken');
+                }
+            });
+
+            console.log(`🔧 ${engineer.name} ha reparado ${zone.name}`);
+            if (typeof Notification !== 'undefined') {
+                new Notification(`${engineer.name} reparó ${zone.name}`, 'INFO');
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica y repara zonas automáticamente si el ingeniero está en ellas
+     */
+    checkAndRepairZones() {
+        Object.keys(this.zones).forEach(zoneKey => {
+            if (this.zones[zoneKey].isBroken) {
+                this.repairZone(zoneKey);
+            }
+        });
+    }
+
     startAutoUpdate() {
         // Actualizar posiciones cada 5 segundos
         setInterval(() => {
             this.updateCrewLocations();
+            this.checkAndRepairZones(); // Verificar y reparar zonas
         }, 5000);
+
+        // Degradar zonas cada 10 segundos
+        setInterval(() => {
+            this.degradeZones();
+        }, 10000);
 
         // También actualizar cada vez que cambie algo relevante
         if (typeof addEventListener === 'function') {
@@ -479,6 +731,7 @@ class ShipMapSystem {
         }
 
         console.log('✅ Auto-actualización del mapa iniciada (cada 5 segundos)');
+        console.log('⚙️ Sistema de averías activado (degradación cada 10 segundos)');
     }
 }
 

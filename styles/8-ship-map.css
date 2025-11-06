@@ -106,20 +106,77 @@
     position: relative;
 }
 
+/* === CONTROLES DE ZOOM === */
+.ship-map-zoom-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 20;
+}
+
+.zoom-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green);
+    color: var(--color-terminal-green);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-monaco);
+    font-size: 20px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+}
+
+.zoom-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+    transform: scale(1.1);
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-icon {
+    line-height: 1;
+    user-select: none;
+}
+
+/* === WRAPPER CON ZOOM === */
+.ship-map-zoom-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
 /* === WRAPPER DEL MAPA === */
 .ship-map-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
+    transition: transform 0.3s ease;
+    will-change: transform;
 }
 
 /* === OVERLAY DE TRIPULANTES === */
 .ship-map-crew-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 4px;  /* Mismo padding que grid */
+    left: 4px; /* Mismo padding que grid */
+    right: 4px;
+    bottom: 4px;
     pointer-events: none;
     z-index: 10;
 }
@@ -246,6 +303,40 @@
 
 .grid-cell:hover .cell-label {
     opacity: 0.7;
+}
+
+/* === CELDAS AVERIADAS === */
+.cell-broken {
+    background: radial-gradient(circle,
+        rgba(255, 0, 0, 0.4) 0%,
+        rgba(255, 0, 0, 0.2) 100%) !important;
+    border-color: rgba(255, 0, 0, 0.8) !important;
+    box-shadow: inset 0 0 12px rgba(255, 0, 0, 0.6),
+                0 0 15px rgba(255, 0, 0, 0.4) !important;
+    animation: pulse-broken 2s ease-in-out infinite;
+}
+
+@keyframes pulse-broken {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: inset 0 0 12px rgba(255, 0, 0, 0.6),
+                    0 0 15px rgba(255, 0, 0, 0.4);
+    }
+    50% {
+        opacity: 0.7;
+        box-shadow: inset 0 0 16px rgba(255, 0, 0, 0.8),
+                    0 0 20px rgba(255, 0, 0, 0.6);
+    }
+}
+
+.cell-broken .cell-label {
+    text-shadow: 0 0 8px rgba(255, 0, 0, 1);
+    animation: flicker-broken 1.5s ease-in-out infinite;
+}
+
+@keyframes flicker-broken {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 /* === MARCADORES DE TRIPULANTES EN OVERLAY === */
