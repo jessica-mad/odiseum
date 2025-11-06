@@ -855,5 +855,602 @@ Johnson: "Prefiero morir de hambre."
                 chainEvent: null
             }
         }
+    },
+
+    // EVENTO PATEL 02: GORDON RAMSAY A LAS 3 AM
+    {
+        id: 'patel_event_02',
+        character: 'Chef Patel',
+        icon: '🍕',
+        title: 'Gordon Ramsay a las 3 AM',
+        trigger: {
+            minTranche: 2,
+            maxTranche: 8,
+            requiredAlive: ['Chef Patel'],
+            requiredAwake: [],
+            requiredAsleep: ['Chef Patel'],
+            resourceMin: { food: 50 },
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['patel_woken_by_hungry_crew'],
+            probability: 0.4
+        },
+        description: `3:47 AM. Johnson irrumpe en la cápsula de Patel y lo zarandea.
+
+Johnson está harto de comer proteína sintética que "sabe a cartón mojado con esperanzas rotas". Silva lo respalda por radio.
+
+Patel mira el reloj. Dos opciones: mandarlos al carajo y dormir 4 horas más, o levantarse y cocinar como un chef Michelin en pijama.
+
+"¿Me despertaste... por HAMBRE?"`,
+
+        optionA: {
+            label: '😴 "Váyanse al carajo. Coman cartón." (Sigue durmiendo)',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'sleep'
+        },
+
+        optionB: {
+            label: '👨‍🍳 "Está bien, pendejos. Menú 5 estrellas a las 4 AM."',
+            requires: { food: 30, water: 10 },
+            costs: { food: 30, water: 10, energy: 20 },
+            wakeUp: ['Chef Patel'],
+            result: 'cook'
+        },
+
+        outcomes: {
+            sleep: {
+                flag: 'patel_refused_to_cook',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Chef Patel': {
+                        trauma: null,
+                        emotionalState: 'well_rested',
+                        skillModifier: 1.0,
+                        restDelta: 20,
+                        personalThought: 'Dormí bien. Que se jodan los hambrientos. Mis necesidades también importan.',
+                        relationships: {
+                            'Lt. Johnson': -15,
+                            'Capitán Silva': -10
+                        }
+                    },
+                    'Lt. Johnson': {
+                        trauma: null,
+                        emotionalState: 'hangry',
+                        skillModifier: 0.9,
+                        entertainmentDelta: -15,
+                        personalThought: 'Patel es un egoísta. Cuando tenga hambre real, no le ayudaré.',
+                        relationships: {
+                            'Chef Patel': -15
+                        }
+                    },
+                    'Capitán Silva': {
+                        trauma: null,
+                        emotionalState: 'disappointed',
+                        skillModifier: 0.95,
+                        entertainmentDelta: -10,
+                        personalThought: 'Patel puso su comodidad sobre el equipo. Decepcionante.',
+                        relationships: {
+                            'Chef Patel': -10
+                        }
+                    }
+                },
+                narrative: `Patel responde "No" y vuelve a dormir.
+
+Johnson y Silva se quedan mirando la puerta cerrada mientras comen cartón.
+
+✅ Patel: +20 Descanso (durmió como bebé)
+❌ Johnson: -15 Entretenimiento, -10% eficiencia (HANGRY)
+❌ Silva: -10 Entretenimiento
+⚠️ Relaciones: Johnson -15, Silva -10
+
+Johnson promete recordar esto "cuando Patel necesite algo de mí".`,
+                chainEvent: null
+            },
+            cook: {
+                flag: 'patel_midnight_chef',
+                resourceDeltas: { food: -30, water: -10, energy: -20 },
+                affectedCrew: {
+                    'Chef Patel': {
+                        trauma: null,
+                        emotionalState: 'tired_but_proud',
+                        skillModifier: 1.1,
+                        restDelta: -20,
+                        personalThought: 'Cociné a las 4 AM en pijama. Mis nietos dirán: "Abuela era una santa."',
+                        relationships: {
+                            'Lt. Johnson': 20,
+                            'Capitán Silva': 15,
+                            'Dra. Chen': 10,
+                            'Ing. Rodriguez': 10
+                        }
+                    },
+                    'Lt. Johnson': {
+                        trauma: null,
+                        emotionalState: 'grateful_and_full',
+                        skillModifier: 1.1,
+                        entertainmentDelta: 25,
+                        personalThought: 'Patel es un santo. Le debo mi vida. O al menos mi felicidad.',
+                        relationships: {
+                            'Chef Patel': 20
+                        }
+                    },
+                    'Capitán Silva': {
+                        trauma: null,
+                        emotionalState: 'satisfied',
+                        skillModifier: 1.05,
+                        entertainmentDelta: 20,
+                        personalThought: 'Patel sacrificó su descanso por nosotros. Buen tripulante.',
+                        relationships: {
+                            'Chef Patel': 15
+                        }
+                    },
+                    'Dra. Chen': {
+                        trauma: null,
+                        emotionalState: 'impressed',
+                        skillModifier: 1.0,
+                        entertainmentDelta: 15,
+                        personalThought: 'El aroma me despertó. Valió la pena.',
+                        relationships: {
+                            'Chef Patel': 10
+                        }
+                    },
+                    'Ing. Rodriguez': {
+                        trauma: null,
+                        emotionalState: 'happy',
+                        skillModifier: 1.0,
+                        entertainmentDelta: 15,
+                        personalThought: 'Patel cocina mejor que Marco. Y no me juzga.',
+                        relationships: {
+                            'Chef Patel': 10
+                        }
+                    }
+                },
+                narrative: `2 horas después, Patel sirve risotto de hongos deshidratados con trufa sintética.
+
+Johnson llora. Silva admite que no había comido así desde la Tierra. El aroma despierta a Chen y Rodriguez, que se unen a la mesa.
+
+✅ Patel: +10% eficiencia, -20 Descanso
+✅ TODOS: +15-25 Entretenimiento
+✅ Relaciones: +10-20 con todos
+
+"Patel, eres un héroe."
+"Cállate y come."`,
+                chainEvent: null
+            }
+        }
+    },
+
+    // EVENTO PATEL 03: YOUSPACETUBE COOKING FAIL
+    {
+        id: 'patel_event_03',
+        character: 'Chef Patel',
+        icon: '📺',
+        title: 'YouSpaceTube Cooking Fail',
+        trigger: {
+            minTranche: 3,
+            maxTranche: 9,
+            requiredAlive: ['Chef Patel'],
+            requiredAwake: ['Chef Patel'],
+            requiredAsleep: [],
+            resourceMin: { food: 80, data: 30 },
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['patel_youtube_disaster'],
+            probability: 0.35
+        },
+        description: `Patel entra con una tablet y una sonrisa sospechosa.
+
+Ha estado viendo YouSpaceTube. Encontró una receta de "Sushi Espacial Fermentado con Algas Criogénicas" con 2 millones de views.
+
+Chen menciona "muchas razones médicas" por las que es mala idea. Rodriguez pregunta la probabilidad de intoxicación.
+
+Patel responde: "Sí."`,
+
+        optionA: {
+            label: '🍣 "YOLO culinario. Somos exploradores o cobardes."',
+            requires: { food: 50, data: 30 },
+            costs: { food: 50, data: 30 },
+            wakeUp: [],
+            result: 'experiment'
+        },
+
+        optionB: {
+            label: '😐 "Mejor no. Sigo con mi menú aburrido pero seguro."',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'boring'
+        },
+
+        outcomes: {
+            experiment: {
+                successRate: 0.45,
+                success: {
+                    flag: 'patel_youtube_success',
+                    resourceDeltas: { data: 50 },
+                    affectedCrew: {
+                        'Chef Patel': {
+                            trauma: null,
+                            emotionalState: 'culinary_genius',
+                            skillModifier: 1.15,
+                            personalThought: 'YouSpaceTube me enseñó más que 20 años de cocina tradicional. El futuro es ahora.',
+                            relationships: {
+                                'Lt. Johnson': 15,
+                                'Capitán Silva': 10,
+                                'Dra. Chen': 10,
+                                'Ing. Rodriguez': 15
+                            }
+                        },
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'mind_blown',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 20,
+                            personalThought: 'Patel acaba de reinventar la comida espacial. Genio.',
+                            relationships: { 'Chef Patel': 15 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'impressed',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 15,
+                            personalThought: 'Arriesgó y ganó. Respeto.',
+                            relationships: { 'Chef Patel': 10 }
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'surprised',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 15,
+                            personalThought: 'Estadísticamente no debería haber funcionado. Pero funcionó.',
+                            relationships: { 'Chef Patel': 10 }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'delighted',
+                            skillModifier: 1.0,
+                            entertainmentDelta: 20,
+                            personalThought: 'Esto sabe mejor que cualquier cosa que Marco cocinaba.',
+                            relationships: { 'Chef Patel': 15 }
+                        }
+                    },
+                    narrative: `Patel sirve unos rolls verdes brillantes. Johnson pregunta si es comestible.
+
+Todos prueban. Silencio. Luego explosión de elogios.
+
+Chen admite que "no tiene sentido médico, pero está delicioso".
+
+✅ Patel: +15% eficiencia
+✅ TODOS: +15-20 Entretenimiento
+✅ +50 Datos científicos
+✅ Relaciones: +10-15 con todos
+
+"YouSpaceTube, bebé."`,
+                    chainEvent: null
+                },
+                failure: {
+                    flag: 'patel_youtube_disaster',
+                    resourceDeltas: { medicine: -30, water: -20 },
+                    affectedCrew: {
+                        'Chef Patel': {
+                            trauma: 'culinary_shame',
+                            emotionalState: 'humiliated',
+                            skillModifier: 0.85,
+                            personalThought: 'Enveneé a todos. YouSpaceTube me mintió. Nunca confiaré en internet otra vez.',
+                            relationships: {
+                                'Lt. Johnson': -10,
+                                'Capitán Silva': -10,
+                                'Dra. Chen': -15,
+                                'Ing. Rodriguez': -10
+                            }
+                        },
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'sick',
+                            skillModifier: 0.85,
+                            healthDelta: -15,
+                            wasteDelta: 40,
+                            personalThought: 'Patel casi me mata. No volveré a confiar en su "experimentación".',
+                            relationships: { 'Chef Patel': -10 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'sick',
+                            skillModifier: 0.85,
+                            healthDelta: -15,
+                            wasteDelta: 40,
+                            personalThought: 'Patel envenenó a toda la tripulación. Inaceptable.',
+                            relationships: { 'Chef Patel': -10 }
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'furious_and_sick',
+                            skillModifier: 0.8,
+                            healthDelta: -20,
+                            wasteDelta: 50,
+                            personalThought: 'Le DIJE que era mala idea. Ahora tengo intoxicación alimentaria. Idiota.',
+                            relationships: { 'Chef Patel': -15 }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'sick',
+                            skillModifier: 0.85,
+                            healthDelta: -15,
+                            wasteDelta: 40,
+                            personalThought: 'Marco cocinaba mal, pero al menos no me envenenaba.',
+                            relationships: { 'Chef Patel': -10 }
+                        }
+                    },
+                    narrative: `10 minutos después todos corren a los baños. Caos gastrointestinal masivo.
+
+Chen grita desde el baño que le había advertido.
+
+❌ TODOS: -15-20 Salud, +40-50 Higiene crítica
+❌ -30 Medicina, -20 Agua
+⚠️ Patel: Trauma, -15% eficiencia
+⚠️ Relaciones: -10-15 con todos
+
+"Nunca. Más. YouSpaceTube."`,
+                    chainEvent: null
+                }
+            },
+            boring: {
+                flag: 'patel_played_safe_again',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Chef Patel': {
+                        trauma: null,
+                        emotionalState: 'boring',
+                        skillModifier: 0.95,
+                        personalThought: 'Jugué seguro otra vez. Mis nietos preguntarán: "¿Por qué eras tan aburrida, abuela?"',
+                        relationships: {}
+                    },
+                    'Lt. Johnson': {
+                        trauma: null,
+                        emotionalState: 'disappointed',
+                        skillModifier: 1.0,
+                        entertainmentDelta: -5,
+                        personalThought: 'Patel le tiene miedo al riesgo. Aburrido.',
+                        relationships: { 'Chef Patel': -5 }
+                    }
+                },
+                narrative: `Patel guarda la tablet y sirve menú normal.
+
+Intercambio entre Johnson y Patel:
+"Cobarde."
+"Vivo."
+"Aburrido."
+"Con intestinos funcionales."
+
+✅ Nadie se intoxicó
+⚠️ Patel: -5% eficiencia
+⚠️ Johnson: -5 Entretenimiento, -5 relación
+
+Chen aprueba la decisión. Patel se pregunta por qué se siente como un fracaso.`,
+                chainEvent: null
+            }
+        }
+    },
+
+    // EVENTO PATEL 04: SPACE TRUFFLE O DEATH FUNGUS
+    {
+        id: 'patel_event_04',
+        character: 'Chef Patel',
+        icon: '👽',
+        title: 'Space Truffle o Death Fungus',
+        trigger: {
+            minTranche: 4,
+            maxTranche: 9,
+            requiredAlive: ['Chef Patel'],
+            requiredAwake: ['Chef Patel'],
+            requiredAsleep: [],
+            resourceMin: {},
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['patel_alien_food'],
+            probability: 0.3
+        },
+        description: `Patel trae un contenedor sellado con algo que encontraron flotando cerca de la nave.
+
+Huele a trufa, queso añejo, o quizás a "sueños". Chen lo escanea: orgánico, origen desconocido, posiblemente tóxico.
+
+Rodriguez pregunta probabilidad de muerte. Chen responde "alta". Patel pregunta probabilidad de sabor increíble.
+
+"...También alta."`,
+
+        optionA: {
+            label: '👨‍🍳 "Vine a explorar. COCÍNALO." (Riesgo: muerte)',
+            requires: {},
+            costs: { energy: 20 },
+            wakeUp: [],
+            result: 'cook_alien'
+        },
+
+        optionB: {
+            label: '🚮 "Al espacio. No vale la pena morir por comida."',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'trash_it'
+        },
+
+        outcomes: {
+            cook_alien: {
+                successRate: 0.55,
+                success: {
+                    flag: 'patel_alien_delicacy',
+                    resourceDeltas: { food: 150, data: 100 },
+                    affectedCrew: {
+                        'Chef Patel': {
+                            trauma: null,
+                            emotionalState: 'legendary_chef',
+                            skillModifier: 1.2,
+                            personalThought: 'Cociné comida alienígena. Soy el primer chef interestelar. MIS NIETOS ESCRIBIRÁN LIBROS SOBRE MÍ.',
+                            relationships: {
+                                'Lt. Johnson': 20,
+                                'Capitán Silva': 15,
+                                'Dra. Chen': 15,
+                                'Ing. Rodriguez': 20
+                            }
+                        },
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'transcendent',
+                            skillModifier: 1.1,
+                            entertainmentDelta: 30,
+                            personalThought: 'Acabo de probar el universo. Patel es un dios.',
+                            relationships: { 'Chef Patel': 20 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'mind_blown',
+                            skillModifier: 1.05,
+                            entertainmentDelta: 25,
+                            personalThought: 'Este sabor... Elena, ojalá estuvieras aquí para probarlo.',
+                            relationships: { 'Chef Patel': 15 }
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'scientifically_amazed',
+                            skillModifier: 1.05,
+                            entertainmentDelta: 25,
+                            personalThought: 'Esto desafía toda mi comprensión de bioquímica. Fascinante.',
+                            relationships: { 'Chef Patel': 15 }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'euphoric',
+                            skillModifier: 1.1,
+                            entertainmentDelta: 30,
+                            personalThought: 'Esto sabe a... ¿felicidad? ¿Existe la felicidad en forma de sabor?',
+                            relationships: { 'Chef Patel': 20 }
+                        }
+                    },
+                    narrative: `El aroma del organismo cocinándose llena toda la nave.
+
+Silencio total mientras todos prueban. Johnson llora. Silva describe el sabor como "el universo en un plato". Chen admite que es "imposible pero real".
+
+✅ +150 Alimentos (se multiplicó al cocinarlo)
+✅ +100 Datos científicos (DESCUBRIMIENTO HISTÓRICO)
+✅ Patel: +20% eficiencia PERMANENTE
+✅ TODOS: +25-30 Entretenimiento
+✅ Relaciones: +15-20 con todos
+
+"Patel, acabas de cambiar la gastronomía espacial para siempre."`,
+                    chainEvent: null
+                },
+                failure: {
+                    flag: 'patel_alien_poison',
+                    resourceDeltas: { medicine: -50, water: -40 },
+                    affectedCrew: {
+                        'Chef Patel': {
+                            trauma: 'poisoner',
+                            emotionalState: 'devastated',
+                            skillModifier: 0.7,
+                            healthDelta: -25,
+                            personalThought: 'Enveneé a todos con comida alien. Soy el peor chef de la historia humana. Mis nietos me repudiarán.',
+                            relationships: {
+                                'Lt. Johnson': -20,
+                                'Capitán Silva': -15,
+                                'Dra. Chen': -20,
+                                'Ing. Rodriguez': -15
+                            }
+                        },
+                        'Lt. Johnson': {
+                            trauma: 'alien_poisoning',
+                            emotionalState: 'dying',
+                            skillModifier: 0.7,
+                            healthDelta: -30,
+                            wasteDelta: 60,
+                            personalThought: 'Estoy muriendo. Patel me mató. Con comida alien. Qué muerte más estúpida.',
+                            relationships: { 'Chef Patel': -20 }
+                        },
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'critically_ill',
+                            skillModifier: 0.75,
+                            healthDelta: -25,
+                            wasteDelta: 50,
+                            personalThought: 'Patel casi mata a toda la tripulación. Inaceptable.',
+                            relationships: { 'Chef Patel': -15 }
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'furious_medic',
+                            skillModifier: 0.8,
+                            healthDelta: -20,
+                            wasteDelta: 50,
+                            personalThought: 'LE DIJE QUE ERA TÓXICO. NADIE ESCUCHA A LA DOCTORA.',
+                            relationships: { 'Chef Patel': -20 }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'sick_and_angry',
+                            skillModifier: 0.75,
+                            healthDelta: -25,
+                            wasteDelta: 55,
+                            personalThought: 'Marco me dejó, pero al menos nunca me envenenó con aliens.',
+                            relationships: { 'Chef Patel': -15 }
+                        }
+                    },
+                    narrative: `5 minutos después del primer bocado, Silva vomita. Caos absoluto.
+
+Chen grita que es tóxico mientras trata a todos. Johnson delira: "Veo colores que no existen... ¿es esto la muerte?"
+
+❌ TODOS: -20-30 Salud (envenenamiento severo)
+❌ TODOS: +50-60 Higiene crítica
+❌ -50 Medicina, -40 Agua
+⚠️ Patel: Trauma severo, -30% eficiencia
+⚠️ Relaciones: -15-20 con todos
+⚠️ Johnson: Trauma "alien_poisoning"
+
+Patel llora en posición fetal repitiendo "lo siento".`,
+                    chainEvent: null
+                }
+            },
+            trash_it: {
+                flag: 'patel_missed_discovery',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Chef Patel': {
+                        trauma: null,
+                        emotionalState: 'regretful',
+                        skillModifier: 0.95,
+                        personalThought: '¿Y si era el descubrimiento culinario del siglo? Nunca lo sabré. Cobarde.',
+                        relationships: {}
+                    },
+                    'Dra. Chen': {
+                        trauma: null,
+                        emotionalState: 'relieved',
+                        skillModifier: 1.0,
+                        personalThought: 'Gracias a Dios alguien escuchó a la doctora por una vez.',
+                        relationships: { 'Chef Patel': 5 }
+                    },
+                    'Lt. Johnson': {
+                        trauma: null,
+                        emotionalState: 'disappointed',
+                        skillModifier: 1.0,
+                        entertainmentDelta: -10,
+                        personalThought: 'Patel eligió seguridad sobre aventura. Aburrido.',
+                        relationships: { 'Chef Patel': -10 }
+                    }
+                },
+                narrative: `Patel tira el organismo al espacio y lo mira alejarse por la ventana.
+
+Chen aprueba. Johnson lo llama cobarde. Rodriguez menciona "intestinos funcionales".
+
+✅ Nadie murió
+⚠️ Patel: -5% eficiencia (remordimiento)
+⚠️ Chen: +5 relación
+⚠️ Johnson: -10 relación
+❌ Oportunidad perdida para siempre
+
+Esa noche Patel no puede dormir. ¿Y si era el descubrimiento del siglo? ¿Y si sus nietos preguntan por qué fue tan cobarde?
+
+Nunca lo sabrá.`,
+                chainEvent: null
+            }
+        }
     }
 ];
