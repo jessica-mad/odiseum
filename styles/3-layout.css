@@ -257,19 +257,339 @@
     text-transform: uppercase;
 }
 
-/* === PANEL LATERAL DE TRIPULACIÓN === */
-.crew-sidebar {
+/* === PANELES DESPLEGABLES - PAPERS PLEASE STYLE === */
+
+/* Panel Izquierdo (Mapa) */
+.panel-left {
+    position: fixed;
+    left: 0;
+    top: calc(var(--title-bar-height) + var(--resource-strip-height, 40px));
+    bottom: 0;
+    width: 320px;
+    background: var(--color-terminal-bg);
+    border-right: 3px solid var(--color-terminal-green);
+    box-shadow: 4px 0 20px rgba(0, 255, 65, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-sidebar);
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+}
+
+.panel-left.open {
+    transform: translateX(0);
+}
+
+/* Panel Derecho (Tripulación) - MÁS ANCHO para 2 columnas */
+.panel-right {
     position: fixed;
     right: 0;
-    top: calc(var(--title-bar-height) + var(--details-bar-height));
-    bottom: 0; /* 100% altura */
-    width: var(--crew-sidebar-width);
+    top: calc(var(--title-bar-height) + var(--resource-strip-height, 40px));
+    bottom: 0;
+    width: 480px;
     background: var(--color-terminal-bg);
     border-left: 3px solid var(--color-terminal-green);
     box-shadow: -4px 0 20px rgba(0, 255, 65, 0.2);
     display: flex;
     flex-direction: column;
     z-index: var(--z-sidebar);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+}
+
+.panel-right.open {
+    transform: translateX(0);
+}
+
+/* Panel Inferior (Control) - Usa voyage-visualizer */
+.panel-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-terminal-bg);
+    border-top: 3px solid var(--color-terminal-green);
+    box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-sidebar);
+    transform: translateY(100%);
+    transition: transform var(--transition-normal);
+    overflow: visible;
+}
+
+.panel-bottom.open {
+    transform: translateY(0);
+}
+
+/* Tabs Verticales (Pegados al panel como viñetas) */
+.panel-tab-vertical {
+    position: fixed;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    padding: 12px 8px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    letter-spacing: 3px;
+    cursor: pointer;
+    z-index: calc(var(--z-sidebar) - 1);
+    transition: all var(--transition-normal);
+    user-select: none;
+}
+
+.panel-tab-vertical:hover {
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.panel-tab-vertical.active {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+/* Tab Izquierdo (Pegado al panel de mapa) */
+.panel-tab-left {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(0);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    transition: transform var(--transition-normal), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.panel-left.open ~ .panel-tab-left {
+    transform: translateY(-50%) translateX(320px);
+}
+
+/* Tab Derecho (Pegado al panel de tripulación) */
+.panel-tab-right {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(0);
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    transition: transform var(--transition-normal), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.panel-right.open ~ .panel-tab-right {
+    transform: translateY(-50%) translateX(-480px);
+}
+
+/* Tab Horizontal (Pegado al panel de control) */
+.panel-tab-horizontal {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    border-bottom: none;
+    padding: 8px 24px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    letter-spacing: 3px;
+    cursor: pointer;
+    z-index: calc(var(--z-sidebar) - 1);
+    transition: all var(--transition-normal);
+    border-radius: 6px 6px 0 0;
+    user-select: none;
+}
+
+.panel-tab-horizontal:hover {
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.panel-tab-horizontal.active {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+/* Mover el tab cuando el panel se abre */
+.panel-bottom.open ~ .panel-tab-horizontal {
+    transform: translateX(-50%) translateY(-240px);
+}
+
+/* Cabeceras de Paneles */
+.panel-header {
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    padding: 10px;
+    font-family: var(--font-monaco);
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: var(--font-size-xl);
+    margin: 0;
+}
+
+.panel-close-btn {
+    background: transparent;
+    color: var(--color-terminal-green);
+    border: 1px solid var(--color-terminal-green);
+    font-size: var(--font-size-xxl);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    font-family: var(--font-monaco);
+}
+
+.panel-close-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+/* Contenido de Paneles */
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* BACKWARD COMPATIBILITY - Ocultar sidebars antiguos */
+.crew-sidebar {
+    display: none !important;
+}
+
+.ship-map-sidebar {
+    display: none !important;
+}
+
+/* Estilos adicionales para paneles */
+.panel-sorting {
+    background: var(--color-terminal-bg-light);
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+}
+
+.panel-sorting label {
+    font-size: var(--font-size-sm);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.panel-sorting select {
+    width: 100%;
+    padding: 4px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-terminal-green-dark);
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    cursor: pointer;
+}
+
+/* === PANEL DE TRIPULACIÓN - DOS COLUMNAS === */
+.panel-crew-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+}
+
+.crew-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.crew-column {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-terminal-green-dark);
+    overflow: hidden;
+}
+
+.crew-column:last-child {
+    border-right: none;
+}
+
+.crew-column-header {
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    padding: 8px;
+    text-align: center;
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+    letter-spacing: 1px;
+}
+
+.crew-column-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Controles rápidos de tripulación */
+.crew-quick-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: var(--color-terminal-bg-light);
+    border-top: 2px solid var(--color-terminal-green);
+}
+
+.crew-control-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-monaco);
+}
+
+.crew-control-btn.sleep-all {
+    background: var(--color-terminal-bg);
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.crew-control-btn.sleep-all:hover {
+    background: #ff4444;
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
+}
+
+.crew-control-btn.wake-all {
+    background: var(--color-terminal-bg);
+    border-color: #4488ff;
+    color: #4488ff;
+}
+
+.crew-control-btn.wake-all:hover {
+    background: #4488ff;
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 20px rgba(68, 136, 255, 0.6);
 }
 
 .sidebar-header {
@@ -361,4 +681,150 @@
         width: calc(100vw - 40px);
         left: 20px;
     }
+}
+
+/* === CREW CARDS MEJORADAS === */
+.crew-mini-card {
+    cursor: move;
+    transition: all 0.2s ease;
+}
+
+.crew-mini-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.crew-column-content.drag-over {
+    background: rgba(0, 255, 65, 0.1);
+    border: 2px dashed var(--color-terminal-green);
+}
+
+/* Card de operativo */
+.crew-card-benefit-mini {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    background: rgba(0, 255, 65, 0.1);
+    padding: 4px 6px;
+    margin: 4px 0;
+    border-left: 2px solid var(--color-terminal-green);
+}
+
+.crew-card-location {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    padding: 4px 6px;
+    margin: 4px 0;
+}
+
+.crew-card-thought {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    padding: 6px;
+    margin-top: 4px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid var(--color-terminal-green-dark);
+    overflow: hidden;
+}
+
+.thought-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 15s linear infinite;
+    padding-left: 100%;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Necesidades avanzadas */
+.crew-card-needs-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.need-bar-advanced {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.need-bar-icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.need-bar-icon-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.need-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    position: relative;
+    overflow: visible;
+}
+
+.need-bar-fill-advanced {
+    height: 100%;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px currentColor;
+    position: relative;
+}
+
+.need-bar-fill-advanced.good {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-green);
+}
+
+.need-bar-fill-advanced.warning {
+    background: #ffaa00;
+    color: #ffaa00;
+}
+
+.need-bar-fill-advanced.critical {
+    background: #ff4444;
+    color: #ff4444;
+    animation: pulse-critical-bar 1s infinite;
+}
+
+@keyframes pulse-critical-bar {
+    0%, 100% {
+        box-shadow: 0 0 10px currentColor;
+    }
+    50% {
+        box-shadow: 0 0 20px currentColor, inset 0 0 10px currentColor;
+    }
+}
+
+.need-bar-percent {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    min-width: 40px;
+    text-align: right;
 }

@@ -472,7 +472,7 @@ function generateAIStory(crewMember) {
             `${crewMember.fearOfDeath ? `Su actitud ante la muerte refleja: ${crewMember.fearOfDeath}` : 'Ha hecho las paces con su mortalidad.'}`,
         ],
         present: [
-            `Actualmente, ${crewMember.name} se encuentra ${crewMember.state === 'Despierto' ? 'activo(a) y cumpliendo con sus deberes' : 'en criostasis, soñando con el futuro'}.`,
+            `Actualmente, ${crewMember.name} se encuentra ${crewMember.state === 'Despierto' ? 'activo(a) y cumpliendo con sus deberes' : 'encapsulado(a), soñando con el futuro'}.`,
             `Su estado de ánimo es ${crewMember.mood}, lo que refleja el peso del viaje.`,
             `Día tras día, ${crewMember.name} contribuye al éxito de la misión con dedicación incansable.`,
         ],
@@ -693,7 +693,7 @@ function quickManage(crewName, type) {
     const crewMember = crewMembers.find(c => c.name === crewName);
     if (!crewMember || !crewMember.isAlive) return;
 
-    if (type === 'food') {
+    if (type === 'alimentación' || type === 'comida') {
         if (Food.quantity >= 10) {
             playClickSound();
             Food.consume(10);
@@ -706,7 +706,7 @@ function quickManage(crewName, type) {
         } else {
             new Notification('No hay suficiente comida', NOTIFICATION_TYPES.ALERT);
         }
-    } else if (type === 'health') {
+    } else if (type === 'salud') {
         if (Medicine.quantity >= 5) {
             playClickSound();
             Medicine.consume(5);
@@ -718,6 +718,28 @@ function quickManage(crewName, type) {
             }
         } else {
             new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
+        }
+    } else if (type === 'higiene') {
+        if (Water.quantity >= 5) {
+            playClickSound();
+            Water.consume(5);
+            crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - 30);
+            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + 3);
+            Water.updateResourceUI();
+            Waste.updateResourceUI();
+            crewMember.updateMiniCard();
+            if (typeof gameLoop !== 'undefined' && gameLoop) {
+                gameLoop.updateCrewPopupIfOpen();
+            }
+        } else {
+            new Notification('No hay suficiente agua', NOTIFICATION_TYPES.ALERT);
+        }
+    } else if (type === 'entretenimiento') {
+        playClickSound();
+        crewMember.entertainmentNeed = Math.min(100, crewMember.entertainmentNeed + 25);
+        crewMember.updateMiniCard();
+        if (typeof gameLoop !== 'undefined' && gameLoop) {
+            gameLoop.updateCrewPopupIfOpen();
         }
     }
 }
@@ -987,4 +1009,89 @@ function updateVoyageVisualizer() {
     }
 
     updateVoyageForecastDisplay();
+}
+
+/* === CONTROLES RÁPIDOS DE TRIPULACIÓN === */
+/**
+ * Encapsula a todos los tripulantes vivos
+ */
+function sleepAllCrew() {
+    if (!crewControlsAvailable()) {
+        new Notification('No se puede cambiar el estado durante el tramo', NOTIFICATION_TYPES.ALERT);
+        return;
+    }
+
+    if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+    let count = 0;
+    crewMembers.forEach(crew => {
+        if (crew.isAlive && crew.state === 'Despierto') {
+            crew.state = 'Encapsulado';
+            crew.updateConsoleCrewState();
+            crew.updateMiniCard();
+            count++;
+        }
+    });
+
+    // Refrescar sistema de beneficios
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+        if (typeof updateVoyageVisualizer === 'function') {
+            updateVoyageVisualizer();
+        }
+    }
+
+    // Actualizar panel de tripulación si está abierto
+    if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+        panelManager.updateCrewPanel();
+    }
+
+    logbook.addEntry(
+        `${count} tripulantes encapsulados mediante control rápido`,
+        LOG_TYPES.EVENT
+    );
+
+    new Notification(`${count} tripulantes encapsulados`, NOTIFICATION_TYPES.SUCCESS);
+}
+
+/**
+ * Despierta a todos los tripulantes vivos
+ */
+function wakeAllCrew() {
+    if (!crewControlsAvailable()) {
+        new Notification('No se puede cambiar el estado durante el tramo', NOTIFICATION_TYPES.ALERT);
+        return;
+    }
+
+    if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+    let count = 0;
+    crewMembers.forEach(crew => {
+        if (crew.isAlive && crew.state === 'Encapsulado') {
+            crew.state = 'Despierto';
+            crew.updateConsoleCrewState();
+            crew.updateMiniCard();
+            count++;
+        }
+    });
+
+    // Refrescar sistema de beneficios
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.refreshState(crewMembers);
+        if (typeof updateVoyageVisualizer === 'function') {
+            updateVoyageVisualizer();
+        }
+    }
+
+    // Actualizar panel de tripulación si está abierto
+    if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+        panelManager.updateCrewPanel();
+    }
+
+    logbook.addEntry(
+        `${count} tripulantes despertados mediante control rápido`,
+        LOG_TYPES.EVENT
+    );
+
+    new Notification(`${count} tripulantes despertados`, NOTIFICATION_TYPES.SUCCESS);
 }

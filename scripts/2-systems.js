@@ -428,6 +428,20 @@ class GameLoop {
 
         new Notification('Tramo completado. Preparando para el siguiente tramo.', NOTIFICATION_TYPES.INFO);
 
+        // Cerrar paneles laterales y abrir panel de control
+        setTimeout(() => {
+            if (typeof panelManager !== 'undefined' && panelManager) {
+                // Cerrar todos los paneles primero
+                panelManager.closeAllPanels();
+
+                // Esperar un poco y abrir el panel de control
+                setTimeout(() => {
+                    panelManager.openPanel('control');
+                    console.log('🎮 Panel de control abierto automáticamente');
+                }, 100);
+            }
+        }, 500);
+
         // Mostrar mensajes cuánticos si hay
         messageSystem.showMessagesForTranche(timeSystem.getCurrentTranche());
     }
@@ -906,15 +920,28 @@ class EventSystem {
         const outcomeKey = option.result === 'good' ? 'good' : 'bad';
         const outcome = event.outcomes?.[outcomeKey];
 
-        this.applyOutcome(event, outcome, outcomeKey);
-        this.showOutcome(event, outcome, outcomeKey);
+        const actualOutcome = this.applyOutcome(event, outcome, outcomeKey);
+        this.showOutcome(event, actualOutcome, outcomeKey);
     }
 
     applyOutcome(event, outcome, outcomeKey) {
-        if (!outcome) return;
+        if (!outcome) return outcome;
 
-        if (outcome.flag && !this.globalFlags.includes(outcome.flag)) {
-            this.globalFlags.push(outcome.flag);
+        // Manejar outcomes probabilísticos (successRate)
+        let actualOutcome = outcome;
+        if (typeof outcome.successRate === 'number' && outcome.success && outcome.failure) {
+            const roll = Math.random();
+            if (roll <= outcome.successRate) {
+                actualOutcome = outcome.success;
+                console.log(`Evento ${event.id}: Éxito probabilístico (${(outcome.successRate * 100).toFixed(0)}%)`);
+            } else {
+                actualOutcome = outcome.failure;
+                console.log(`Evento ${event.id}: Fallo probabilístico (${((1 - outcome.successRate) * 100).toFixed(0)}%)`);
+            }
+        }
+
+        if (actualOutcome.flag && !this.globalFlags.includes(actualOutcome.flag)) {
+            this.globalFlags.push(actualOutcome.flag);
         }
 
         if (!this.globalFlags.includes(event.id)) {
@@ -927,69 +954,122 @@ class EventSystem {
             this.availableEvents = this.availableEvents.filter(e => e.id !== event.id);
         }
 
-        const affectedCrew = outcome.affectedCrew || {};
-        Object.entries(affectedCrew).forEach(([name, changes]) => {
-            const crew = this.getCrewByName(name);
-            if (!crew) return;
+        const affectedCrew = actualOutcome.affectedCrew || {};
 
-            currentYear = timeSystem.getCurrentYear();
-
-            if (changes.hasOwnProperty('trauma')) {
-                crew.trauma = changes.trauma;
-            }
-
-            if (changes.emotionalState) {
-                crew.emotionalState = changes.emotionalState;
-            }
-
-            if (typeof changes.skillModifier === 'number') {
-                crew.skillModifier = changes.skillModifier;
-            }
-
-            if (changes.relationships && typeof changes.relationships === 'object') {
-                Object.entries(changes.relationships).forEach(([otherName, delta]) => {
-                    const otherCrew = this.getCrewByName(otherName);
-                    if (!otherCrew) return;
-                    const currentValue = crew.relationships?.[otherCrew.id] ?? 50;
-                    const newValue = Math.max(0, Math.min(100, currentValue + delta));
-                    crew.relationships[otherCrew.id] = newValue;
-                });
-            }
-
-            if (outcome.flag && !crew.eventFlags.includes(outcome.flag)) {
-                crew.eventFlags.push(outcome.flag);
-            }
-
-            if (!crew.eventFlags.includes(event.id)) {
-                crew.eventFlags.push(event.id);
-            }
-
-            crew.eventMemories.push({
-                eventId: event.id,
-                outcome: outcomeKey,
-                narrative: outcome.narrative || '',
-                year: timeSystem.getCurrentYear()
+        // Manejar ALL_CREW primero
+        if (affectedCrew.ALL_CREW) {
+            const allCrewChanges = affectedCrew.ALL_CREW;
+            crewMembers.forEach(crew => {
+                if (!crew || !crew.isAlive) return;
+                this.applyCrewChanges(crew, allCrewChanges, event, actualOutcome, outcomeKey);
             });
-
-            if (crew.eventMemories.length > 20) {
-                crew.eventMemories.shift();
-            }
-
-            crew.addToPersonalLog(`[EVENTO CRÍTICO] ${event.title || ''}: ${outcome.narrative || ''}`);
-            crew.updateConsoleCrewState();
-            crew.updateMiniCard();
-        });
-
-        if (outcome.chainEvent) {
-            this.pendingChainEvents.add(outcome.chainEvent);
         }
 
-        const entryText = `${event.icon || '⚠️'} ${event.title || 'Evento crítico'} — ${outcome.narrative || ''}`.trim();
+        // Luego manejar tripulantes individuales
+        Object.entries(affectedCrew).forEach(([name, changes]) => {
+            if (name === 'ALL_CREW') return; // Ya procesado
+            const crew = this.getCrewByName(name);
+            if (!crew) return;
+            this.applyCrewChanges(crew, changes, event, actualOutcome, outcomeKey);
+        });
+
+        // Manejar cambios en recursos (resourceDeltas)
+        if (actualOutcome.resourceDeltas && typeof actualOutcome.resourceDeltas === 'object') {
+            Object.entries(actualOutcome.resourceDeltas).forEach(([key, delta]) => {
+                const resource = this.getResourceByKey(key);
+                if (resource && typeof delta === 'number') {
+                    if (delta >= 0) {
+                        // Ganancia de recursos
+                        resource.quantity = Math.min(resource.limiteStock, resource.quantity + delta);
+                    } else {
+                        // Pérdida de recursos
+                        resource.consume(Math.abs(delta));
+                    }
+                    resource.updateResourceUI();
+                }
+            });
+        }
+
+        if (actualOutcome.chainEvent) {
+            this.pendingChainEvents.add(actualOutcome.chainEvent);
+        }
+
+        const entryText = `${event.icon || '⚠️'} ${event.title || 'Evento crítico'} — ${actualOutcome.narrative || ''}`.trim();
         logbook.addEntry(entryText, LOG_TYPES.EVENT_CRITICAL);
 
         if (typeof gameLoop.updateCrewPopupIfOpen === 'function') {
             gameLoop.updateCrewPopupIfOpen();
         }
+
+        return actualOutcome;
+    }
+
+    applyCrewChanges(crew, changes, event, outcome, outcomeKey) {
+        if (!crew || !changes) return;
+
+        currentYear = timeSystem.getCurrentYear();
+
+        // Aplicar cambios en stats de necesidades básicas
+        if (typeof changes.healthDelta === 'number') {
+            crew.healthNeed = Math.max(0, Math.min(100, crew.healthNeed + changes.healthDelta));
+        }
+        if (typeof changes.foodDelta === 'number') {
+            crew.foodNeed = Math.max(0, Math.min(100, crew.foodNeed + changes.foodDelta));
+        }
+        if (typeof changes.restDelta === 'number') {
+            crew.restNeed = Math.max(0, Math.min(100, crew.restNeed + changes.restDelta));
+        }
+        if (typeof changes.wasteDelta === 'number') {
+            crew.wasteNeed = Math.max(0, Math.min(100, crew.wasteNeed + changes.wasteDelta));
+        }
+        if (typeof changes.entertainmentDelta === 'number') {
+            crew.entertainmentNeed = Math.max(0, Math.min(100, crew.entertainmentNeed + changes.entertainmentDelta));
+        }
+
+        if (changes.hasOwnProperty('trauma')) {
+            crew.trauma = changes.trauma;
+        }
+
+        if (changes.emotionalState) {
+            crew.emotionalState = changes.emotionalState;
+        }
+
+        if (typeof changes.skillModifier === 'number') {
+            crew.skillModifier = changes.skillModifier;
+        }
+
+        if (changes.relationships && typeof changes.relationships === 'object') {
+            Object.entries(changes.relationships).forEach(([otherName, delta]) => {
+                const otherCrew = this.getCrewByName(otherName);
+                if (!otherCrew) return;
+                const currentValue = crew.relationships?.[otherCrew.id] ?? 50;
+                const newValue = Math.max(0, Math.min(100, currentValue + delta));
+                crew.relationships[otherCrew.id] = newValue;
+            });
+        }
+
+        if (outcome.flag && !crew.eventFlags.includes(outcome.flag)) {
+            crew.eventFlags.push(outcome.flag);
+        }
+
+        if (!crew.eventFlags.includes(event.id)) {
+            crew.eventFlags.push(event.id);
+        }
+
+        crew.eventMemories.push({
+            eventId: event.id,
+            outcome: outcomeKey,
+            narrative: outcome.narrative || '',
+            year: timeSystem.getCurrentYear()
+        });
+
+        if (crew.eventMemories.length > 20) {
+            crew.eventMemories.shift();
+        }
+
+        crew.addToPersonalLog(`[EVENTO CRÍTICO] ${event.title || ''}: ${outcome.narrative || ''}`);
+        crew.updateConsoleCrewState();
+        crew.updateMiniCard();
     }
 
     showOutcome(event, outcome, outcomeKey) {
@@ -1215,12 +1295,10 @@ class SortingSystem {
     }
     
     rebuildCrewSidebar(sortedCrew) {
-        const container = document.getElementById('crew-cards-container');
-        container.innerHTML = '';
-        
-        sortedCrew.forEach(crew => {
-            container.appendChild(crew.createMiniCard());
-        });
+        // Actualizar usando el panel manager si está disponible
+        if (typeof panelManager !== 'undefined' && panelManager) {
+            panelManager.updateCrewPanel();
+        }
     }
 }
 

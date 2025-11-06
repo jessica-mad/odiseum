@@ -7,6 +7,7 @@
 .resource-strip {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--spacing-md);
     flex-wrap: wrap;
     row-gap: var(--spacing-sm);
@@ -1053,10 +1054,11 @@
 /* === TERMINAL DE NOTIFICACIONES === */
 .terminal-notification-area {
     position: fixed;
-    left: 20px;
-    top: calc(var(--title-bar-height) + var(--details-bar-height) + 480px);
-    width: 450px;
-    bottom: 260px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: calc(var(--title-bar-height) + 60px);
+    width: 600px;
+    height: calc(100vh - var(--title-bar-height) - 340px);
     background: var(--color-terminal-bg);
     border: 3px solid var(--color-terminal-green);
     box-shadow:
@@ -1607,4 +1609,19 @@
         padding: 10px 12px;
         font-size: 11px;
     }
+}
+
+/* === LINKS DE TRIPULANTES EN TERMINAL === */
+.crew-link {
+    color: var(--color-terminal-green) !important;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.crew-link:hover {
+    color: var(--color-terminal-green) !important;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+    background: rgba(0, 255, 65, 0.1);
+    padding: 0 2px;
 }

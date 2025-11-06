@@ -284,27 +284,97 @@
             </div>
         </div>
 
-        <!-- Sidebar Izquierdo: Mapa de la Nave - Desktop Only -->
-        <div class="ship-map-sidebar desktop-only" id="ship-map-sidebar">
-            <div class="sidebar-header">
+        <!-- ============================================
+             PANELES DESPLEGABLES - PAPERS PLEASE STYLE
+             ============================================ -->
+
+        <!-- PANEL IZQUIERDO: MAPA -->
+        <div id="panel-map" class="panel-left desktop-only">
+            <div class="panel-header">
                 <h3>🗺️ MAPA DE LA NAVE</h3>
-                <button class="sidebar-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
             </div>
-            <div class="sidebar-content">
+            <div class="panel-content">
                 <div class="ship-map-container" id="ship-map-container">
                     <!-- Se genera dinámicamente con JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Panel Lateral de Tripulación - Desktop Only -->
-        <div class="crew-sidebar desktop-only" id="crew-sidebar">
+        <!-- TAB IZQUIERDO (MAPA) -->
+        <div id="panel-tab-map" class="panel-tab-vertical panel-tab-left desktop-only">
+            MAPA
+        </div>
+
+        <!-- PANEL DERECHO: TRIPULACIÓN -->
+        <div id="panel-crew" class="panel-right desktop-only">
+            <div class="panel-header">
+                <h3>🚀 TRIPULACIÓN</h3>
+            </div>
+            <div class="panel-sorting">
+                <label for="crew-sort-select">Ordenar por:</label>
+                <select id="crew-sort-select" onchange="onSortChange()">
+                    <!-- Se genera dinámicamente con JS -->
+                </select>
+            </div>
+            <div class="panel-content panel-crew-content">
+                <div class="crew-columns">
+                    <div class="crew-column">
+                        <div class="crew-column-header">DESPIERTOS</div>
+                        <div class="crew-column-content" id="panel-crew-awake">
+                            <!-- Tripulantes despiertos -->
+                        </div>
+                    </div>
+                    <div class="crew-column">
+                        <div class="crew-column-header">ENCAPSULADOS</div>
+                        <div class="crew-column-content" id="panel-crew-asleep">
+                            <!-- Tripulantes en cápsulas -->
+                        </div>
+                    </div>
+                </div>
+                <div class="crew-quick-controls">
+                    <button class="crew-control-btn sleep-all" onclick="sleepAllCrew()" title="Encapsular a todos">
+                        💤
+                    </button>
+                    <button class="crew-control-btn wake-all" onclick="wakeAllCrew()" title="Despertar a todos">
+                        ⚡
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB DERECHO (TRIPULACIÓN) -->
+        <div id="panel-tab-crew" class="panel-tab-vertical panel-tab-right desktop-only">
+            TRIPULACIÓN
+        </div>
+
+        <!-- PANEL INFERIOR: CONTROL (usa el voyage-visualizer existente) -->
+        <div id="panel-control" class="panel-bottom desktop-only">
+            <!-- El contenido se moverá aquí desde voyage-visualizer -->
+        </div>
+
+        <!-- TAB HORIZONTAL (CONTROL) -->
+        <div id="panel-tab-control" class="panel-tab-horizontal desktop-only">
+            CONTROL
+        </div>
+
+        <!-- Sidebars antiguos (ocultos, mantener compatibilidad) -->
+        <div class="ship-map-sidebar desktop-only" id="ship-map-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h3>🗺️ MAPA DE LA NAVE</h3>
+                <button class="sidebar-close-btn" onclick="shipMapSystem.toggleVisibility()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <!-- Placeholder -->
+            </div>
+        </div>
+
+        <div class="crew-sidebar desktop-only" id="crew-sidebar" style="display: none;">
             <div class="sidebar-header">
                 <h3>🚀 TRIPULACIÓN</h3>
             </div>
             <div class="sidebar-sorting">
-                <label for="crew-sort-select">Ordenar por:</label>
-                <select id="crew-sort-select" onchange="onSortChange()">
+                <label for="crew-sort-select-old">Ordenar por:</label>
+                <select id="crew-sort-select-old" onchange="onSortChange()">
                     <!-- Se genera dinámicamente con JS -->
                 </select>
             </div>
@@ -530,6 +600,7 @@
     <script src="scripts/0-config.js"></script>
     <script src="scripts/1-models.js"></script>
     <script src="scripts/2-systems.js"></script>
+    <script src="scripts/panel-manager.js"></script>
     <script src="scripts/3-ui-managers.js"></script>
     <script src="scripts/4-crew-data.js"></script>
     <script src="scripts/5-messages-data.js"></script>
