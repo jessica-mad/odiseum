@@ -7,61 +7,229 @@ const EVENTS_POOL = [
     {
         id: 'silva_event_01',
         character: 'Capitán Silva',
-        icon: '⚠️',
-        title: '',
+        icon: '⚡',
+        title: 'La Apuesta del Capitán',
         trigger: {
-            minTranche: 3,
-            maxTranche: 7,
+            minTranche: 2,
+            maxTranche: 6,
             requiredAlive: ['Capitán Silva'],
             requiredAwake: ['Capitán Silva'],
             requiredAsleep: [],
-            resourceMin: {},
+            resourceMin: { fuel: 300, energy: 200 },
             resourceMax: {},
             requiredFlags: [],
-            blockedByFlags: [],
-            probability: 0
+            blockedByFlags: ['silva_fuel_gamble'],
+            probability: 0.45
         },
-        description: '',
+        description: `Silva detecta una anomalía gravitacional a 3 horas de distancia.
+
+"Comandante IA, los sensores muestran un campo de asteroides con alta concentración de helio-3. Podríamos recolectar combustible para meses."
+
+Rodriguez (por radio): "Capitán, esa zona tiene micrometeoritos. Riesgo alto de daño al casco."
+
+Silva mira el medidor de combustible y suspira.
+
+"Dos opciones: Jugamos a la ruleta espacial y posiblemente ganamos combustible gratis, o tomamos la ruta segura y aburrida."
+
+"20 años en el espacio me enseñaron que la suerte favorece a los audaces... o los mata."`,
+
         optionA: {
-            label: '',
-            requires: {},
-            costs: {},
-            wakeUp: [],
+            label: '🎰 Atravesar el campo - Riesgo alto, recompensa alta',
+            requires: {
+                energy: 100,
+                fuel: 50
+            },
+            costs: {
+                energy: 100,
+                fuel: 50
+            },
+            wakeUp: ['Ing. Rodriguez'],
             result: 'good'
         },
+
         optionB: {
-            label: '',
+            label: '🛡️ Ruta segura - Consumo normal, cero riesgo',
             requires: {},
-            costs: {},
+            costs: {
+                fuel: 100,
+                energy: 50
+            },
             wakeUp: [],
             result: 'bad'
         },
+
         outcomes: {
             good: {
-                flag: 'silva_good_decision',
+                successRate: 0.65,
+                success: {
+                    flag: 'silva_successful_gamble',
+                    resourceDeltas: {
+                        fuel: 300,
+                        energy: 150,
+                        data: 100
+                    },
+                    affectedCrew: {
+                        'Capitán Silva': {
+                            trauma: null,
+                            emotionalState: 'confident_leader',
+                            skillModifier: 1.1,
+                            relationships: {
+                                'Ing. Rodriguez': 15,
+                                'Lt. Johnson': 10,
+                                'Dra. Chen': -5
+                            }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'adrenaline_rush',
+                            skillModifier: 1.0,
+                            relationships: {
+                                'Capitán Silva': 10
+                            }
+                        }
+                    },
+                    narrative: `Silva (manos en los controles): "Rodriguez, ¿listo?"
+Rodriguez (recién despierto): "¿Para qué me despert—"
+[IMPACTO]
+Rodriguez: "¡¿QUÉ MIERDA?!"
+
+Silva esquiva asteroides como en un videojuego de los 90.
+
+30 minutos después...
+
+✅ +300 Combustible (¡Jackpot espacial!)
+✅ +150 Energía (Recolección de helio-3)
+✅ +100 Datos científicos (Muestras de asteroides)
+✅ Silva: +10% eficiencia (confianza reforzada)
+✅ Rodriguez ahora confía ciegamente en Silva
+
+Johnson: "Capitán, eres un loco."
+Silva: "Un loco con combustible para 3 meses extra."
+
+**Bitácora de Silva:** "Elena, Sofía... papá todavía sabe pilotar. 20 años no fueron en vano."`,
+                    chainEvent: null
+                },
+                failure: {
+                    flag: 'silva_failed_gamble',
+                    resourceDeltas: {
+                        fuel: -200,
+                        energy: -250,
+                        oxygen: -50,
+                        water: -30
+                    },
+                    affectedCrew: {
+                        'Capitán Silva': {
+                            trauma: 'failed_leader',
+                            emotionalState: 'doubting_self',
+                            skillModifier: 0.85,
+                            healthDelta: -10,
+                            relationships: {
+                                'Dra. Chen': -10,
+                                'Lt. Johnson': -10,
+                                'Chef Patel': -10
+                            }
+                        },
+                        'Ing. Rodriguez': {
+                            trauma: null,
+                            emotionalState: 'shaken',
+                            skillModifier: 1.0,
+                            restDelta: -20,
+                            relationships: {
+                                'Capitán Silva': -10
+                            }
+                        },
+                        'Dra. Chen': {
+                            trauma: null,
+                            emotionalState: 'angry',
+                            skillModifier: 1.0,
+                            relationships: {
+                                'Capitán Silva': -10
+                            }
+                        },
+                        'Lt. Johnson': {
+                            trauma: null,
+                            emotionalState: 'disappointed',
+                            skillModifier: 1.0,
+                            relationships: {
+                                'Capitán Silva': -10
+                            }
+                        },
+                        'Chef Patel': {
+                            trauma: null,
+                            emotionalState: 'worried',
+                            skillModifier: 1.0,
+                            relationships: {
+                                'Capitán Silva': -10
+                            }
+                        }
+                    },
+                    narrative: `[CRASH CRASH CRASH]
+
+Silva (esquivando): "¡Mierda!"
+Rodriguez: "¡ESCUDOS AL 20%!"
+[IMPACTO MAYOR]
+
+Sistema: "CASCO DAÑADO. FUGA EN SECCIÓN 7."
+
+❌ -200 Combustible (gastado en reparaciones de emergencia)
+❌ -250 Energía (sistemas de reparación)
+❌ -50 Oxígeno (fuga)
+❌ -30 Agua (sellado de emergencia)
+⚠️ Silva: Trauma (failed_leader), -15% eficiencia
+⚠️ Rodriguez: -20 Descanso (despertado para un desastre)
+❌ TODAS las relaciones con Silva: -10
+
+Chen (furiosa): "¡¿En qué estabas pensando?!"
+Silva (en silencio): "..."
+Johnson: "Casi nos mata a todos..."
+
+**Bitácora de Silva:** "Aposté mal. Puse en riesgo a todos. ¿Qué diría Elena?"
+
+[Silva empieza a dudar de cada decisión...]`,
+                    chainEvent: 'silva_event_02_redemption'
+                }
+            },
+
+            bad: {
+                flag: 'silva_played_safe',
+                resourceDeltas: {
+                    fuel: -100,
+                    energy: -50
+                },
                 affectedCrew: {
                     'Capitán Silva': {
                         trauma: null,
-                        emotionalState: '',
-                        skillModifier: 1,
-                        relationships: {}
+                        emotionalState: 'cautious_boring',
+                        skillModifier: 0.95,
+                        relationships: {
+                            'Lt. Johnson': -5,
+                            'Dra. Chen': 5
+                        }
                     }
                 },
-                narrative: '',
-                chainEvent: null
-            },
-            bad: {
-                flag: 'silva_bad_decision',
-                affectedCrew: {
-                    'Capitán Silva': {
-                        trauma: '',
-                        emotionalState: '',
-                        skillModifier: 1,
-                        relationships: {}
-                    }
-                },
-                narrative: '',
-                chainEvent: 'silva_event_02'
+                narrative: `Silva observa el campo de asteroides alejarse por el monitor.
+
+Silva: "Ruta segura. No vale la pena el riesgo."
+Johnson: "Capitán... ¿desde cuándo eres tan... cauteloso?"
+Silva: "Desde que tengo 10,000 bebés congelados y 4 idiotas que proteger."
+Johnson: "Ouch."
+
+❌ -100 Combustible (ruta larga)
+❌ -50 Energía (ruta larga)
+⚠️ Silva: -5% eficiencia (jugar demasiado seguro atrofia instintos)
+⚠️ Johnson: -5 relación (lo ve menos "cool")
+✅ Chen: +5 relación (aprueba la prudencia)
+✅ Cero riesgo, cero drama
+
+Rodriguez (por radio): "Capitán, hay una diferencia entre ser cuidadoso y ser aburrido."
+Silva: "Prefiero aburrido y vivo."
+
+**Bitácora de Silva:** "Elena me diría que hice bien. ¿Verdad?"
+
+Pero Silva sabe la verdad: Está envejeciendo. Está perdiendo su filo.
+
+La pregunta lo persigue: ¿Es prudencia o es miedo?`,
+                chainEvent: 'silva_event_02_risk'
             }
         }
     },
