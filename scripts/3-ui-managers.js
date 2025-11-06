@@ -46,6 +46,11 @@ function toggleMobileAccordion(panelName) {
         const prevTab = document.querySelector(`.mobile-tab[data-panel="${currentOpenMobilePanel}"]`);
         if (prevPanel) prevPanel.classList.remove('open');
         if (prevTab) prevTab.classList.remove('active');
+
+        // Limpiar paneles del carrusel antes de abrir uno nuevo
+        if (typeof cleanupCarouselPanels === 'function') {
+            cleanupCarouselPanels();
+        }
     }
 
     // Abrir el nuevo panel
@@ -77,6 +82,11 @@ function closeMobileAccordion() {
 
     if (panel) panel.classList.remove('open');
     if (tab) tab.classList.remove('active');
+
+    // Limpiar paneles del carrusel
+    if (typeof cleanupCarouselPanels === 'function') {
+        cleanupCarouselPanels();
+    }
 
     currentOpenMobilePanel = null;
 }
@@ -132,48 +142,136 @@ function setupPanelCarouselGestures(panel) {
     const panelOrder = ['resources', 'crew', 'map', 'speed'];
     let touchStartX = 0;
     let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
+    let currentTouchX = 0;
     let isHorizontalSwipe = false;
+    let isDragging = false;
+    let prevPanel = null;
+    let nextPanel = null;
+
+    // Preparar paneles adyacentes
+    const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+
+    if (currentIndex > 0) {
+        prevPanel = document.getElementById(`mobile-panel-${panelOrder[currentIndex - 1]}`);
+        if (prevPanel) {
+            prevPanel.classList.add('carousel-prev');
+        }
+    }
+
+    if (currentIndex < panelOrder.length - 1) {
+        nextPanel = document.getElementById(`mobile-panel-${panelOrder[currentIndex + 1]}`);
+        if (nextPanel) {
+            nextPanel.classList.add('carousel-next');
+        }
+    }
 
     body.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
         isHorizontalSwipe = false;
-    }, { passive: true });
+        isDragging = false;
+
+        // Deshabilitar transiciones durante el drag
+        panel.classList.add('dragging');
+        if (prevPanel) prevPanel.classList.add('dragging');
+        if (nextPanel) nextPanel.classList.add('dragging');
+    });
 
     body.addEventListener('touchmove', (e) => {
-        const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+        currentTouchX = e.touches[0].clientX;
+        const diffX = currentTouchX - touchStartX;
         const diffY = Math.abs(e.touches[0].clientY - touchStartY);
 
         // Detectar si es un swipe horizontal (más movimiento X que Y)
-        if (diffX > diffY && diffX > 10) {
+        if (Math.abs(diffX) > 10 && Math.abs(diffX) > diffY) {
             isHorizontalSwipe = true;
-        }
-    }, { passive: true });
+            isDragging = true;
 
-    body.addEventListener('touchend', (e) => {
-        if (!isHorizontalSwipe) return;
+            // Prevenir scroll si es horizontal
+            e.preventDefault();
 
-        touchEndX = e.changedTouches[0].clientX;
-        touchEndY = e.changedTouches[0].clientY;
+            // Aplicar transformación en tiempo real
+            const translateX = diffX;
 
-        const diffX = touchEndX - touchStartX;
-        const diffY = Math.abs(touchEndY - touchStartY);
+            // No permitir arrastre si no hay panel en esa dirección
+            if ((diffX > 0 && !prevPanel) || (diffX < 0 && !nextPanel)) {
+                return;
+            }
 
-        // Solo procesar si el swipe es principalmente horizontal
-        if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
-            const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+            panel.style.transform = `translateY(0) translateX(${translateX}px)`;
 
-            if (diffX < 0 && currentIndex < panelOrder.length - 1) {
-                // Swipe izquierda: siguiente panel
-                toggleMobileAccordion(panelOrder[currentIndex + 1]);
-            } else if (diffX > 0 && currentIndex > 0) {
-                // Swipe derecha: panel anterior
-                toggleMobileAccordion(panelOrder[currentIndex - 1]);
+            if (prevPanel && diffX > 0) {
+                prevPanel.style.transform = `translateY(0) translateX(${-100 + (diffX / window.innerWidth * 100)}%)`;
+            }
+
+            if (nextPanel && diffX < 0) {
+                nextPanel.style.transform = `translateY(0) translateX(${100 + (diffX / window.innerWidth * 100)}%)`;
             }
         }
-    }, { passive: true });
+    });
+
+    body.addEventListener('touchend', (e) => {
+        if (!isHorizontalSwipe || !isDragging) {
+            // Limpiar paneles adyacentes
+            cleanupCarouselPanels();
+            return;
+        }
+
+        const diffX = currentTouchX - touchStartX;
+        const threshold = window.innerWidth * 0.3; // 30% del ancho de pantalla
+
+        // Reactivar transiciones
+        panel.classList.remove('dragging');
+        panel.classList.add('carousel-animating');
+        if (prevPanel) {
+            prevPanel.classList.remove('dragging');
+            prevPanel.classList.add('carousel-animating');
+        }
+        if (nextPanel) {
+            nextPanel.classList.remove('dragging');
+            nextPanel.classList.add('carousel-animating');
+        }
+
+        const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+
+        // Decidir si completar la transición o volver
+        if (diffX > threshold && currentIndex > 0) {
+            // Swipe derecha: panel anterior
+            panel.style.transform = `translateY(0) translateX(100%)`;
+            if (prevPanel) prevPanel.style.transform = `translateY(0) translateX(0)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+                toggleMobileAccordion(panelOrder[currentIndex - 1]);
+            }, 300);
+        } else if (diffX < -threshold && currentIndex < panelOrder.length - 1) {
+            // Swipe izquierda: siguiente panel
+            panel.style.transform = `translateY(0) translateX(-100%)`;
+            if (nextPanel) nextPanel.style.transform = `translateY(0) translateX(0)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+                toggleMobileAccordion(panelOrder[currentIndex + 1]);
+            }, 300);
+        } else {
+            // Volver al panel actual
+            panel.style.transform = `translateY(0) translateX(0)`;
+            if (prevPanel) prevPanel.style.transform = `translateY(0) translateX(-100%)`;
+            if (nextPanel) nextPanel.style.transform = `translateY(0) translateX(100%)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+            }, 300);
+        }
+    });
+}
+
+function cleanupCarouselPanels() {
+    const allPanels = document.querySelectorAll('.mobile-accordion-panel');
+    allPanels.forEach(p => {
+        p.classList.remove('carousel-prev', 'carousel-next', 'carousel-animating', 'dragging');
+        p.style.transform = '';
+    });
 }
 
 function updateMobileMapPanel() {

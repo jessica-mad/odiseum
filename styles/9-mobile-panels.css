@@ -261,6 +261,7 @@
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 -8px 30px rgba(0, 255, 65, 0.4);
     touch-action: pan-y;
+    width: 100%;
 }
 
 .mobile-accordion-panel.open {
@@ -270,6 +271,23 @@
 
 .mobile-accordion-panel.dragging {
     transition: none;
+}
+
+/* Carrusel: posicionar paneles adyacentes */
+.mobile-accordion-panel.carousel-prev {
+    display: flex;
+    transform: translateY(0) translateX(-100%);
+    z-index: 1099;
+}
+
+.mobile-accordion-panel.carousel-next {
+    display: flex;
+    transform: translateY(0) translateX(100%);
+    z-index: 1099;
+}
+
+.mobile-accordion-panel.carousel-animating {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Header del Panel (área de arrastre) */
