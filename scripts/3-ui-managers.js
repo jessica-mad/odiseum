@@ -19,43 +19,148 @@ function setupPopupZIndex() {
     });
 }
 
-/* === SISTEMA DE ACORDEONES MÓVIL === */
-let currentOpenAccordion = null;
+/* === SISTEMA DE PANELES MÓVIL === */
+let currentOpenMobilePanel = null;
 
-function toggleMobileAccordion(section) {
-    const header = event.currentTarget;
-    const content = document.getElementById(`mobile-accordion-${section}`);
+function toggleMobilePanel(panelName) {
+    const tab = document.querySelector(`[data-panel="${panelName}"]`);
+    const content = document.getElementById(`mobile-panel-${panelName}`);
 
-    // Si ya estaba abierto, cerrarlo
-    if (currentOpenAccordion === section) {
-        header.classList.remove('active');
-        content.classList.remove('active');
-        currentOpenAccordion = null;
+    if (!tab || !content) return;
+
+    // Si este panel ya está abierto, cerrarlo
+    if (currentOpenMobilePanel === panelName) {
+        tab.classList.remove('active');
+        content.classList.remove('open');
+        currentOpenMobilePanel = null;
         return;
     }
 
-    // Cerrar el acordeón previamente abierto
-    if (currentOpenAccordion) {
-        const prevHeader = document.querySelector(`[onclick="toggleMobileAccordion('${currentOpenAccordion}')"]`);
-        const prevContent = document.getElementById(`mobile-accordion-${currentOpenAccordion}`);
-        if (prevHeader) prevHeader.classList.remove('active');
-        if (prevContent) prevContent.classList.remove('active');
+    // Cerrar el panel previamente abierto
+    if (currentOpenMobilePanel) {
+        const prevTab = document.querySelector(`[data-panel="${currentOpenMobilePanel}"]`);
+        const prevContent = document.getElementById(`mobile-panel-${currentOpenMobilePanel}`);
+        if (prevTab) prevTab.classList.remove('active');
+        if (prevContent) prevContent.classList.remove('open');
     }
 
-    // Abrir el nuevo acordeón
-    header.classList.add('active');
-    content.classList.add('active');
-    currentOpenAccordion = section;
+    // Abrir el nuevo panel
+    tab.classList.add('active');
+    content.classList.add('open');
+    currentOpenMobilePanel = panelName;
 
-    // Si es el mapa, moverlo al contenedor del acordeón
-    if (section === 'map') {
-        const mapContainer = document.getElementById('ship-map-container');
-        const mapAccordion = document.getElementById('mobile-accordion-map');
-        if (mapContainer && mapAccordion) {
-            mapAccordion.appendChild(mapContainer);
-            mapContainer.style.display = 'flex';
+    // Actualizar contenido según el panel
+    if (panelName === 'resources') {
+        updateMobileResources();
+    } else if (panelName === 'crew') {
+        updateMobileCrewPanel();
+    } else if (panelName === 'map') {
+        updateMobileMapPanel();
+    }
+}
+
+function updateMobileMapPanel() {
+    const mapContainer = document.getElementById('ship-map-container');
+    const mobileMapContainer = document.getElementById('map-mobile-container');
+
+    if (mapContainer && mobileMapContainer) {
+        // Clonar el mapa para móvil sin moverlo del desktop
+        mobileMapContainer.innerHTML = mapContainer.innerHTML;
+
+        // Re-aplicar eventos si es necesario
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.updateCrewLocations();
         }
     }
+}
+
+function updateMobileCrewPanel() {
+    const awakeContainer = document.getElementById('mobile-crew-awake');
+    const asleepContainer = document.getElementById('mobile-crew-asleep');
+
+    if (!awakeContainer || !asleepContainer) return;
+    if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+    // Limpiar contenedores
+    awakeContainer.innerHTML = '';
+    asleepContainer.innerHTML = '';
+
+    // Separar tripulantes por estado
+    crewMembers.forEach(crew => {
+        try {
+            const miniCard = crew.createMiniCard();
+
+            if (crew.state === 'Despierto') {
+                awakeContainer.appendChild(miniCard);
+            } else {
+                asleepContainer.appendChild(miniCard);
+            }
+        } catch (error) {
+            console.error(`Error creando card para ${crew.name}:`, error);
+        }
+    });
+
+    // Configurar drag & drop móvil
+    setupMobileDragAndDrop(awakeContainer, asleepContainer);
+}
+
+function setupMobileDragAndDrop(awakeContainer, asleepContainer) {
+    [awakeContainer, asleepContainer].forEach(container => {
+        container.ondragover = (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            container.classList.add('drag-over');
+        };
+
+        container.ondragleave = (e) => {
+            if (e.target === container) {
+                container.classList.remove('drag-over');
+            }
+        };
+
+        container.ondrop = (e) => {
+            e.preventDefault();
+            container.classList.remove('drag-over');
+
+            const crewName = e.dataTransfer.getData('text/plain');
+            const crew = crewMembers.find(c => c.name === crewName);
+
+            if (!crew || !crew.isAlive) return;
+
+            // Determinar nuevo estado según el contenedor
+            const targetState = container.id === 'mobile-crew-awake' ? 'Despierto' : 'Encapsulado';
+
+            // Solo cambiar si es diferente
+            if (crew.state !== targetState) {
+                crew.state = targetState;
+                crew.updateConsoleCrewState();
+
+                // Refrescar sistema de beneficios
+                if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+                    awakeBenefitSystem.refreshState(crewMembers);
+                    if (typeof updateVoyageVisualizer === 'function') {
+                        updateVoyageVisualizer();
+                    }
+                }
+
+                // Actualizar panel móvil
+                setTimeout(() => {
+                    updateMobileCrewPanel();
+                }, 50);
+
+                // Log y notificación
+                const action = targetState === 'Despierto' ? 'despertado' : 'encapsulado';
+                logbook.addEntry(
+                    `${crew.name} ha sido ${action}`,
+                    LOG_TYPES.EVENT
+                );
+                new Notification(
+                    `${crew.name} ha sido ${action}`,
+                    NOTIFICATION_TYPES.SUCCESS
+                );
+            }
+        };
+    });
 }
 
 function initializeMobileView() {
@@ -63,21 +168,24 @@ function initializeMobileView() {
     const mobileAccordion = document.getElementById('mobile-accordion');
     const mobileBottomBar = document.getElementById('mobile-bottom-bar');
     const mobileTitleBar = document.querySelector('.title-bar-mobile');
+    const mobileTerminalArea = document.getElementById('mobile-terminal-area');
 
     if (isMobile) {
         // Mostrar elementos móviles
         if (mobileAccordion) mobileAccordion.style.display = 'flex';
         if (mobileBottomBar) mobileBottomBar.style.display = 'flex';
         if (mobileTitleBar) mobileTitleBar.style.display = 'flex';
+        if (mobileTerminalArea) mobileTerminalArea.style.display = 'flex';
 
-        // Llenar acordeones
+        // Inicializar contenido
         updateMobileResources();
-        updateMobileCrew();
-        updateMobileLogbook();
         updateMobileTerminal();
 
         // Sincronizar valores con desktop
         syncMobileValues();
+
+        // Configurar observador para actualizar terminal automáticamente
+        setupMobileTerminalObserver();
 
         // Centrar popups
         document.querySelectorAll('.window.interface').forEach(popup => {
@@ -106,7 +214,25 @@ function initializeMobileView() {
         if (mobileAccordion) mobileAccordion.style.display = 'none';
         if (mobileBottomBar) mobileBottomBar.style.display = 'none';
         if (mobileTitleBar) mobileTitleBar.style.display = 'none';
+        if (mobileTerminalArea) mobileTerminalArea.style.display = 'none';
     }
+}
+
+function setupMobileTerminalObserver() {
+    const desktopTerminal = document.getElementById('terminal-notifications');
+    const mobileTerminal = document.getElementById('terminal-notifications-mobile');
+
+    if (!desktopTerminal || !mobileTerminal) return;
+
+    // Observar cambios en el terminal de escritorio y replicar en móvil
+    const observer = new MutationObserver(() => {
+        updateMobileTerminal();
+    });
+
+    observer.observe(desktopTerminal, {
+        childList: true,
+        subtree: true
+    });
 }
 
 function updateMobileResources() {
@@ -143,34 +269,20 @@ function updateMobileResources() {
     container.innerHTML = html;
 }
 
-function updateMobileCrew() {
-    const container = document.getElementById('crew-mobile-container');
-    if (!container) return;
-
-    const crewCardsContainer = document.getElementById('crew-cards-container');
-    if (crewCardsContainer) {
-        container.innerHTML = crewCardsContainer.innerHTML;
-    }
-}
-
-function updateMobileLogbook() {
-    const container = document.getElementById('logbook-mobile-container');
-    if (!container) return;
-
-    const logbookEntries = document.getElementById('logbook-entries');
-    if (logbookEntries) {
-        container.innerHTML = logbookEntries.innerHTML;
-    }
-}
-
 function updateMobileTerminal() {
-    const container = document.getElementById('terminal-notifications-mobile');
-    if (!container) return;
+    const mobileTerminal = document.getElementById('terminal-notifications-mobile');
+    const desktopTerminal = document.getElementById('terminal-notifications');
 
-    const terminalNotifications = document.getElementById('terminal-notifications');
-    if (terminalNotifications) {
-        container.innerHTML = terminalNotifications.innerHTML;
-    }
+    if (!mobileTerminal || !desktopTerminal) return;
+
+    // Copiar solo las últimas 8 líneas para que se vea el efecto scroll up
+    const lines = Array.from(desktopTerminal.querySelectorAll('.terminal-line'));
+    const lastLines = lines.slice(-8);
+
+    mobileTerminal.innerHTML = '';
+    lastLines.forEach(line => {
+        mobileTerminal.appendChild(line.cloneNode(true));
+    });
 }
 
 function syncMobileValues() {
@@ -990,12 +1102,20 @@ function updateVoyageForecastDisplay() {
 }
 
 function updateVoyageVisualizer() {
+    const progressPercent = TOTAL_MISSION_DISTANCE > 0
+        ? Math.min(100, (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100)
+        : 0;
+
+    // Actualizar barra de progreso desktop
     const progressFill = document.getElementById('voyage-progress-fill');
     if (progressFill) {
-        const progressPercent = TOTAL_MISSION_DISTANCE > 0
-            ? Math.min(100, (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100)
-            : 0;
         progressFill.style.width = `${progressPercent}%`;
+    }
+
+    // Actualizar barra de progreso móvil
+    const mobileProgressFill = document.getElementById('mobile-voyage-fill');
+    if (mobileProgressFill) {
+        mobileProgressFill.style.width = `${progressPercent}%`;
     }
 
     const distanceCurrent = document.getElementById('voyage-distance-current');

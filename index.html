@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="styles/6-theme-terminal.css">
     <link rel="stylesheet" href="styles/7-components-terminal.css">
     <link rel="stylesheet" href="styles/8-ship-map.css">
+    <link rel="stylesheet" href="styles/9-mobile-panels.css">
 </head>
 <body>
     <!-- Pantalla de Inicio / Login -->
@@ -57,11 +58,19 @@
         <!-- Barras de Título - Mobile -->
         <div class="title-bar-mobile mobile-only" style="display: none;">
             <div class="mobile-top-bar-first">
-                <span class="title-text">Odiseum V2.0</span>
+                <span class="title-text">ODISEUM V2.0</span>
                 <span class="player-name-display">IA: <span id="playerName-mobile">---</span></span>
             </div>
             <div class="mobile-top-bar-second">
                 <span class="mission-title-mobile">PROYECTO GÉNESIS - NUEVA TIERRA</span>
+            </div>
+        </div>
+
+        <!-- Terminal Móvil (Fijo arriba del contenido) -->
+        <div class="mobile-terminal-area mobile-only" id="mobile-terminal-area" style="display: none;">
+            <div class="terminal-content-mobile" id="terminal-notifications-mobile">
+                <div class="terminal-line">&gt; Sistema iniciado...</div>
+                <div class="terminal-line">&gt; Esperando instrucciones...</div>
             </div>
         </div>
 
@@ -144,86 +153,63 @@
             </div>
         </div>
 
-        <!-- Sistema de Acordeones para Móvil -->
+        <!-- Sistema de Acordeones para Móvil - Estilo Archivador -->
         <div class="mobile-accordion mobile-only" id="mobile-accordion" style="display: none;">
             <!-- Recursos -->
-            <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('resources')">
-                    <span>📦 RECURSOS</span>
-                    <span class="mobile-accordion-icon">▶</span>
-                </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-resources">
-                    <div id="resources-mobile-container" style="padding: 12px;">
-                        <!-- Se llena con JS -->
-                    </div>
+            <div class="mobile-panel-tab" data-panel="resources" onclick="toggleMobilePanel('resources')">
+                <span class="tab-label">📦 RECURSOS</span>
+                <span class="tab-indicator">▲</span>
+            </div>
+            <div class="mobile-panel-content" id="mobile-panel-resources">
+                <div id="resources-mobile-container" class="panel-inner">
+                    <!-- Se llena con JS -->
                 </div>
             </div>
 
             <!-- Tripulación -->
-            <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('crew')">
-                    <span>🚀 TRIPULACIÓN</span>
-                    <span class="mobile-accordion-icon">▶</span>
-                </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-crew">
-                    <div id="crew-mobile-container" style="padding: 12px;">
-                        <!-- Se llena con JS desde crew-cards-container -->
+            <div class="mobile-panel-tab" data-panel="crew" onclick="toggleMobilePanel('crew')">
+                <span class="tab-label">🚀 TRIPULACIÓN</span>
+                <span class="tab-indicator">▲</span>
+            </div>
+            <div class="mobile-panel-content" id="mobile-panel-crew">
+                <div class="crew-columns-mobile">
+                    <div class="crew-column-mobile">
+                        <div class="crew-column-header-mobile">DESPIERTOS</div>
+                        <div class="crew-column-content-mobile" id="mobile-crew-awake">
+                            <!-- Tripulantes despiertos -->
+                        </div>
+                    </div>
+                    <div class="crew-column-mobile">
+                        <div class="crew-column-header-mobile">ENCAPSULADOS</div>
+                        <div class="crew-column-content-mobile" id="mobile-crew-asleep">
+                            <!-- Tripulantes encapsulados -->
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Mapa -->
-            <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('map')">
-                    <span>🗺️ MAPA</span>
-                    <span class="mobile-accordion-icon">▶</span>
-                </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-map">
-                    <div id="map-mobile-container" style="padding: 12px;">
-                        <!-- El mapa se mostrará aquí -->
-                    </div>
-                </div>
+            <div class="mobile-panel-tab" data-panel="map" onclick="toggleMobilePanel('map')">
+                <span class="tab-label">🗺️ MAPA</span>
+                <span class="tab-indicator">▲</span>
             </div>
-
-            <!-- Bitácora -->
-            <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('logbook')">
-                    <span>📖 BITÁCORA</span>
-                    <span class="mobile-accordion-icon">▶</span>
-                </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-logbook">
-                    <div id="logbook-mobile-container" style="padding: 12px;">
-                        <!-- Se llena con JS desde logbook-entries -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Terminal de Notificaciones -->
-            <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('terminal')">
-                    <span>💻 TERMINAL</span>
-                    <span class="mobile-accordion-icon">▶</span>
-                </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-terminal">
-                    <div class="terminal-content" id="terminal-notifications-mobile" style="padding: 12px; max-height: 300px; overflow-y: auto;">
-                        <!-- Se llena con JS -->
-                    </div>
+            <div class="mobile-panel-content" id="mobile-panel-map">
+                <div id="map-mobile-container" class="panel-inner">
+                    <!-- El mapa se mostrará aquí -->
                 </div>
             </div>
 
             <!-- Control de Velocidad -->
-            <div class="mobile-accordion-item">
-                <button class="mobile-accordion-header" onclick="toggleMobileAccordion('control')">
-                    <span>⚡ CONTROL DE VELOCIDAD</span>
-                    <span class="mobile-accordion-icon">▶</span>
-                </button>
-                <div class="mobile-accordion-content" id="mobile-accordion-control">
-                    <div class="nav-controls-section" style="padding: 16px;">
-                        <div class="nav-control-group">
-                            <label class="nav-label">VELOCIDAD NAVE</label>
-                            <div class="nav-speed-display" id="nav-speed-display-mobile">100%</div>
-                            <input type="range" id="nav-speed-slider-mobile" min="0" max="100" value="100" class="nav-slider">
-                        </div>
+            <div class="mobile-panel-tab" data-panel="control" onclick="toggleMobilePanel('control')">
+                <span class="tab-label">⚡ VELOCIDAD</span>
+                <span class="tab-indicator">▲</span>
+            </div>
+            <div class="mobile-panel-content" id="mobile-panel-control">
+                <div class="panel-inner">
+                    <div class="nav-control-group">
+                        <label class="nav-label">VELOCIDAD NAVE</label>
+                        <div class="nav-speed-display" id="nav-speed-display-mobile">100%</div>
+                        <input type="range" id="nav-speed-slider-mobile" min="0" max="100" value="100" class="nav-slider">
                     </div>
                 </div>
             </div>

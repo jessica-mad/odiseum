@@ -29,9 +29,18 @@ class TimeSystem {
     }
     
     updateCalendarUI() {
-        const calendarElement = document.getElementById('calendar');
-        if (calendarElement) {
-            calendarElement.textContent = `Año ${this.currentYear.toFixed(1)}`;
+        const display = `Año ${this.currentYear.toFixed(1)}`;
+
+        // Actualizar calendario desktop
+        const desktopCalendar = document.getElementById('calendar');
+        if (desktopCalendar) {
+            desktopCalendar.textContent = display;
+        }
+
+        // Actualizar calendario móvil
+        const mobileCalendar = document.getElementById('mobile-calendar');
+        if (mobileCalendar) {
+            mobileCalendar.textContent = display;
         }
     }
 }
@@ -512,7 +521,18 @@ class GameLoop {
         const minutes = Math.floor(this.trancheTimeRemaining / 60000);
         const seconds = Math.floor((this.trancheTimeRemaining % 60000) / 1000);
         const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        document.getElementById('tranche-timer').textContent = display;
+
+        // Actualizar timer desktop
+        const desktopTimer = document.getElementById('tranche-timer');
+        if (desktopTimer) {
+            desktopTimer.textContent = display;
+        }
+
+        // Actualizar timer móvil
+        const mobileTimer = document.getElementById('mobile-tranche-timer');
+        if (mobileTimer) {
+            mobileTimer.textContent = display;
+        }
     }
 
     updateTripProgress() {
