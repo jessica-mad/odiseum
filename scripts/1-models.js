@@ -127,13 +127,15 @@ class Crew {
         if (this.state === CREW_STATES.AWAKE || this.state === CREW_STATES.RESTING) {
             this.foodNeed = Math.max(0, this.foodNeed + (config.food * multiplier));
             this.healthNeed = Math.max(0, this.healthNeed + (config.health * multiplier));
-            this.wasteNeed = Math.min(100, this.wasteNeed + (config.waste * multiplier));
+            // Higiene: solo degrada hasta 70% (no más allá)
+            this.wasteNeed = Math.min(70, this.wasteNeed + (config.waste * multiplier));
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + (config.entertainment * multiplier));
             this.restNeed = Math.max(100, this.restNeed + (config.rest * multiplier));
         } else {
             this.foodNeed = Math.max(0, this.foodNeed + config.food);
             this.healthNeed = Math.max(0, this.healthNeed + config.health);
-            this.wasteNeed = Math.min(100, this.wasteNeed + config.waste);
+            // Higiene: solo degrada hasta 70% (no más allá)
+            this.wasteNeed = Math.min(70, this.wasteNeed + config.waste);
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + config.entertainment);
             this.restNeed = Math.min(100, this.restNeed + config.rest);
         }
@@ -225,18 +227,26 @@ class Crew {
 
         // Auto-gestionar comida
         if (this.foodNeed < AUTO_MANAGE_CONFIG.food.threshold && Food.quantity >= AUTO_MANAGE_CONFIG.food.cost) {
-            Food.consume(AUTO_MANAGE_CONFIG.food.cost);
-            const recovery = AUTO_MANAGE_CONFIG.food.recovery * efficiencyMultiplier;
-            this.foodNeed = Math.min(100, this.foodNeed + recovery);
-            autoManageActions.push('comió');
-            this.currentActivity = 'eating';
+            // Calcular cuánto realmente necesita para llegar a 100
+            const needed = 100 - this.foodNeed;
+            const baseRecovery = AUTO_MANAGE_CONFIG.food.recovery * efficiencyMultiplier;
+            const actualRecovery = Math.min(needed, baseRecovery);
+
+            // Consumir recursos proporcionalmente (regla de 3)
+            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.food.cost);
+            const resourcesToUse = Math.min(resourcesNeeded, Food.quantity);
+
+            if (resourcesToUse > 0) {
+                Food.consume(resourcesToUse);
+                this.foodNeed = Math.min(100, this.foodNeed + actualRecovery);
+                autoManageActions.push('comió');
+                this.currentActivity = 'eating';
+            }
         }
 
         // Auto-gestionar salud (medicina)
         // Si healthNeed < 100, intentar curar hasta que esté completamente sano
         if (this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            Medicine.consume(AUTO_MANAGE_CONFIG.medicine.cost);
-
             // Bonus si la Dra. Chen está despierta
             let drChenAwake = false;
             if (typeof crewMembers !== 'undefined' && crewMembers) {
@@ -247,27 +257,52 @@ class Crew {
             }
 
             // Recuperación base con multiplicador de eficiencia
-            let recovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
+            let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
 
             // Bonus de +50% si la Dra. Chen está despierta
             if (drChenAwake) {
-                recovery *= 1.5;
-                autoManageActions.push('fue atendido por la Dra. Chen');
-            } else {
-                autoManageActions.push('tomó medicina');
+                baseRecovery *= 1.5;
             }
 
-            this.healthNeed = Math.min(100, this.healthNeed + recovery);
-            this.currentActivity = 'resting';
+            // Calcular cuánto realmente necesita para llegar a 100
+            const needed = 100 - this.healthNeed;
+            const actualRecovery = Math.min(needed, baseRecovery);
+
+            // Consumir recursos proporcionalmente (regla de 3)
+            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+            const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
+
+            if (resourcesToUse > 0) {
+                Medicine.consume(resourcesToUse);
+                this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
+
+                if (drChenAwake) {
+                    autoManageActions.push('fue atendido por la Dra. Chen');
+                } else {
+                    autoManageActions.push('tomó medicina');
+                }
+
+                this.currentActivity = 'resting';
+            }
         }
 
         // Auto-gestionar higiene
         if (this.wasteNeed > AUTO_MANAGE_CONFIG.hygiene.threshold && Water.quantity >= AUTO_MANAGE_CONFIG.hygiene.cost) {
-            Water.consume(AUTO_MANAGE_CONFIG.hygiene.cost);
-            const recovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
-            this.wasteNeed = Math.max(0, this.wasteNeed - recovery);
-            autoManageActions.push('se aseó');
-            this.currentActivity = 'cleaning';
+            // Calcular cuánto realmente necesita para llegar a 0
+            const needed = this.wasteNeed - 0;
+            const baseRecovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
+            const actualRecovery = Math.min(needed, baseRecovery);
+
+            // Consumir recursos proporcionalmente (regla de 3)
+            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.hygiene.cost);
+            const resourcesToUse = Math.min(resourcesNeeded, Water.quantity);
+
+            if (resourcesToUse > 0) {
+                Water.consume(resourcesToUse);
+                this.wasteNeed = Math.max(0, this.wasteNeed - actualRecovery);
+                autoManageActions.push('se aseó');
+                this.currentActivity = 'cleaning';
+            }
         }
 
         // Auto-gestionar entretenimiento

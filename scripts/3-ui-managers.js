@@ -966,14 +966,27 @@ function manageFoodNeed() {
     const crewMember = crewMembers.find(c => c.name === crewName);
 
     if (!crewMember || !crewMember.isAlive) return;
-    
-    if (Food.quantity >= 10) {
-        Food.consume(10);
-        crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
+
+    // No consumir si ya está al 100%
+    if (crewMember.foodNeed >= 100) {
+        new Notification(`${crewName} ya está completamente alimentado`, NOTIFICATION_TYPES.INFO);
+        return;
+    }
+
+    // Calcular cuánto necesita (consumo proporcional)
+    const needed = 100 - crewMember.foodNeed;
+    const baseRecovery = 30;
+    const baseCost = 10;
+    const actualRecovery = Math.min(needed, baseRecovery);
+    const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+    if (Food.quantity >= resourcesNeeded) {
+        Food.consume(resourcesNeeded);
+        crewMember.foodNeed = Math.min(100, crewMember.foodNeed + actualRecovery);
         Food.updateResourceUI();
         crewMember.updateMiniCard();
         gameLoop.updateCrewPopupIfOpen();
-        new Notification(`${crewName} ha sido alimentado`, NOTIFICATION_TYPES.INFO);
+        new Notification(`${crewName} ha sido alimentado (+${actualRecovery.toFixed(0)}%, -${resourcesNeeded} comida)`, NOTIFICATION_TYPES.INFO);
     } else {
         new Notification('No hay suficiente comida', NOTIFICATION_TYPES.ALERT);
     }
@@ -986,14 +999,27 @@ function manageHealthNeed() {
     const crewMember = crewMembers.find(c => c.name === crewName);
 
     if (!crewMember || !crewMember.isAlive) return;
-    
-    if (Medicine.quantity >= 5) {
-        Medicine.consume(5);
-        crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
+
+    // No consumir si ya está al 100%
+    if (crewMember.healthNeed >= 100) {
+        new Notification(`${crewName} ya está completamente sano`, NOTIFICATION_TYPES.INFO);
+        return;
+    }
+
+    // Calcular cuánto necesita (consumo proporcional)
+    const needed = 100 - crewMember.healthNeed;
+    const baseRecovery = 25;
+    const baseCost = 5;
+    const actualRecovery = Math.min(needed, baseRecovery);
+    const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+    if (Medicine.quantity >= resourcesNeeded) {
+        Medicine.consume(resourcesNeeded);
+        crewMember.healthNeed = Math.min(100, crewMember.healthNeed + actualRecovery);
         Medicine.updateResourceUI();
         crewMember.updateMiniCard();
         gameLoop.updateCrewPopupIfOpen();
-        new Notification(`${crewName} ha recibido atención médica`, NOTIFICATION_TYPES.INFO);
+        new Notification(`${crewName} ha recibido atención médica (+${actualRecovery.toFixed(0)}%, -${resourcesNeeded} medicina)`, NOTIFICATION_TYPES.INFO);
     } else {
         new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
     }
@@ -1006,14 +1032,27 @@ function manageWasteNeed() {
     const crewMember = crewMembers.find(c => c.name === crewName);
 
     if (!crewMember || !crewMember.isAlive) return;
-    
-    if (Water.quantity >= 3) {
-        Water.consume(3);
-        crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - 40);
+
+    // No consumir si ya está al 0%
+    if (crewMember.wasteNeed <= 0) {
+        new Notification(`${crewName} no necesita usar el baño`, NOTIFICATION_TYPES.INFO);
+        return;
+    }
+
+    // Calcular cuánto necesita (consumo proporcional)
+    const needed = crewMember.wasteNeed - 0;
+    const baseRecovery = 40;
+    const baseCost = 3;
+    const actualRecovery = Math.min(needed, baseRecovery);
+    const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+    if (Water.quantity >= resourcesNeeded) {
+        Water.consume(resourcesNeeded);
+        crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - actualRecovery);
         Water.updateResourceUI();
         crewMember.updateMiniCard();
         gameLoop.updateCrewPopupIfOpen();
-        new Notification(`${crewName} ha usado las instalaciones de higiene`, NOTIFICATION_TYPES.INFO);
+        new Notification(`${crewName} ha usado las instalaciones de higiene (-${actualRecovery.toFixed(0)}%, -${resourcesNeeded} agua)`, NOTIFICATION_TYPES.INFO);
     } else {
         new Notification('No hay suficiente agua', NOTIFICATION_TYPES.ALERT);
     }
@@ -1144,10 +1183,23 @@ function quickManage(crewName, type) {
     if (!crewMember || !crewMember.isAlive) return;
 
     if (type === 'alimentación' || type === 'comida') {
-        if (Food.quantity >= 10) {
+        // No consumir si ya está al 100%
+        if (crewMember.foodNeed >= 100) {
+            new Notification(`${crewName} ya está completamente alimentado`, NOTIFICATION_TYPES.INFO);
+            return;
+        }
+
+        // Calcular consumo proporcional
+        const needed = 100 - crewMember.foodNeed;
+        const baseRecovery = 30;
+        const baseCost = 10;
+        const actualRecovery = Math.min(needed, baseRecovery);
+        const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+        if (Food.quantity >= resourcesNeeded) {
             playClickSound();
-            Food.consume(10);
-            crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
+            Food.consume(resourcesNeeded);
+            crewMember.foodNeed = Math.min(100, crewMember.foodNeed + actualRecovery);
             Food.updateResourceUI();
             crewMember.updateMiniCard();
             if (typeof gameLoop !== 'undefined' && gameLoop) {
@@ -1157,10 +1209,23 @@ function quickManage(crewName, type) {
             new Notification('No hay suficiente comida', NOTIFICATION_TYPES.ALERT);
         }
     } else if (type === 'salud') {
-        if (Medicine.quantity >= 5) {
+        // No consumir si ya está al 100%
+        if (crewMember.healthNeed >= 100) {
+            new Notification(`${crewName} ya está completamente sano`, NOTIFICATION_TYPES.INFO);
+            return;
+        }
+
+        // Calcular consumo proporcional
+        const needed = 100 - crewMember.healthNeed;
+        const baseRecovery = 25;
+        const baseCost = 5;
+        const actualRecovery = Math.min(needed, baseRecovery);
+        const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+        if (Medicine.quantity >= resourcesNeeded) {
             playClickSound();
-            Medicine.consume(5);
-            crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
+            Medicine.consume(resourcesNeeded);
+            crewMember.healthNeed = Math.min(100, crewMember.healthNeed + actualRecovery);
             Medicine.updateResourceUI();
             crewMember.updateMiniCard();
             if (typeof gameLoop !== 'undefined' && gameLoop) {
@@ -1170,11 +1235,24 @@ function quickManage(crewName, type) {
             new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
         }
     } else if (type === 'higiene') {
-        if (Water.quantity >= 5) {
+        // No consumir si ya está al 0%
+        if (crewMember.wasteNeed <= 0) {
+            new Notification(`${crewName} no necesita usar el baño`, NOTIFICATION_TYPES.INFO);
+            return;
+        }
+
+        // Calcular consumo proporcional
+        const needed = crewMember.wasteNeed - 0;
+        const baseRecovery = 30;
+        const baseCost = 5;
+        const actualRecovery = Math.min(needed, baseRecovery);
+        const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+        if (Water.quantity >= resourcesNeeded) {
             playClickSound();
-            Water.consume(5);
-            crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - 30);
-            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + 3);
+            Water.consume(resourcesNeeded);
+            crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - actualRecovery);
+            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + Math.ceil(resourcesNeeded * 0.6));
             Water.updateResourceUI();
             Waste.updateResourceUI();
             crewMember.updateMiniCard();
