@@ -615,6 +615,24 @@ class ShipMapSystem {
      * Sistema de averías - Degrada las zonas basándose en el uso
      */
     degradeZones() {
+        // Verificar estado del ingeniero
+        const engineer = crewMembers.find(c =>
+            c.position && c.position.includes('Ingenier') && c.isAlive
+        );
+
+        let engineerModifier = 1.0;
+        if (engineer) {
+            if (engineer.state === 'Despierto') {
+                // Ingeniero despierto reduce degradación en 40%
+                engineerModifier = 0.6;
+                console.log('⚙️ Ingeniero despierto: degradación reducida (-40%)');
+            } else if (engineer.state === 'Encapsulado') {
+                // Ingeniero encapsulado aumenta degradación en 50%
+                engineerModifier = 1.5;
+                console.log('💤 Ingeniero encapsulado: degradación aumentada (+50%)');
+            }
+        }
+
         // Contar tripulantes activos por zona
         const crewCountByZone = {};
 
@@ -638,8 +656,8 @@ class ShipMapSystem {
             const crewCount = crewCountByZone[zoneKey] || 0;
 
             if (!zone.isBroken) {
-                // Degradación base + degradación por uso
-                const degradation = zone.degradationRate * (1 + crewCount * 0.3);
+                // Degradación base + degradación por uso + modificador de ingeniero
+                const degradation = zone.degradationRate * (1 + crewCount * 0.3) * engineerModifier;
                 zone.integrity = Math.max(0, zone.integrity - degradation);
 
                 // Marcar como averiada si llega a 0
@@ -653,6 +671,9 @@ class ShipMapSystem {
                 }
             }
         });
+
+        // Actualizar panel de estado cada vez que se degradan las zonas
+        this.updateRoomsStatus();
     }
 
     /**
@@ -672,7 +693,7 @@ class ShipMapSystem {
     }
 
     /**
-     * Marca visualmente una zona como averiada
+     * Marca visualmente una zona como averiada y aplica consecuencias
      */
     markZoneAsBroken(zoneKey) {
         const zone = this.zones[zoneKey];
@@ -686,6 +707,60 @@ class ShipMapSystem {
                 cell.classList.add('cell-broken');
             }
         });
+
+        // Aplicar consecuencias específicas por zona
+        this.applyBreakdownConsequences(zoneKey);
+        this.updateRoomsStatus();
+    }
+
+    /**
+     * Aplica consecuencias cuando una zona se avería
+     */
+    applyBreakdownConsequences(zoneKey) {
+        switch(zoneKey) {
+            case 'capsules':
+                // Despertar a todos los encapsulados
+                console.warn('🛏️ ¡Cápsulas averiadas! Despertando a todos los encapsulados');
+                crewMembers.forEach(crew => {
+                    if (crew.state === 'Encapsulado' && crew.isAlive) {
+                        crew.state = 'Despierto';
+                    }
+                });
+                if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+                    panelManager.updateCrewPanel();
+                }
+                break;
+
+            case 'kitchen':
+                console.warn('🍳 ¡Cocina averiada! Los tripulantes no podrán comer');
+                break;
+
+            case 'bridge':
+                console.warn('🎮 ¡Puente de Mando averiado! La nave no puede avanzar');
+                break;
+
+            case 'medbay':
+                console.warn('🏥 ¡Enfermería averiada! Los tripulantes no podrán curarse');
+                break;
+
+            case 'greenhouse':
+                console.warn('🌱 ¡Invernadero averiado! No se pueden producir alimentos');
+                break;
+
+            case 'engineering':
+                console.warn('⚙️ ¡Ingeniería averiada! Las reparaciones serán más lentas');
+                break;
+        }
+    }
+
+    /**
+     * Actualiza el panel de estado de salas
+     */
+    updateRoomsStatus() {
+        const statusContainer = document.getElementById('ship-map-rooms-status');
+        if (!statusContainer) return;
+
+        statusContainer.innerHTML = this.generateRoomsStatusHTML();
     }
 
     /**
@@ -709,8 +784,12 @@ class ShipMapSystem {
         const engineerZone = this.getCellTypeToZoneName(cellType);
 
         if (engineerZone === zoneKey) {
-            // Reparar
-            zone.integrity = zone.maxIntegrity;
+            // Cambiar actividad del ingeniero a "Reparando"
+            engineer.currentActivity = `Reparando ${zone.name}`;
+
+            // Reparar (más lento si Ingeniería está averiada)
+            const repairMultiplier = this.zones.engineering?.isBroken ? 0.5 : 1.0;
+            zone.integrity = zone.maxIntegrity * repairMultiplier;
             zone.isBroken = false;
 
             // Quitar marcas visuales
@@ -727,6 +806,16 @@ class ShipMapSystem {
             if (typeof Notification !== 'undefined') {
                 new Notification(`${engineer.name} reparó ${zone.name}`, 'INFO');
             }
+
+            // Actualizar panel de estado
+            this.updateRoomsStatus();
+
+            // Resetear actividad después de un tiempo
+            setTimeout(() => {
+                if (engineer.currentActivity && engineer.currentActivity.includes('Reparando')) {
+                    engineer.currentActivity = 'idle';
+                }
+            }, 3000);
 
             return true;
         }
