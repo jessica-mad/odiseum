@@ -564,6 +564,414 @@ Chen: "NUNCA me despiertes para TUS errores."`,
         }
     },
 
+    // Rodriguez Event 2
+    {
+        id: 'rodriguez_event_02',
+        character: 'Ing. Rodriguez',
+        icon: '⚙️',
+        title: 'El Ruido Misterioso',
+        trigger: {
+            minTranche: 3,
+            maxTranche: 9,
+            requiredAlive: ['Ing. Rodriguez'],
+            requiredAwake: ['Ing. Rodriguez'],
+            requiredAsleep: [],
+            resourceMin: {},
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['rodriguez_ticking_investigated'],
+            probability: 0.35
+        },
+        description: `Rodriguez irrumpe en el puente a las 2:30 AM con cara de no haber dormido en 48 horas.
+
+"Comandante, hay un TICTAC en el casco. Sección 7-B.
+Lleva 6 horas. Constante. Regular. No natural."
+
+[Reproduce audio grabado: tic... tic... tic...]
+
+"Podría ser:
+1. Dilatación térmica (aburrido, probable)
+2. Componente suelto (medio preocupante)
+3. Temporizador de bomba (mi cerebro a las 3 AM)"
+
+"Mi ex Marco me decía: 'Rodriguez, no TODO es una conspiración.'
+Y yo le respondía: 'Dime eso cuando el microondas explote.'"
+
+"Spoiler: El microondas SÍ explotó. Pero era mi culpa."
+
+"¿Investigo o duermo?"`,
+
+        optionA: {
+            label: '💤 Duerme, Rodriguez. Es dilatación térmica. Confía en mí.',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'ignore'
+        },
+
+        optionB: {
+            label: '🔍 Investiga AHORA. No duermo hasta saberlo.',
+            requires: {},
+            costs: { energy: 30 },
+            wakeUp: [],
+            result: 'investigate'
+        },
+
+        outcomes: {
+            ignore: {
+                flag: 'rodriguez_ignored_sound',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Ing. Rodriguez': {
+                        trauma: null,
+                        emotionalState: 'anxious_paranoid',
+                        skillModifier: 0.95,
+                        personalThought: '¿Y si ERA importante? Marco decía que siempre exagero... pero a veces tengo razón.',
+                        relationships: {
+                            'Capitán Silva': -5
+                        }
+                    }
+                },
+                narrative: `Rodriguez se va a dormir... pero NO duerme.
+
+[3 horas después]
+
+Rodriguez (por comunicador): "Comandante, sigo escuchándolo."
+Silva: "Rodriguez, DUERME."
+
+✅ +0 Recursos (nada pasó)
+⚠️ Rodriguez: Ansiedad, -5% eficiencia
+⚠️ Silva: -5 relación (agotado de lidiar con esto)
+
+[El tic-tac era dilatación térmica.]
+[Rodriguez NO lo sabrá nunca.]
+[Vivirá con la duda.]`,
+                chainEvent: null
+            },
+            investigate: {
+                flag: 'rodriguez_ticking_investigated',
+                resourceDeltas: { energy: -30 },
+                affectedCrew: {
+                    'Ing. Rodriguez': {
+                        trauma: null,
+                        emotionalState: 'relieved_validated',
+                        skillModifier: 1.05,
+                        personalThought: 'Era solo un panel suelto. Pero NECESITABA saberlo. Mi instinto funciona.',
+                        relationships: {
+                            'Capitán Silva': 5
+                        }
+                    }
+                },
+                narrative: `Rodriguez desaparece en el casco con herramientas.
+
+[90 minutos después]
+
+Rodriguez: "¡LO ENCONTRÉ!"
+
+[Muestra panel de ventilación con tornillo flojo]
+
+✅ Panel reparado
+✅ -30 Energía (herramientas)
+✅ Rodriguez: Validado, +5% eficiencia
+✅ Silva: +5 relación
+
+Rodriguez: "Marco me decía 'paranoico'. Yo le decía 'preparado'."
+
+Silva: "A veces tu paranoia nos salva, Rodriguez."
+
+Rodriguez (sonriendo): "A veces."`,
+                chainEvent: null
+            }
+        }
+    },
+
+    // Rodriguez Event 3
+    {
+        id: 'rodriguez_event_03',
+        character: 'Ing. Rodriguez',
+        icon: '⚙️',
+        title: 'La Pieza Fantasma',
+        trigger: {
+            minTranche: 2,
+            maxTranche: 8,
+            requiredAlive: ['Ing. Rodriguez'],
+            requiredAwake: ['Ing. Rodriguez'],
+            requiredAsleep: [],
+            resourceMin: {},
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['rodriguez_phantom_part'],
+            probability: 0.4
+        },
+        description: `Rodriguez entra al puente sosteniendo un tornillo.
+
+"Comandante, tenemos un problema."
+
+[Coloca el tornillo en la mesa]
+
+"Acabo de reparar el sistema de soporte vital.
+Todo funciona perfecto.
+Pero ME SOBRÓ ESTO."
+
+"En ingeniería, si te sobra una pieza después de armar algo...
+significa que:
+1. Era extra (optimista)
+2. Olvidaste dónde iba (realista)
+3. La nave va a explotar (mi cerebro)"
+
+"Mi ex Marco me ayudaba a armar muebles de IKEA.
+Siempre sobraban piezas.
+Él decía: 'Son extras, tranquilo.'
+Yo revisaba el manual 6 veces."
+
+"Spoiler: El librero se cayó a los 3 meses."
+
+"¿Reviso TODO el sistema o confío en que era extra?"`,
+
+        optionA: {
+            label: '📦 Era extra. IKEA espacial. No pasa nada.',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'ignore_part'
+        },
+
+        optionB: {
+            label: '🔍 Desarmo TODO hasta encontrar de dónde salió.',
+            requires: { energy: 50 },
+            costs: { energy: 50 },
+            wakeUp: [],
+            result: 'obsessive_check'
+        },
+
+        outcomes: {
+            ignore_part: {
+                flag: 'rodriguez_phantom_part_ignored',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Ing. Rodriguez': {
+                        trauma: 'phantom_part_anxiety',
+                        emotionalState: 'obsessive_worried',
+                        skillModifier: 0.9,
+                        personalThought: 'Sé que era extra... pero ¿y si no? ¿Y si Marco tenía razón y siempre exagero? Pero el librero SÍ se cayó...',
+                        relationships: {}
+                    }
+                },
+                narrative: `Rodriguez guarda el tornillo en un cajón.
+
+[3 días después]
+
+Rodriguez revisa el cajón 14 veces al día.
+
+Chen: "Rodriguez, ¿estás bien?"
+Rodriguez: "SÍ. Solo... verificando."
+
+⚠️ Rodriguez: Trauma (ansiedad por pieza fantasma)
+⚠️ -10% eficiencia en reparaciones
+⚠️ Obsesión permanente
+
+[La pieza ERA extra.]
+[Rodriguez NUNCA lo sabrá.]
+[El librero de Marco lo persigue.]`,
+                chainEvent: null
+            },
+            obsessive_check: {
+                flag: 'rodriguez_phantom_part_solved',
+                resourceDeltas: { energy: -50 },
+                affectedCrew: {
+                    'Ing. Rodriguez': {
+                        trauma: null,
+                        emotionalState: 'triumphant_validated',
+                        skillModifier: 1.1,
+                        personalThought: 'Lo sabía. SABÍA que no era extra. Mi instinto nunca falla. Marco estaba equivocado.',
+                        relationships: {
+                            'Capitán Silva': 10
+                        }
+                    }
+                },
+                narrative: `Rodriguez desarma TODO el sistema de soporte vital.
+
+[6 horas después]
+
+Rodriguez: "¡AQUÍ ESTABA!"
+
+[El tornillo iba en el regulador de presión]
+
+✅ -50 Energía (proceso obsesivo)
+✅ Sistema al 105% eficiencia
+✅ Rodriguez: +10% eficiencia permanente
+✅ Silva: +10 relación
+
+Silva: "Buen trabajo, Rodriguez."
+Rodriguez: "El librero de Marco NO se va a caer nunca más."
+
+[Nota: Marco ya no está.]
+[Pero Rodriguez ganó esta vez.]`,
+                chainEvent: null
+            }
+        }
+    },
+
+    // Rodriguez Event 4
+    {
+        id: 'rodriguez_event_04',
+        character: 'Ing. Rodriguez',
+        icon: '⚙️',
+        title: 'La Impresora Maldita',
+        trigger: {
+            minTranche: 3,
+            maxTranche: 8,
+            requiredAlive: ['Ing. Rodriguez', 'Lt. Johnson'],
+            requiredAwake: ['Ing. Rodriguez', 'Lt. Johnson'],
+            requiredAsleep: [],
+            resourceMin: {},
+            resourceMax: {},
+            requiredFlags: [],
+            blockedByFlags: ['rodriguez_printer_incident'],
+            probability: 0.45
+        },
+        description: `Johnson entra a ingeniería con una impresora 3D.
+
+"Rodriguez, ¿puedes arreglar esto?"
+
+Rodriguez: "Johnson, soy Ingeniero Jefe de una nave interestelar.
+Diseñé el sistema de propulsión cuántica.
+Optimicé reactores que alimentan 200 tripulantes.
+¿Y me pides arreglar una IMPRESORA?"
+
+Johnson: "Sí."
+
+Rodriguez: "..."
+
+[Suspiro profundo]
+
+"Está bien. Dos opciones:
+1. Te digo que no (dignidad intacta)
+2. La arreglo pero me voy a obsesionar y termino rediseñándola"
+
+"Mi ex Marco me pidió arreglar su laptop.
+Le instalé 3 sistemas operativos, overclocking, refrigeración líquida.
+Él solo quería ver Netflix."
+
+"Spoiler: Lo dejé."
+
+"Bueno, él me dejó. Pero fue por MI culpa."
+
+"¿Qué hago con tu impresora?"`,
+
+        optionA: {
+            label: '🚫 No, Johnson. Pídele a Chen que lea el manual.',
+            requires: {},
+            costs: {},
+            wakeUp: [],
+            result: 'refuse_dignity'
+        },
+
+        optionB: {
+            label: '🔧 Está bien... pero NO me culpes si termina haciendo café.',
+            requires: { energy: 40, data: 20 },
+            costs: { energy: 40, data: 20 },
+            wakeUp: [],
+            result: 'overengineer'
+        },
+
+        outcomes: {
+            refuse_dignity: {
+                flag: 'rodriguez_printer_refused',
+                resourceDeltas: {},
+                affectedCrew: {
+                    'Ing. Rodriguez': {
+                        trauma: null,
+                        emotionalState: 'proud_boundaries',
+                        skillModifier: 1.05,
+                        personalThought: 'Dije que no. Marco estaría orgulloso. Estoy aprendiendo límites.',
+                        relationships: {
+                            'Lt. Johnson': -5
+                        }
+                    },
+                    'Lt. Johnson': {
+                        emotionalState: 'annoyed',
+                        personalThought: 'Rodriguez es brillante pero a veces insoportable.',
+                        relationships: {
+                            'Ing. Rodriguez': -5
+                        }
+                    }
+                },
+                narrative: `Rodriguez: "No."
+
+Johnson: "¿En serio?"
+Rodriguez: "En serio. Tengo dignidad profesional."
+
+Johnson se va con la impresora rota.
+
+✅ Rodriguez: Límites sanos, +5% eficiencia
+⚠️ Johnson: -5 relación (molesto)
+⚠️ Rodriguez-Johnson: -5 relación mutua
+
+Chen (escuchando): "Crecimiento personal, Rodriguez."
+
+Rodriguez: "Marco estaría... bueno, él no está. Pero estaría orgulloso."`,
+                chainEvent: null
+            },
+            overengineer: {
+                flag: 'rodriguez_printer_incident',
+                resourceDeltas: { energy: -40, data: -20 },
+                affectedCrew: {
+                    'Ing. Rodriguez': {
+                        trauma: null,
+                        emotionalState: 'maniac_creator',
+                        skillModifier: 1.15,
+                        personalThought: 'Lo hice otra vez. La impresora ahora hace 6 cosas que Johnson no pidió. Pero es PERFECTA.',
+                        relationships: {
+                            'Lt. Johnson': 10,
+                            'Chef Patel': 10
+                        }
+                    },
+                    'Lt. Johnson': {
+                        emotionalState: 'confused_grateful',
+                        personalThought: 'Pedí una impresora. Ahora tengo... ¿una estación de fabricación? Gracias... creo.',
+                        relationships: {
+                            'Ing. Rodriguez': 10
+                        }
+                    },
+                    'Chef Patel': {
+                        emotionalState: 'excited',
+                        personalThought: '¡Rodriguez hizo una impresora que hace COMIDA! Este tipo es un genio loco.',
+                        relationships: {
+                            'Ing. Rodriguez': 10
+                        }
+                    }
+                },
+                narrative: `[8 horas después]
+
+Rodriguez: "¡TERMINÉ!"
+
+[La "impresora" ahora tiene]:
+✅ Impresión 3D (lo que pidió Johnson)
+✅ Escáner molecular
+✅ Replicador de comida básica
+✅ Cargador inalámbrico
+✅ Cafetera integrada
+✅ Reproduce música
+
+Johnson: "Yo solo quería imprimir formularios..."
+Rodriguez: "Ahora TAMBIÉN haces waffles."
+
+✅ -40 Energía, -20 Datos
+✅ Rodriguez: +15% eficiencia (modo genio)
+✅ Johnson: +10 relación (impresionado)
+✅ Patel: +10 relación (ama la comida extra)
+
+Patel: "¡Rodriguez, eres mi héroe!"
+Rodriguez: "Marco nunca lo entendió. Pero ustedes sí."
+
+[La laptop de Marco sigue en algún lugar...]
+[Haciendo café probablemente.]`,
+                chainEvent: null
+            }
+        }
+    },
+
     // EVENTO 4: LT. JOHNSON
     {
         id: 'johnson_event_01',
