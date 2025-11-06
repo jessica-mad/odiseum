@@ -129,31 +129,66 @@ class ShipMapSystem {
         if (!mapContainer) return;
 
         mapContainer.innerHTML = `
-            <div class="ship-map-zoom-controls">
-                <button class="zoom-btn" id="zoom-in-btn" title="Acercar (Zoom In)">
-                    <span class="zoom-icon">+</span>
-                </button>
-                <button class="zoom-btn" id="zoom-reset-btn" title="Restablecer Zoom">
-                    <span class="zoom-icon">⊙</span>
-                </button>
-                <button class="zoom-btn" id="zoom-out-btn" title="Alejar (Zoom Out)">
-                    <span class="zoom-icon">−</span>
-                </button>
-            </div>
-            <div class="ship-map-zoom-wrapper" id="ship-map-zoom-wrapper">
-                <div class="ship-map-wrapper" id="ship-map-wrapper-inner">
-                    <div class="ship-map-grid" id="ship-map-grid">
-                        ${this.generateGridHTML()}
+            <div class="ship-map-layout">
+                <div class="ship-map-zoom-controls">
+                    <button class="zoom-btn" id="zoom-in-btn" title="Acercar (Zoom In)">
+                        <span class="zoom-icon">+</span>
+                    </button>
+                    <button class="zoom-btn" id="zoom-reset-btn" title="Restablecer Zoom">
+                        <span class="zoom-icon">⊙</span>
+                    </button>
+                    <button class="zoom-btn" id="zoom-out-btn" title="Alejar (Zoom Out)">
+                        <span class="zoom-icon">−</span>
+                    </button>
+                </div>
+                <div class="ship-map-zoom-wrapper" id="ship-map-zoom-wrapper">
+                    <div class="ship-map-wrapper" id="ship-map-wrapper-inner">
+                        <div class="ship-map-square-container">
+                            <div class="ship-map-grid" id="ship-map-grid">
+                                ${this.generateGridHTML()}
+                            </div>
+                            <div class="ship-map-crew-overlay" id="ship-map-crew-overlay">
+                                <!-- Los tripulantes se renderizan aquí -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="ship-map-crew-overlay" id="ship-map-crew-overlay">
-                        <!-- Los tripulantes se renderizan aquí -->
-                    </div>
+                </div>
+                <div class="ship-map-rooms-status" id="ship-map-rooms-status">
+                    ${this.generateRoomsStatusHTML()}
                 </div>
             </div>
         `;
 
         // Setup zoom controls
         this.setupZoomControls();
+    }
+
+    generateRoomsStatusHTML() {
+        let html = '<h4 class="rooms-status-title">ESTADO DE LA NAVE</h4><div class="rooms-status-grid">';
+
+        Object.entries(this.zones).forEach(([zoneKey, zone]) => {
+            const percentage = Math.round((zone.integrity / zone.maxIntegrity) * 100);
+            let statusClass = 'good';
+            if (percentage < 20) statusClass = 'critical';
+            else if (percentage < 50) statusClass = 'warning';
+
+            html += `
+                <div class="room-status-card ${zone.isBroken ? 'broken' : ''}" data-zone="${zoneKey}">
+                    <div class="room-status-header">
+                        <span class="room-status-icon">${zone.icon}</span>
+                        <span class="room-status-name">${zone.name}</span>
+                    </div>
+                    <div class="room-status-bar">
+                        <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
+                    </div>
+                    <div class="room-status-value">${percentage}%</div>
+                    ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        return html;
     }
 
     setupZoomControls() {
