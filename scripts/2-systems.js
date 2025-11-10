@@ -29,9 +29,24 @@ class TimeSystem {
     }
     
     updateCalendarUI() {
-        const calendarElement = document.getElementById('calendar');
-        if (calendarElement) {
-            calendarElement.textContent = `Año ${this.currentYear.toFixed(1)}`;
+        const display = `Año ${this.currentYear.toFixed(1)}`;
+
+        // Actualizar calendario desktop
+        const desktopCalendar = document.getElementById('calendar');
+        if (desktopCalendar) {
+            desktopCalendar.textContent = display;
+        }
+
+        // Actualizar calendario móvil (footer)
+        const mobileCalendar = document.getElementById('mobile-calendar');
+        if (mobileCalendar) {
+            mobileCalendar.textContent = display;
+        }
+
+        // Actualizar año en top bar 2 móvil
+        const mobileYearDisplay = document.getElementById('mobile-year-display');
+        if (mobileYearDisplay) {
+            mobileYearDisplay.textContent = `AÑO ${this.currentYear.toFixed(1)}`;
         }
     }
 }
@@ -257,10 +272,15 @@ class GameLoop {
             playTrancheSound();
         }
 
-        // Actualizar UI de botones
+        // Actualizar UI de botones desktop
         document.getElementById('start-button').style.display = 'none';
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('playing');
+        }
 
         // Actualizar estado del viaje
         if (typeof updateVoyageStatus === 'function') {
@@ -402,10 +422,20 @@ class GameLoop {
         // Avanzar tramo
         timeSystem.advanceTranche();
 
-        // Actualizar UI de botones
+        // Actualizar UI de botones desktop
         document.getElementById('start-button').style.display = 'inline-block';
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'none';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('stopped');
+        }
+
+        // Actualizar contador de tramos móvil
+        if (typeof updateMobileTrancheCount === 'function') {
+            updateMobileTrancheCount();
+        }
 
         // Actualizar texto del botón según el tramo
         if (typeof updateStartButtonText === 'function') {
@@ -462,8 +492,14 @@ class GameLoop {
 
         this.gameState = GAME_STATES.TRANCHE_PAUSED;
 
+        // Actualizar botones desktop
         document.getElementById('pause-button').style.display = 'none';
         document.getElementById('resume-button').style.display = 'inline-block';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('paused');
+        }
 
         // Actualizar estado del viaje (sigue mostrando que estamos viajando)
         if (typeof updateVoyageStatus === 'function') {
@@ -492,8 +528,14 @@ class GameLoop {
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
 
+        // Actualizar botones desktop
         document.getElementById('pause-button').style.display = 'inline-block';
         document.getElementById('resume-button').style.display = 'none';
+
+        // Actualizar botones móviles
+        if (typeof updateMobileButtons === 'function') {
+            updateMobileButtons('playing');
+        }
 
         // Actualizar estado del viaje
         if (typeof updateVoyageStatus === 'function') {
@@ -512,7 +554,18 @@ class GameLoop {
         const minutes = Math.floor(this.trancheTimeRemaining / 60000);
         const seconds = Math.floor((this.trancheTimeRemaining % 60000) / 1000);
         const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        document.getElementById('tranche-timer').textContent = display;
+
+        // Actualizar timer desktop
+        const desktopTimer = document.getElementById('tranche-timer');
+        if (desktopTimer) {
+            desktopTimer.textContent = display;
+        }
+
+        // Actualizar timer móvil
+        const mobileTimer = document.getElementById('mobile-tranche-timer');
+        if (mobileTimer) {
+            mobileTimer.textContent = display;
+        }
     }
 
     updateTripProgress() {
@@ -917,7 +970,8 @@ class EventSystem {
             });
         }
 
-        const outcomeKey = option.result === 'good' ? 'good' : 'bad';
+        // Usar directamente el result como clave (gamble, safe, good, bad, repress, etc.)
+        const outcomeKey = option.result || 'bad';
         const outcome = event.outcomes?.[outcomeKey];
 
         const actualOutcome = this.applyOutcome(event, outcome, outcomeKey);
@@ -1038,6 +1092,12 @@ class EventSystem {
             crew.skillModifier = changes.skillModifier;
         }
 
+        // Guardar pensamiento personalizado del evento
+        if (changes.personalThought) {
+            crew.personalThought = changes.personalThought;
+            crew.personalThoughtExpiry = Date.now() + (120000); // Dura 2 minutos
+        }
+
         if (changes.relationships && typeof changes.relationships === 'object') {
             Object.entries(changes.relationships).forEach(([otherName, delta]) => {
                 const otherCrew = this.getCrewByName(otherName);
@@ -1072,6 +1132,53 @@ class EventSystem {
         crew.updateMiniCard();
     }
 
+    determineOutcomeClass(outcome, outcomeKey) {
+        // Outcomes explícitamente buenos
+        if (outcomeKey === 'good' || outcomeKey === 'success') return 'good';
+        // Outcomes explícitamente malos
+        if (outcomeKey === 'bad' || outcomeKey === 'failure') return 'bad';
+
+        // Analizar el contenido del outcome para determinar si es positivo o negativo
+        if (!outcome) return 'bad';
+
+        let hasTrauma = false;
+        let hasNegativeModifier = false;
+        let hasPositiveResources = false;
+        let hasNegativeResources = false;
+
+        // Revisar si hay trauma en affectedCrew
+        if (outcome.affectedCrew) {
+            Object.values(outcome.affectedCrew).forEach(changes => {
+                if (changes.trauma) hasTrauma = true;
+                if (typeof changes.skillModifier === 'number' && changes.skillModifier < 1) {
+                    hasNegativeModifier = true;
+                }
+            });
+        }
+
+        // Revisar resourceDeltas
+        if (outcome.resourceDeltas) {
+            Object.values(outcome.resourceDeltas).forEach(delta => {
+                if (delta > 0) hasPositiveResources = true;
+                if (delta < 0) hasNegativeResources = true;
+            });
+        }
+
+        // Si hay trauma, definitivamente es malo
+        if (hasTrauma) return 'bad';
+
+        // Si hay recursos positivos y no hay modificadores negativos, es bueno
+        if (hasPositiveResources && !hasNegativeModifier && !hasNegativeResources) return 'good';
+
+        // Si es 'safe' o 'repress' sin trauma, considerarlo neutro (mostrar como malo pero menos severo)
+        if (outcomeKey === 'safe' || outcomeKey === 'repress') {
+            return hasNegativeResources || hasNegativeModifier ? 'bad' : 'neutral';
+        }
+
+        // Por defecto, malo
+        return 'bad';
+    }
+
     showOutcome(event, outcome, outcomeKey) {
         if (!this.currentPopup) return;
 
@@ -1088,7 +1195,8 @@ class EventSystem {
         `;
 
         const resultContainer = document.createElement('div');
-        const resultClass = outcomeKey === 'good' ? 'good' : 'bad';
+        // Determinar si el resultado es bueno o malo analizando el outcome
+        const resultClass = this.determineOutcomeClass(outcome, outcomeKey);
         resultContainer.className = `event-result ${resultClass}`;
 
         const narrative = document.createElement('p');

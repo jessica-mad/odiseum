@@ -19,65 +19,450 @@ function setupPopupZIndex() {
     });
 }
 
-/* === SISTEMA DE ACORDEONES MÓVIL === */
-let currentOpenAccordion = null;
+/* === SISTEMA DE ACORDEÓN MÓVIL CON GESTOS === */
+let currentOpenMobilePanel = null;
+let panelStartY = 0;
+let panelCurrentY = 0;
+let isDraggingPanel = false;
 
-function toggleMobileAccordion(section) {
-    const header = event.currentTarget;
-    const content = document.getElementById(`mobile-accordion-${section}`);
+function toggleMobileAccordion(panelName) {
+    const panel = document.getElementById(`mobile-panel-${panelName}`);
+    const tab = document.querySelector(`.mobile-tab[data-panel="${panelName}"]`);
 
-    // Si ya estaba abierto, cerrarlo
-    if (currentOpenAccordion === section) {
-        header.classList.remove('active');
-        content.classList.remove('active');
-        currentOpenAccordion = null;
+    if (!panel || !tab) {
+        console.log('Panel o tab no encontrado:', panelName);
         return;
     }
 
-    // Cerrar el acordeón previamente abierto
-    if (currentOpenAccordion) {
-        const prevHeader = document.querySelector(`[onclick="toggleMobileAccordion('${currentOpenAccordion}')"]`);
-        const prevContent = document.getElementById(`mobile-accordion-${currentOpenAccordion}`);
-        if (prevHeader) prevHeader.classList.remove('active');
-        if (prevContent) prevContent.classList.remove('active');
+    // Si este panel ya está abierto, cerrarlo
+    if (currentOpenMobilePanel === panelName) {
+        closeMobileAccordion();
+        return;
     }
 
-    // Abrir el nuevo acordeón
-    header.classList.add('active');
-    content.classList.add('active');
-    currentOpenAccordion = section;
+    // Cerrar el panel previamente abierto
+    if (currentOpenMobilePanel) {
+        const prevPanel = document.getElementById(`mobile-panel-${currentOpenMobilePanel}`);
+        const prevTab = document.querySelector(`.mobile-tab[data-panel="${currentOpenMobilePanel}"]`);
+        if (prevPanel) prevPanel.classList.remove('open');
+        if (prevTab) prevTab.classList.remove('active');
 
-    // Si es el mapa, moverlo al contenedor del acordeón
-    if (section === 'map') {
-        const mapContainer = document.getElementById('ship-map-container');
-        const mapAccordion = document.getElementById('mobile-accordion-map');
-        if (mapContainer && mapAccordion) {
-            mapAccordion.appendChild(mapContainer);
-            mapContainer.style.display = 'flex';
+        // Limpiar paneles del carrusel antes de abrir uno nuevo
+        if (typeof cleanupCarouselPanels === 'function') {
+            cleanupCarouselPanels();
         }
+    }
+
+    // Abrir el nuevo panel
+    panel.classList.add('open');
+    tab.classList.add('active');
+    currentOpenMobilePanel = panelName;
+
+    // Configurar gestos de arrastre
+    setupPanelSwipeGestures(panel);
+    setupPanelCarouselGestures(panel);
+
+    // Actualizar contenido según el panel
+    if (panelName === 'resources') {
+        updateMobileResources();
+    } else if (panelName === 'crew') {
+        updateMobileCrewPanel();
+    } else if (panelName === 'map') {
+        updateMobileMapPanel();
+    } else if (panelName === 'speed') {
+        syncMobileSpeedControl();
+    }
+}
+
+function closeMobileAccordion() {
+    if (!currentOpenMobilePanel) return;
+
+    const panel = document.getElementById(`mobile-panel-${currentOpenMobilePanel}`);
+    const tab = document.querySelector(`.mobile-tab[data-panel="${currentOpenMobilePanel}"]`);
+
+    if (panel) panel.classList.remove('open');
+    if (tab) tab.classList.remove('active');
+
+    // Limpiar paneles del carrusel
+    if (typeof cleanupCarouselPanels === 'function') {
+        cleanupCarouselPanels();
+    }
+
+    currentOpenMobilePanel = null;
+}
+
+function setupPanelSwipeGestures(panel) {
+    const header = panel.querySelector('.mobile-panel-header');
+    if (!header) return;
+
+    // Touch events
+    header.addEventListener('touchstart', (e) => {
+        panelStartY = e.touches[0].clientY;
+        isDraggingPanel = true;
+        panel.classList.add('dragging');
+    });
+
+    header.addEventListener('touchmove', (e) => {
+        if (!isDraggingPanel) return;
+
+        panelCurrentY = e.touches[0].clientY;
+        const diff = panelCurrentY - panelStartY;
+
+        // Solo permitir arrastre hacia abajo
+        if (diff > 0) {
+            const translateY = Math.min(diff, window.innerHeight - 180);
+            panel.style.transform = `translateY(${translateY}px)`;
+        }
+    });
+
+    header.addEventListener('touchend', (e) => {
+        if (!isDraggingPanel) return;
+
+        const diff = panelCurrentY - panelStartY;
+        panel.classList.remove('dragging');
+
+        // Si arrastró más de 100px hacia abajo, cerrar el panel
+        if (diff > 100) {
+            closeMobileAccordion();
+        }
+
+        // Resetear el transform
+        panel.style.transform = '';
+        isDraggingPanel = false;
+        panelStartY = 0;
+        panelCurrentY = 0;
+    });
+}
+
+// Sistema de carrusel: swipe horizontal para cambiar entre paneles
+function setupPanelCarouselGestures(panel) {
+    const body = panel.querySelector('.mobile-panel-body');
+    if (!body) return;
+
+    const panelOrder = ['resources', 'crew', 'map', 'speed'];
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let currentTouchX = 0;
+    let isHorizontalSwipe = false;
+    let isDragging = false;
+    let prevPanel = null;
+    let nextPanel = null;
+
+    // Preparar paneles adyacentes
+    const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+
+    if (currentIndex > 0) {
+        prevPanel = document.getElementById(`mobile-panel-${panelOrder[currentIndex - 1]}`);
+        if (prevPanel) {
+            prevPanel.classList.add('carousel-prev');
+        }
+    }
+
+    if (currentIndex < panelOrder.length - 1) {
+        nextPanel = document.getElementById(`mobile-panel-${panelOrder[currentIndex + 1]}`);
+        if (nextPanel) {
+            nextPanel.classList.add('carousel-next');
+        }
+    }
+
+    body.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isHorizontalSwipe = false;
+        isDragging = false;
+
+        // Deshabilitar transiciones durante el drag
+        panel.classList.add('dragging');
+        if (prevPanel) prevPanel.classList.add('dragging');
+        if (nextPanel) nextPanel.classList.add('dragging');
+    });
+
+    body.addEventListener('touchmove', (e) => {
+        currentTouchX = e.touches[0].clientX;
+        const diffX = currentTouchX - touchStartX;
+        const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+
+        // Detectar si es un swipe horizontal (más movimiento X que Y)
+        if (Math.abs(diffX) > 10 && Math.abs(diffX) > diffY) {
+            isHorizontalSwipe = true;
+            isDragging = true;
+
+            // Prevenir scroll si es horizontal
+            e.preventDefault();
+
+            // Límites tipo Instagram
+            const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+            let translateX = diffX;
+
+            // Primer panel (resources): inmóvil hacia la derecha
+            if (currentIndex === 0 && diffX > 0) {
+                return; // No hacer nada
+            }
+
+            // Último panel (speed): rubber band effect hacia la izquierda
+            if (currentIndex === panelOrder.length - 1 && diffX < 0) {
+                translateX = diffX / 3; // Dividir por 3 para crear resistencia
+            }
+
+            // No permitir arrastre si no hay panel en esa dirección (casos normales)
+            if ((diffX > 0 && !prevPanel) || (diffX < 0 && !nextPanel)) {
+                return;
+            }
+
+            panel.style.transform = `translateY(0) translateX(${translateX}px)`;
+
+            if (prevPanel && diffX > 0) {
+                prevPanel.style.transform = `translateY(0) translateX(${-100 + (diffX / window.innerWidth * 100)}%)`;
+            }
+
+            if (nextPanel && diffX < 0) {
+                const progress = diffX / window.innerWidth * 100;
+                // En el último panel, también aplicar resistencia al panel siguiente
+                if (currentIndex === panelOrder.length - 1) {
+                    nextPanel.style.transform = `translateY(0) translateX(${100 + (progress / 3)}%)`;
+                } else {
+                    nextPanel.style.transform = `translateY(0) translateX(${100 + progress}%)`;
+                }
+            }
+        }
+    });
+
+    body.addEventListener('touchend', (e) => {
+        if (!isHorizontalSwipe || !isDragging) {
+            // Limpiar paneles adyacentes
+            cleanupCarouselPanels();
+            return;
+        }
+
+        const diffX = currentTouchX - touchStartX;
+        const threshold = window.innerWidth * 0.15; // 15% del ancho de pantalla (antes era 30%)
+
+        // Reactivar transiciones
+        panel.classList.remove('dragging');
+        panel.classList.add('carousel-animating');
+        if (prevPanel) {
+            prevPanel.classList.remove('dragging');
+            prevPanel.classList.add('carousel-animating');
+        }
+        if (nextPanel) {
+            nextPanel.classList.remove('dragging');
+            nextPanel.classList.add('carousel-animating');
+        }
+
+        const currentIndex = panelOrder.indexOf(currentOpenMobilePanel);
+
+        // Límites: si estás en el último panel y swipe izquierda, siempre volver (rubber band)
+        if (currentIndex === panelOrder.length - 1 && diffX < 0) {
+            // Rubber band: siempre volver al panel actual
+            panel.style.transform = `translateY(0) translateX(0)`;
+            if (nextPanel) nextPanel.style.transform = `translateY(0) translateX(100%)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+            }, 300);
+            return;
+        }
+
+        // Decidir si completar la transición o volver
+        if (diffX > threshold && currentIndex > 0) {
+            // Swipe derecha: panel anterior
+            panel.style.transform = `translateY(0) translateX(100%)`;
+            if (prevPanel) prevPanel.style.transform = `translateY(0) translateX(0)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+                toggleMobileAccordion(panelOrder[currentIndex - 1]);
+            }, 300);
+        } else if (diffX < -threshold && currentIndex < panelOrder.length - 1) {
+            // Swipe izquierda: siguiente panel
+            panel.style.transform = `translateY(0) translateX(-100%)`;
+            if (nextPanel) nextPanel.style.transform = `translateY(0) translateX(0)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+                toggleMobileAccordion(panelOrder[currentIndex + 1]);
+            }, 300);
+        } else {
+            // Volver al panel actual
+            panel.style.transform = `translateY(0) translateX(0)`;
+            if (prevPanel) prevPanel.style.transform = `translateY(0) translateX(-100%)`;
+            if (nextPanel) nextPanel.style.transform = `translateY(0) translateX(100%)`;
+
+            setTimeout(() => {
+                cleanupCarouselPanels();
+            }, 300);
+        }
+    });
+}
+
+function cleanupCarouselPanels() {
+    const allPanels = document.querySelectorAll('.mobile-accordion-panel');
+    allPanels.forEach(p => {
+        p.classList.remove('carousel-prev', 'carousel-next', 'carousel-animating', 'dragging');
+        p.style.transform = '';
+    });
+}
+
+function updateMobileMapPanel() {
+    const mapContainer = document.getElementById('ship-map-container');
+    const mobileMapContainer = document.getElementById('map-mobile-container');
+
+    if (mapContainer && mobileMapContainer) {
+        // Clonar el mapa para móvil sin moverlo del desktop
+        mobileMapContainer.innerHTML = mapContainer.innerHTML;
+
+        // Re-aplicar eventos si es necesario
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.updateCrewLocations();
+        }
+    }
+}
+
+function updateMobileCrewPanel() {
+    const awakeContainer = document.getElementById('mobile-crew-awake');
+    const asleepContainer = document.getElementById('mobile-crew-asleep');
+
+    if (!awakeContainer || !asleepContainer) return;
+    if (typeof crewMembers === 'undefined' || !crewMembers) return;
+
+    // Limpiar contenedores
+    awakeContainer.innerHTML = '';
+    asleepContainer.innerHTML = '';
+
+    // Separar tripulantes por estado
+    crewMembers.forEach(crew => {
+        try {
+            const miniCard = crew.createMiniCard();
+
+            if (crew.state === 'Despierto') {
+                awakeContainer.appendChild(miniCard);
+            } else {
+                asleepContainer.appendChild(miniCard);
+            }
+        } catch (error) {
+            console.error(`Error creando card para ${crew.name}:`, error);
+        }
+    });
+
+    // Configurar drag & drop móvil
+    setupMobileDragAndDrop(awakeContainer, asleepContainer);
+}
+
+function setupMobileDragAndDrop(awakeContainer, asleepContainer) {
+    [awakeContainer, asleepContainer].forEach(container => {
+        container.ondragover = (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            container.classList.add('drag-over');
+        };
+
+        container.ondragleave = (e) => {
+            if (e.target === container) {
+                container.classList.remove('drag-over');
+            }
+        };
+
+        container.ondrop = (e) => {
+            e.preventDefault();
+            container.classList.remove('drag-over');
+
+            const crewName = e.dataTransfer.getData('text/plain');
+            const crew = crewMembers.find(c => c.name === crewName);
+
+            if (!crew || !crew.isAlive) return;
+
+            // Determinar nuevo estado según el contenedor
+            const targetState = container.id === 'mobile-crew-awake' ? 'Despierto' : 'Encapsulado';
+
+            // Solo cambiar si es diferente
+            if (crew.state !== targetState) {
+                crew.state = targetState;
+                crew.updateConsoleCrewState();
+
+                // Refrescar sistema de beneficios
+                if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+                    awakeBenefitSystem.refreshState(crewMembers);
+                    if (typeof updateVoyageVisualizer === 'function') {
+                        updateVoyageVisualizer();
+                    }
+                }
+
+                // Actualizar panel móvil
+                setTimeout(() => {
+                    updateMobileCrewPanel();
+                }, 50);
+
+                // Log y notificación
+                const action = targetState === 'Despierto' ? 'despertado' : 'encapsulado';
+                logbook.addEntry(
+                    `${crew.name} ha sido ${action}`,
+                    LOG_TYPES.EVENT
+                );
+                new Notification(
+                    `${crew.name} ha sido ${action}`,
+                    NOTIFICATION_TYPES.SUCCESS
+                );
+            }
+        };
+    });
+}
+
+function syncMobileSpeedControl() {
+    const desktopSlider = document.getElementById('nav-speed-slider');
+    const mobileSlider = document.getElementById('nav-speed-slider-mobile');
+    const desktopDisplay = document.getElementById('nav-speed-display');
+    const mobileDisplay = document.getElementById('nav-speed-display-mobile');
+
+    if (desktopSlider && mobileSlider) {
+        mobileSlider.value = desktopSlider.value;
+    }
+
+    if (desktopDisplay && mobileDisplay) {
+        mobileDisplay.textContent = desktopDisplay.textContent;
+    }
+
+    // Sincronizar cambios del slider móvil con el desktop
+    if (mobileSlider && desktopSlider) {
+        mobileSlider.oninput = function() {
+            desktopSlider.value = this.value;
+            if (mobileDisplay) {
+                mobileDisplay.textContent = this.value + '%';
+            }
+            if (desktopDisplay) {
+                desktopDisplay.textContent = this.value + '%';
+            }
+            if (typeof updateVoyageForecastDisplay === 'function') {
+                updateVoyageForecastDisplay();
+            }
+        };
     }
 }
 
 function initializeMobileView() {
     const isMobile = window.innerWidth <= 768;
-    const mobileAccordion = document.getElementById('mobile-accordion');
+    const mobileTopBar1 = document.querySelector('.mobile-top-bar-1');
+    const mobileTopBar2 = document.querySelector('.mobile-top-bar-2');
+    const mobileContentArea = document.getElementById('mobile-content-area');
+    const mobileTabs = document.getElementById('mobile-tabs');
     const mobileBottomBar = document.getElementById('mobile-bottom-bar');
-    const mobileTitleBar = document.querySelector('.title-bar-mobile');
 
     if (isMobile) {
         // Mostrar elementos móviles
-        if (mobileAccordion) mobileAccordion.style.display = 'flex';
+        if (mobileTopBar1) mobileTopBar1.style.display = 'flex';
+        if (mobileTopBar2) mobileTopBar2.style.display = 'flex';
+        if (mobileContentArea) mobileContentArea.style.display = 'flex';
+        if (mobileTabs) mobileTabs.style.display = 'flex';
         if (mobileBottomBar) mobileBottomBar.style.display = 'flex';
-        if (mobileTitleBar) mobileTitleBar.style.display = 'flex';
 
-        // Llenar acordeones
-        updateMobileResources();
-        updateMobileCrew();
-        updateMobileLogbook();
+        // Inicializar contenido
         updateMobileTerminal();
+        updateMobileYearDisplay();
 
         // Sincronizar valores con desktop
         syncMobileValues();
+
+        // Configurar observador para actualizar terminal automáticamente
+        setupMobileTerminalObserver();
 
         // Centrar popups
         document.querySelectorAll('.window.interface').forEach(popup => {
@@ -103,9 +488,37 @@ function initializeMobileView() {
         });
     } else {
         // Ocultar elementos móviles - handled by CSS .mobile-only
-        if (mobileAccordion) mobileAccordion.style.display = 'none';
+        if (mobileTopBar1) mobileTopBar1.style.display = 'none';
+        if (mobileTopBar2) mobileTopBar2.style.display = 'none';
+        if (mobileContentArea) mobileContentArea.style.display = 'none';
+        if (mobileTabs) mobileTabs.style.display = 'none';
         if (mobileBottomBar) mobileBottomBar.style.display = 'none';
-        if (mobileTitleBar) mobileTitleBar.style.display = 'none';
+    }
+}
+
+function setupMobileTerminalObserver() {
+    const desktopTerminal = document.getElementById('terminal-notifications');
+    const mobileTerminal = document.getElementById('mobile-terminal');
+
+    if (!desktopTerminal || !mobileTerminal) return;
+
+    // Observar cambios en el terminal de escritorio y replicar en móvil
+    const observer = new MutationObserver(() => {
+        updateMobileTerminal();
+    });
+
+    observer.observe(desktopTerminal, {
+        childList: true,
+        subtree: true
+    });
+}
+
+function updateMobileYearDisplay() {
+    if (typeof timeSystem === 'undefined' || !timeSystem) return;
+
+    const mobileYearDisplay = document.getElementById('mobile-year-display');
+    if (mobileYearDisplay) {
+        mobileYearDisplay.textContent = `AÑO ${timeSystem.getCurrentYear().toFixed(1)}`;
     }
 }
 
@@ -114,63 +527,95 @@ function updateMobileResources() {
     if (!container) return;
 
     const resources = [
-        { name: 'Energía', indicator: 'indicator-energy', value: 'resource-strip-energy' },
-        { name: 'Alimentos', indicator: 'indicator-food', value: 'resource-strip-food' },
-        { name: 'Agua', indicator: 'indicator-water', value: 'resource-strip-water' },
-        { name: 'Oxígeno', indicator: 'indicator-oxygen', value: 'resource-strip-oxygen' },
-        { name: 'Medicinas', indicator: 'indicator-medicine', value: 'resource-strip-medicine' },
-        { name: 'Datos', indicator: 'indicator-data', value: 'resource-strip-data' },
-        { name: 'Combustible', indicator: 'indicator-fuel', value: 'resource-strip-fuel' }
+        { name: 'Energía', resource: Energy },
+        { name: 'Alimentos', resource: Food },
+        { name: 'Agua', resource: Water },
+        { name: 'Oxígeno', resource: Oxygen },
+        { name: 'Medicinas', resource: Medicine },
+        { name: 'Datos', resource: Data },
+        { name: 'Combustible', resource: Fuel }
     ];
 
-    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
-    resources.forEach(resource => {
-        const valueElem = document.getElementById(resource.value);
-        const indicatorElem = document.getElementById(resource.indicator);
-        const value = valueElem ? valueElem.textContent : '0/0';
-        const indicatorClass = indicatorElem ? indicatorElem.className : 'resource-indicator full';
+    let html = '';
+    resources.forEach(item => {
+        if (!item.resource) return;
+
+        const current = Math.round(item.resource.quantity);
+        const max = item.resource.limiteStock;
+        const percentage = (item.resource.quantity / item.resource.limiteStock) * 100;
+
+        // Calcular clase de color según porcentaje
+        let colorClass = 'full';
+        if (percentage < 15) {
+            colorClass = 'critical';
+        } else if (percentage < 40) {
+            colorClass = 'low';
+        } else if (percentage < 70) {
+            colorClass = 'medium';
+        }
 
         html += `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: 4px;">
-                <span class="${indicatorClass}"></span>
-                <span style="flex: 1; font-family: var(--font-monaco); font-size: 14px; color: var(--color-terminal-green);">${resource.name}</span>
-                <span style="font-family: var(--font-monaco); font-size: 12px; color: var(--color-terminal-green);">${value}</span>
+            <div class="resource-item-mobile">
+                <span class="resource-indicator ${colorClass}"></span>
+                <span class="resource-label">${item.name}</span>
+                <span class="resource-value">${current}/${max}</span>
             </div>
         `;
     });
-    html += '</div>';
 
     container.innerHTML = html;
 }
 
-function updateMobileCrew() {
-    const container = document.getElementById('crew-mobile-container');
-    if (!container) return;
-
-    const crewCardsContainer = document.getElementById('crew-cards-container');
-    if (crewCardsContainer) {
-        container.innerHTML = crewCardsContainer.innerHTML;
-    }
-}
-
-function updateMobileLogbook() {
-    const container = document.getElementById('logbook-mobile-container');
-    if (!container) return;
-
-    const logbookEntries = document.getElementById('logbook-entries');
-    if (logbookEntries) {
-        container.innerHTML = logbookEntries.innerHTML;
-    }
-}
-
 function updateMobileTerminal() {
-    const container = document.getElementById('terminal-notifications-mobile');
-    if (!container) return;
+    const mobileTerminal = document.getElementById('mobile-terminal');
+    const desktopTerminal = document.getElementById('terminal-notifications');
 
-    const terminalNotifications = document.getElementById('terminal-notifications');
-    if (terminalNotifications) {
-        container.innerHTML = terminalNotifications.innerHTML;
+    if (!mobileTerminal || !desktopTerminal) return;
+
+    // Copiar todas las líneas del terminal
+    const lines = Array.from(desktopTerminal.querySelectorAll('.terminal-line'));
+
+    mobileTerminal.innerHTML = '';
+    lines.forEach(line => {
+        mobileTerminal.appendChild(line.cloneNode(true));
+    });
+}
+
+/* === ACTUALIZACIÓN DE BOTONES MÓVILES === */
+function updateMobileButtons(state) {
+    const mobileStartBtn = document.getElementById('mobile-start-btn');
+    const mobilePauseBtn = document.getElementById('mobile-pause-btn');
+    const mobileResumeBtn = document.getElementById('mobile-resume-btn');
+
+    if (!mobileStartBtn || !mobilePauseBtn || !mobileResumeBtn) return;
+
+    if (state === 'playing') {
+        mobileStartBtn.style.display = 'none';
+        mobilePauseBtn.style.display = 'inline-block';
+        mobileResumeBtn.style.display = 'none';
+    } else if (state === 'paused') {
+        mobileStartBtn.style.display = 'none';
+        mobilePauseBtn.style.display = 'none';
+        mobileResumeBtn.style.display = 'inline-block';
+    } else if (state === 'stopped') {
+        mobileStartBtn.style.display = 'inline-block';
+        mobilePauseBtn.style.display = 'none';
+        mobileResumeBtn.style.display = 'none';
     }
+}
+
+function updateMobileTrancheCount() {
+    const mobileTrancheCount = document.getElementById('mobile-tranche-count');
+    if (!mobileTrancheCount) return;
+
+    const currentTranche = (typeof timeSystem !== 'undefined' && timeSystem)
+        ? timeSystem.getCurrentTranche()
+        : 0;
+    const totalTranches = (typeof TOTAL_TRANCHES !== 'undefined')
+        ? TOTAL_TRANCHES
+        : 10;
+
+    mobileTrancheCount.textContent = `${currentTranche}/${totalTranches}`;
 }
 
 function syncMobileValues() {
@@ -302,9 +747,14 @@ function closeLogbookPopup(event) {
 }
 
 function openCrewManagementPopup(name) {
+    // No abrir fichas individuales en móvil
+    if (window.innerWidth <= 768) {
+        return;
+    }
+
     const crewMember = crewMembers.find(c => c.name === name);
     if (!crewMember) return;
-    
+
     document.getElementById('crew-name').textContent = crewMember.name;
     document.getElementById('crew-age').textContent = crewMember.initialAge;
     document.getElementById('crew-bio-age').textContent = crewMember.biologicalAge.toFixed(1);
@@ -516,14 +966,27 @@ function manageFoodNeed() {
     const crewMember = crewMembers.find(c => c.name === crewName);
 
     if (!crewMember || !crewMember.isAlive) return;
-    
-    if (Food.quantity >= 10) {
-        Food.consume(10);
-        crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
+
+    // No consumir si ya está al 100%
+    if (crewMember.foodNeed >= 100) {
+        new Notification(`${crewName} ya está completamente alimentado`, NOTIFICATION_TYPES.INFO);
+        return;
+    }
+
+    // Calcular cuánto necesita (consumo proporcional)
+    const needed = 100 - crewMember.foodNeed;
+    const baseRecovery = 30;
+    const baseCost = 10;
+    const actualRecovery = Math.min(needed, baseRecovery);
+    const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+    if (Food.quantity >= resourcesNeeded) {
+        Food.consume(resourcesNeeded);
+        crewMember.foodNeed = Math.min(100, crewMember.foodNeed + actualRecovery);
         Food.updateResourceUI();
         crewMember.updateMiniCard();
         gameLoop.updateCrewPopupIfOpen();
-        new Notification(`${crewName} ha sido alimentado`, NOTIFICATION_TYPES.INFO);
+        new Notification(`${crewName} ha sido alimentado (+${actualRecovery.toFixed(0)}%, -${resourcesNeeded} comida)`, NOTIFICATION_TYPES.INFO);
     } else {
         new Notification('No hay suficiente comida', NOTIFICATION_TYPES.ALERT);
     }
@@ -536,14 +999,27 @@ function manageHealthNeed() {
     const crewMember = crewMembers.find(c => c.name === crewName);
 
     if (!crewMember || !crewMember.isAlive) return;
-    
-    if (Medicine.quantity >= 5) {
-        Medicine.consume(5);
-        crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
+
+    // No consumir si ya está al 100%
+    if (crewMember.healthNeed >= 100) {
+        new Notification(`${crewName} ya está completamente sano`, NOTIFICATION_TYPES.INFO);
+        return;
+    }
+
+    // Calcular cuánto necesita (consumo proporcional)
+    const needed = 100 - crewMember.healthNeed;
+    const baseRecovery = 25;
+    const baseCost = 5;
+    const actualRecovery = Math.min(needed, baseRecovery);
+    const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+    if (Medicine.quantity >= resourcesNeeded) {
+        Medicine.consume(resourcesNeeded);
+        crewMember.healthNeed = Math.min(100, crewMember.healthNeed + actualRecovery);
         Medicine.updateResourceUI();
         crewMember.updateMiniCard();
         gameLoop.updateCrewPopupIfOpen();
-        new Notification(`${crewName} ha recibido atención médica`, NOTIFICATION_TYPES.INFO);
+        new Notification(`${crewName} ha recibido atención médica (+${actualRecovery.toFixed(0)}%, -${resourcesNeeded} medicina)`, NOTIFICATION_TYPES.INFO);
     } else {
         new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
     }
@@ -556,14 +1032,27 @@ function manageWasteNeed() {
     const crewMember = crewMembers.find(c => c.name === crewName);
 
     if (!crewMember || !crewMember.isAlive) return;
-    
-    if (Water.quantity >= 3) {
-        Water.consume(3);
-        crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - 40);
+
+    // No consumir si ya está al 0%
+    if (crewMember.wasteNeed <= 0) {
+        new Notification(`${crewName} no necesita usar el baño`, NOTIFICATION_TYPES.INFO);
+        return;
+    }
+
+    // Calcular cuánto necesita (consumo proporcional)
+    const needed = crewMember.wasteNeed - 0;
+    const baseRecovery = 40;
+    const baseCost = 3;
+    const actualRecovery = Math.min(needed, baseRecovery);
+    const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+    if (Water.quantity >= resourcesNeeded) {
+        Water.consume(resourcesNeeded);
+        crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - actualRecovery);
         Water.updateResourceUI();
         crewMember.updateMiniCard();
         gameLoop.updateCrewPopupIfOpen();
-        new Notification(`${crewName} ha usado las instalaciones de higiene`, NOTIFICATION_TYPES.INFO);
+        new Notification(`${crewName} ha usado las instalaciones de higiene (-${actualRecovery.toFixed(0)}%, -${resourcesNeeded} agua)`, NOTIFICATION_TYPES.INFO);
     } else {
         new Notification('No hay suficiente agua', NOTIFICATION_TYPES.ALERT);
     }
@@ -694,10 +1183,23 @@ function quickManage(crewName, type) {
     if (!crewMember || !crewMember.isAlive) return;
 
     if (type === 'alimentación' || type === 'comida') {
-        if (Food.quantity >= 10) {
+        // No consumir si ya está al 100%
+        if (crewMember.foodNeed >= 100) {
+            new Notification(`${crewName} ya está completamente alimentado`, NOTIFICATION_TYPES.INFO);
+            return;
+        }
+
+        // Calcular consumo proporcional
+        const needed = 100 - crewMember.foodNeed;
+        const baseRecovery = 30;
+        const baseCost = 10;
+        const actualRecovery = Math.min(needed, baseRecovery);
+        const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+        if (Food.quantity >= resourcesNeeded) {
             playClickSound();
-            Food.consume(10);
-            crewMember.foodNeed = Math.min(100, crewMember.foodNeed + 30);
+            Food.consume(resourcesNeeded);
+            crewMember.foodNeed = Math.min(100, crewMember.foodNeed + actualRecovery);
             Food.updateResourceUI();
             crewMember.updateMiniCard();
             if (typeof gameLoop !== 'undefined' && gameLoop) {
@@ -707,10 +1209,23 @@ function quickManage(crewName, type) {
             new Notification('No hay suficiente comida', NOTIFICATION_TYPES.ALERT);
         }
     } else if (type === 'salud') {
-        if (Medicine.quantity >= 5) {
+        // No consumir si ya está al 100%
+        if (crewMember.healthNeed >= 100) {
+            new Notification(`${crewName} ya está completamente sano`, NOTIFICATION_TYPES.INFO);
+            return;
+        }
+
+        // Calcular consumo proporcional
+        const needed = 100 - crewMember.healthNeed;
+        const baseRecovery = 25;
+        const baseCost = 5;
+        const actualRecovery = Math.min(needed, baseRecovery);
+        const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+        if (Medicine.quantity >= resourcesNeeded) {
             playClickSound();
-            Medicine.consume(5);
-            crewMember.healthNeed = Math.min(100, crewMember.healthNeed + 25);
+            Medicine.consume(resourcesNeeded);
+            crewMember.healthNeed = Math.min(100, crewMember.healthNeed + actualRecovery);
             Medicine.updateResourceUI();
             crewMember.updateMiniCard();
             if (typeof gameLoop !== 'undefined' && gameLoop) {
@@ -720,11 +1235,24 @@ function quickManage(crewName, type) {
             new Notification('No hay suficientes medicinas', NOTIFICATION_TYPES.ALERT);
         }
     } else if (type === 'higiene') {
-        if (Water.quantity >= 5) {
+        // No consumir si ya está al 0%
+        if (crewMember.wasteNeed <= 0) {
+            new Notification(`${crewName} no necesita usar el baño`, NOTIFICATION_TYPES.INFO);
+            return;
+        }
+
+        // Calcular consumo proporcional
+        const needed = crewMember.wasteNeed - 0;
+        const baseRecovery = 30;
+        const baseCost = 5;
+        const actualRecovery = Math.min(needed, baseRecovery);
+        const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * baseCost);
+
+        if (Water.quantity >= resourcesNeeded) {
             playClickSound();
-            Water.consume(5);
-            crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - 30);
-            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + 3);
+            Water.consume(resourcesNeeded);
+            crewMember.wasteNeed = Math.max(0, crewMember.wasteNeed - actualRecovery);
+            Waste.quantity = Math.min(Waste.limiteStock, Waste.quantity + Math.ceil(resourcesNeeded * 0.6));
             Water.updateResourceUI();
             Waste.updateResourceUI();
             crewMember.updateMiniCard();
@@ -990,12 +1518,20 @@ function updateVoyageForecastDisplay() {
 }
 
 function updateVoyageVisualizer() {
+    const progressPercent = TOTAL_MISSION_DISTANCE > 0
+        ? Math.min(100, (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100)
+        : 0;
+
+    // Actualizar barra de progreso desktop
     const progressFill = document.getElementById('voyage-progress-fill');
     if (progressFill) {
-        const progressPercent = TOTAL_MISSION_DISTANCE > 0
-            ? Math.min(100, (distanceTraveled / TOTAL_MISSION_DISTANCE) * 100)
-            : 0;
         progressFill.style.width = `${progressPercent}%`;
+    }
+
+    // Actualizar barra de progreso móvil
+    const mobileProgressFill = document.getElementById('mobile-voyage-fill');
+    if (mobileProgressFill) {
+        mobileProgressFill.style.width = `${progressPercent}%`;
     }
 
     const distanceCurrent = document.getElementById('voyage-distance-current');

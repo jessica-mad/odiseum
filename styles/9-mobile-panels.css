@@ -1,0 +1,779 @@
+/* ============================================
+   MOBILE VERSION - FILE FOLDER TABS
+   Odiseum V2.0
+   ============================================ */
+
+/* Ocultar todos los elementos móviles por defecto (desktop) */
+@media (min-width: 769px) {
+    .mobile-accordion-panel,
+    .mobile-tabs,
+    .mobile-tab,
+    .mobile-top-bar-1,
+    .mobile-top-bar-2,
+    .mobile-bottom-bar,
+    .mobile-content-area,
+    .mobile-terminal,
+    #mobile-panel-speed,
+    #mobile-panel-map,
+    #mobile-panel-body,
+    #mobile-panel-crew,
+    #mobile-panel-resources {
+        display: none !important;
+    }
+}
+
+/* Solo aplicar en móvil */
+@media (max-width: 768px) {
+
+/* === EVENTOS Y COMUNICADOS: SIEMPRE POR ENCIMA DEL FOOTER === */
+/* Los eventos y comunicados deben estar por encima del control de tramos */
+.event-overlay,
+.quantum-message-overlay,
+.victory-overlay {
+    z-index: 10000 !important; /* Por encima del footer (9999) */
+}
+
+.event-popup,
+.quantum-message-popup,
+.victory-popup {
+    z-index: 10001 !important; /* Por encima del overlay */
+}
+
+/* === OCULTAR SCROLLBARS EN MÓVIL === */
+/* Ocultar scrollbars pero mantener funcionalidad */
+.mobile-panel-body::-webkit-scrollbar,
+.mobile-content-area::-webkit-scrollbar,
+.crew-column-content-mobile::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+}
+
+.mobile-panel-body::-webkit-scrollbar-track,
+.mobile-content-area::-webkit-scrollbar-track,
+.crew-column-content-mobile::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mobile-panel-body::-webkit-scrollbar-thumb,
+.mobile-content-area::-webkit-scrollbar-thumb,
+.crew-column-content-mobile::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 65, 0.2);
+    border-radius: 2px;
+}
+
+.mobile-panel-body::-webkit-scrollbar-thumb:hover,
+.mobile-content-area::-webkit-scrollbar-thumb:hover,
+.crew-column-content-mobile::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 65, 0.4);
+}
+
+/* === TOP BAR 1 === */
+.mobile-top-bar-1 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: var(--color-terminal-bg-light);
+    border-bottom: 2px solid var(--color-terminal-green);
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 1000;
+    font-family: var(--font-monaco);
+}
+
+.mobile-game-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mobile-player-name {
+    font-size: 13px;
+    color: var(--color-terminal-green);
+}
+
+/* === TOP BAR 2 === */
+.mobile-top-bar-2 {
+    position: fixed;
+    top: 40px;
+    left: 0;
+    right: 0;
+    height: 35px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    z-index: 1000;
+    font-family: var(--font-monaco);
+}
+
+.mobile-mission-title {
+    font-size: 13px;
+    color: var(--color-terminal-green);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mobile-separator {
+    color: var(--color-terminal-green-dark);
+    font-size: 14px;
+}
+
+.mobile-year-display {
+    font-size: 13px;
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+/* === CONTENT AREA (Terminal) === */
+.mobile-content-area {
+    position: fixed;
+    top: 75px;
+    left: 0;
+    right: 0;
+    bottom: 235px; /* Espacio para tabs + footer */
+    background: var(--color-terminal-bg);
+    overflow-y: auto;
+    z-index: 50;
+    display: flex !important;
+    flex-direction: column;
+}
+
+.mobile-terminal {
+    padding: 16px;
+    font-family: var(--font-monaco);
+    font-size: 13px;
+    color: var(--color-terminal-green);
+    line-height: 1.6;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobile-terminal .terminal-line {
+    opacity: 0.9;
+}
+
+/* === VIÑETAS ESTILO CARPETA FÍSICA === */
+.mobile-tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 180px; /* Encima del footer */
+    height: 55px;
+    background: var(--color-terminal-bg);
+    display: flex !important;
+    justify-content: space-around;
+    align-items: flex-end;
+    z-index: 900;
+    padding: 0 10px;
+    gap: 8px;
+}
+
+.mobile-tab {
+    flex: 1;
+    max-width: 80px;
+    height: 50px;
+    background: linear-gradient(180deg,
+        var(--color-terminal-bg-light) 0%,
+        var(--color-terminal-bg) 100%);
+    border: 2px solid var(--color-terminal-green);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 -2px 5px rgba(0, 0, 0, 0.2),
+        inset 0 2px 5px rgba(0, 255, 65, 0.05);
+}
+
+/* Efecto de pestaña 3D */
+.mobile-tab::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -10px;
+    width: 10px;
+    height: calc(100% + 2px);
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--color-terminal-bg-light) 100%);
+    border-left: 2px solid var(--color-terminal-green);
+    border-top: 2px solid var(--color-terminal-green);
+    border-radius: 8px 0 0 0;
+    transform: skewY(-10deg);
+    transform-origin: bottom right;
+}
+
+.mobile-tab::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -10px;
+    width: 10px;
+    height: calc(100% + 2px);
+    background: linear-gradient(270deg,
+        transparent 0%,
+        var(--color-terminal-bg-light) 100%);
+    border-right: 2px solid var(--color-terminal-green);
+    border-top: 2px solid var(--color-terminal-green);
+    border-radius: 0 8px 0 0;
+    transform: skewY(10deg);
+    transform-origin: bottom left;
+}
+
+.mobile-tab:hover {
+    background: linear-gradient(180deg,
+        rgba(0, 255, 65, 0.2) 0%,
+        var(--color-terminal-bg-light) 100%);
+    box-shadow:
+        0 -4px 10px rgba(0, 255, 65, 0.3),
+        inset 0 2px 8px rgba(0, 255, 65, 0.1);
+}
+
+.mobile-tab.active {
+    height: 55px;
+    background: var(--color-terminal-bg);
+    box-shadow:
+        0 -8px 20px rgba(0, 255, 65, 0.4),
+        inset 0 0 15px rgba(0, 255, 65, 0.2);
+    border-color: var(--color-terminal-green);
+    z-index: 901;
+}
+
+.mobile-tab.active::before,
+.mobile-tab.active::after {
+    border-color: var(--color-terminal-green);
+}
+
+.mobile-tab .tab-icon {
+    font-size: 26px;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 0 3px rgba(0, 255, 65, 0.3));
+    position: relative;
+    z-index: 1;
+}
+
+.mobile-tab:hover .tab-icon {
+    transform: scale(1.1);
+}
+
+.mobile-tab.active .tab-icon {
+    filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.8));
+    transform: scale(1.15);
+}
+
+/* === PANELES DEL ACORDEÓN === */
+.mobile-accordion-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 180px; /* NUNCA cubre el footer */
+    background: var(--color-terminal-bg);
+    border: 3px solid var(--color-terminal-green);
+    border-bottom: none;
+    z-index: 1100;
+    display: none;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -8px 30px rgba(0, 255, 65, 0.4);
+    touch-action: pan-y;
+    width: 100%;
+}
+
+.mobile-accordion-panel.open {
+    display: flex;
+    transform: translateY(0);
+}
+
+.mobile-accordion-panel.dragging {
+    transition: none;
+}
+
+/* Carrusel: posicionar paneles adyacentes */
+.mobile-accordion-panel.carousel-prev {
+    display: flex;
+    transform: translateY(0) translateX(-100%);
+    z-index: 1099;
+}
+
+.mobile-accordion-panel.carousel-next {
+    display: flex;
+    transform: translateY(0) translateX(100%);
+    z-index: 1099;
+}
+
+.mobile-accordion-panel.carousel-animating {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Header del Panel (área de arrastre) */
+.mobile-panel-header {
+    background: linear-gradient(180deg,
+        var(--color-terminal-bg-light) 0%,
+        var(--color-terminal-bg) 100%);
+    border-bottom: 3px solid var(--color-terminal-green);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: grab;
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.2);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.mobile-panel-header:active {
+    cursor: grabbing;
+    background: rgba(0, 255, 65, 0.1);
+}
+
+/* Indicador de arrastre */
+.mobile-panel-header::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(0, 255, 65, 0.3);
+    border-radius: 2px;
+}
+
+.panel-header-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.6));
+}
+
+.panel-header-title {
+    flex: 1;
+    font-family: var(--font-monaco);
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+/* Body del Panel (Contenido scrolleable) */
+.mobile-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    background: var(--color-terminal-bg);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Panel de tripulación sin padding para aprovechar todo el espacio */
+#mobile-panel-crew .mobile-panel-body {
+    padding: 0;
+}
+
+/* === RECURSOS MÓVIL === */
+#resources-mobile-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.resource-item-mobile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.2);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.resource-item-mobile:active {
+    background: rgba(0, 255, 65, 0.1);
+    transform: scale(0.98);
+}
+
+.resource-indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.resource-indicator.full {
+    background: var(--color-alert-green);
+    box-shadow: 0 0 12px var(--color-alert-green);
+}
+
+.resource-indicator.medium {
+    background: #ffaa00;
+    box-shadow: 0 0 12px #ffaa00;
+}
+
+.resource-indicator.low {
+    background: var(--color-alert-orange);
+    box-shadow: 0 0 12px var(--color-alert-orange);
+}
+
+.resource-indicator.critical {
+    background: var(--color-alert-red);
+    box-shadow: 0 0 12px var(--color-alert-red);
+    animation: pulse-resource 1s infinite;
+}
+
+@keyframes pulse-resource {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+.resource-label {
+    flex: 1;
+    font-family: var(--font-monaco);
+    font-size: 16px;
+    color: var(--color-terminal-green);
+    font-weight: 500;
+}
+
+.resource-value {
+    font-family: var(--font-monaco);
+    font-size: 14px;
+    color: var(--color-terminal-green);
+    font-weight: bold;
+}
+
+/* === TRIPULACIÓN MÓVIL === */
+.crew-columns-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: 100%;
+}
+
+.crew-column-mobile {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 255, 65, 0.02);
+    border: none;
+    border-right: 1px solid var(--color-terminal-green-dark);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.crew-column-mobile:last-child {
+    border-right: none;
+}
+
+.crew-column-header-mobile {
+    background: var(--color-terminal-bg-light);
+    color: var(--color-terminal-green);
+    font-family: var(--font-monaco);
+    font-size: 12px;
+    padding: 8px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.crew-column-content-mobile {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 300px;
+}
+
+.crew-column-content-mobile.drag-over {
+    background: rgba(0, 255, 65, 0.15);
+    border: 2px dashed var(--color-terminal-green);
+}
+
+/* Cards de tripulación más compactas en móvil */
+.crew-column-content-mobile .crew-mini-card {
+    font-size: 11px;
+    padding: 6px;
+    margin: 0;
+    border-width: 1px;
+}
+
+.crew-column-content-mobile .crew-card-name {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.crew-column-content-mobile .need-bar-advanced {
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.crew-column-content-mobile .need-bar-icon-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    border-width: 1px;
+}
+
+/* === MAPA MÓVIL === */
+#map-mobile-container {
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* === CONTROL DE VELOCIDAD MÓVIL === */
+.speed-control-container {
+    padding: 20px;
+}
+
+.speed-control-container .nav-control-group {
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.speed-control-container .nav-label {
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.speed-control-container .nav-speed-display {
+    font-size: 32px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.speed-control-container .nav-slider {
+    width: 100%;
+}
+
+/* === FOOTER STICKY (SIEMPRE VISIBLE) === */
+.mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 180px;
+    background: var(--color-terminal-bg);
+    border-top: 3px solid var(--color-terminal-green);
+    box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.3);
+    padding: 12px 16px;
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999; /* SIEMPRE por encima de todo */
+}
+
+.mobile-voyage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--font-monaco);
+}
+
+.mobile-voyage-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mobile-voyage-label {
+    font-size: 10px;
+    color: var(--color-terminal-green-dim);
+    text-transform: uppercase;
+}
+
+.mobile-voyage-value {
+    font-size: 13px;
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+.mobile-voyage-separator {
+    color: var(--color-terminal-green-dark);
+    font-size: 14px;
+}
+
+.mobile-voyage-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.mobile-voyage-endpoint {
+    font-size: 20px;
+}
+
+.mobile-voyage-track {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.mobile-voyage-line {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
+}
+
+.mobile-voyage-fill {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    height: 6px;
+    background: var(--color-terminal-green);
+    box-shadow: 0 0 10px var(--color-terminal-green);
+    transition: width 0.6s ease-out;
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 3px;
+}
+
+.mobile-voyage-label-text {
+    font-size: 9px;
+    color: var(--color-terminal-green-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mobile-start-button-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.mobile-start-btn {
+    flex: 1;
+    max-width: 320px;
+    padding: 14px 20px;
+    font-family: var(--font-monaco);
+    font-size: 14px;
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border: 3px solid var(--color-terminal-green);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    border-radius: 4px;
+}
+
+.mobile-start-btn:active {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    transform: scale(0.98);
+}
+
+.mobile-start-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: var(--color-terminal-green-dark);
+}
+
+} /* Cierre de @media (max-width: 768px) */
+
+/* === PANTALLAS MUY PEQUEÑAS === */
+@media (max-width: 480px) {
+    .mobile-top-bar-1 {
+        height: 36px;
+        padding: 0 12px;
+    }
+
+    .mobile-game-title {
+        font-size: 12px;
+    }
+
+    .mobile-player-name {
+        font-size: 11px;
+    }
+
+    .mobile-top-bar-2 {
+        height: 30px;
+        top: 36px;
+    }
+
+    .mobile-mission-title,
+    .mobile-year-display {
+        font-size: 11px;
+    }
+
+    .mobile-content-area {
+        top: 66px;
+        bottom: 215px;
+    }
+
+    .mobile-terminal {
+        padding: 12px;
+        font-size: 11px;
+    }
+
+    .mobile-tabs {
+        height: 50px;
+        bottom: 165px;
+    }
+
+    .mobile-tab {
+        height: 45px;
+        max-width: 70px;
+    }
+
+    .mobile-tab .tab-icon {
+        font-size: 22px;
+    }
+
+    .panel-header-icon {
+        font-size: 24px;
+    }
+
+    .panel-header-title {
+        font-size: 14px;
+    }
+
+    .mobile-bottom-bar {
+        height: 165px;
+        padding: 10px 12px;
+    }
+
+    .mobile-accordion-panel {
+        bottom: 165px;
+    }
+}

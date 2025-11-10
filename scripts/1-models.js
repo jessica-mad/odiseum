@@ -43,6 +43,10 @@ class Crew {
         this.emotionalState = 'stable';
         this.skillModifier = 1.0;
         this.eventMemories = [];
+
+        // Sistema de pensamientos personalizados (de eventos)
+        this.personalThought = null;
+        this.personalThoughtExpiry = null;
     }
 
     getEffectiveSkillMultiplier() {
@@ -123,13 +127,15 @@ class Crew {
         if (this.state === CREW_STATES.AWAKE || this.state === CREW_STATES.RESTING) {
             this.foodNeed = Math.max(0, this.foodNeed + (config.food * multiplier));
             this.healthNeed = Math.max(0, this.healthNeed + (config.health * multiplier));
-            this.wasteNeed = Math.min(100, this.wasteNeed + (config.waste * multiplier));
+            // Higiene: solo degrada hasta 70% (no más allá)
+            this.wasteNeed = Math.min(70, this.wasteNeed + (config.waste * multiplier));
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + (config.entertainment * multiplier));
             this.restNeed = Math.max(100, this.restNeed + (config.rest * multiplier));
         } else {
             this.foodNeed = Math.max(0, this.foodNeed + config.food);
             this.healthNeed = Math.max(0, this.healthNeed + config.health);
-            this.wasteNeed = Math.min(100, this.wasteNeed + config.waste);
+            // Higiene: solo degrada hasta 70% (no más allá)
+            this.wasteNeed = Math.min(70, this.wasteNeed + config.waste);
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + config.entertainment);
             this.restNeed = Math.min(100, this.restNeed + config.rest);
         }
@@ -221,29 +227,82 @@ class Crew {
 
         // Auto-gestionar comida
         if (this.foodNeed < AUTO_MANAGE_CONFIG.food.threshold && Food.quantity >= AUTO_MANAGE_CONFIG.food.cost) {
-            Food.consume(AUTO_MANAGE_CONFIG.food.cost);
-            const recovery = AUTO_MANAGE_CONFIG.food.recovery * efficiencyMultiplier;
-            this.foodNeed = Math.min(100, this.foodNeed + recovery);
-            autoManageActions.push('comió');
-            this.currentActivity = 'eating';
+            // Calcular cuánto realmente necesita para llegar a 100
+            const needed = 100 - this.foodNeed;
+            const baseRecovery = AUTO_MANAGE_CONFIG.food.recovery * efficiencyMultiplier;
+            const actualRecovery = Math.min(needed, baseRecovery);
+
+            // Consumir recursos proporcionalmente (regla de 3)
+            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.food.cost);
+            const resourcesToUse = Math.min(resourcesNeeded, Food.quantity);
+
+            if (resourcesToUse > 0) {
+                Food.consume(resourcesToUse);
+                this.foodNeed = Math.min(100, this.foodNeed + actualRecovery);
+                autoManageActions.push('comió');
+                this.currentActivity = 'eating';
+            }
         }
 
         // Auto-gestionar salud (medicina)
-        if (this.healthNeed < AUTO_MANAGE_CONFIG.medicine.threshold && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            Medicine.consume(AUTO_MANAGE_CONFIG.medicine.cost);
-            const recovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
-            this.healthNeed = Math.min(100, this.healthNeed + recovery);
-            autoManageActions.push('tomó medicina');
-            this.currentActivity = 'resting';
+        // Si healthNeed < 100, intentar curar hasta que esté completamente sano
+        if (this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
+            // Bonus si la Dra. Chen está despierta
+            let drChenAwake = false;
+            if (typeof crewMembers !== 'undefined' && crewMembers) {
+                const drChen = crewMembers.find(c => c.position === 'Médica' && c.name === 'Dra. Chen');
+                if (drChen && drChen.state === 'Despierto' && drChen.isAlive) {
+                    drChenAwake = true;
+                }
+            }
+
+            // Recuperación base con multiplicador de eficiencia
+            let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
+
+            // Bonus de +50% si la Dra. Chen está despierta
+            if (drChenAwake) {
+                baseRecovery *= 1.5;
+            }
+
+            // Calcular cuánto realmente necesita para llegar a 100
+            const needed = 100 - this.healthNeed;
+            const actualRecovery = Math.min(needed, baseRecovery);
+
+            // Consumir recursos proporcionalmente (regla de 3)
+            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+            const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
+
+            if (resourcesToUse > 0) {
+                Medicine.consume(resourcesToUse);
+                this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
+
+                if (drChenAwake) {
+                    autoManageActions.push('fue atendido por la Dra. Chen');
+                } else {
+                    autoManageActions.push('tomó medicina');
+                }
+
+                this.currentActivity = 'resting';
+            }
         }
 
         // Auto-gestionar higiene
         if (this.wasteNeed > AUTO_MANAGE_CONFIG.hygiene.threshold && Water.quantity >= AUTO_MANAGE_CONFIG.hygiene.cost) {
-            Water.consume(AUTO_MANAGE_CONFIG.hygiene.cost);
-            const recovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
-            this.wasteNeed = Math.max(0, this.wasteNeed - recovery);
-            autoManageActions.push('se aseó');
-            this.currentActivity = 'cleaning';
+            // Calcular cuánto realmente necesita para llegar a 0
+            const needed = this.wasteNeed - 0;
+            const baseRecovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
+            const actualRecovery = Math.min(needed, baseRecovery);
+
+            // Consumir recursos proporcionalmente (regla de 3)
+            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.hygiene.cost);
+            const resourcesToUse = Math.min(resourcesNeeded, Water.quantity);
+
+            if (resourcesToUse > 0) {
+                Water.consume(resourcesToUse);
+                this.wasteNeed = Math.max(0, this.wasteNeed - actualRecovery);
+                autoManageActions.push('se aseó');
+                this.currentActivity = 'cleaning';
+            }
         }
 
         // Auto-gestionar entretenimiento
@@ -484,48 +543,76 @@ class Crew {
 
     getCurrentThought() {
         try {
-            // Pensamientos según necesidades y estado
-            if (this.foodNeed < 30) {
-                return '💭 Tengo tanta hambre... Necesito comer algo pronto.';
-            }
-            if (this.healthNeed < 30) {
-                return '💭 No me siento bien... Necesito atención médica.';
-            }
-            if (this.wasteNeed > 80) {
-                return '💭 Necesito ir al baño urgentemente...';
+            // 1. MÁXIMA PRIORIDAD: Pensamiento personalizado de eventos (si existe y no ha expirado)
+            if (this.personalThought && this.personalThoughtExpiry && Date.now() < this.personalThoughtExpiry) {
+                return `💭 ${this.personalThought}`;
+            } else if (this.personalThought && this.personalThoughtExpiry && Date.now() >= this.personalThoughtExpiry) {
+                // Limpiar pensamiento expirado
+                this.personalThought = null;
+                this.personalThoughtExpiry = null;
             }
 
-            // Pensamientos aleatorios según especialidad
-            const thoughts = {
-                'Navegante': [
-                    '💭 Los cálculos de trayectoria están perfectos hoy.',
-                    '💭 Me pregunto qué encontraremos en la Nueva Tierra.',
-                    '💭 Mantener el rumbo es mi responsabilidad.'
-                ],
-                'Ingeniera': [
-                    '💭 Los sistemas están funcionando óptimamente.',
-                    '💭 Debería revisar los conductos de ventilación.',
-                    '💭 Esta nave es una maravilla de ingeniería.'
-                ],
-                'Doctora': [
-                    '💭 Todos parecen estar en buena salud.',
-                    '💭 Espero no tener que usar el quirófano.',
-                    '💭 La medicina preventiva es clave en el espacio.'
-                ],
-                'Botánica': [
-                    '💭 Las plantas están creciendo bien este ciclo.',
-                    '💭 El oxígeno generado es suficiente.',
-                    '💭 Me encanta cuidar del invernadero.'
-                ],
-                'Geóloga': [
-                    '💭 Los análisis de muestras son fascinantes.',
-                    '💭 Qué minerales tendrá la Nueva Tierra...',
-                    '💭 La geología espacial nunca deja de sorprenderme.'
-                ]
+            // 2. SEGUNDA PRIORIDAD: Pensamientos según necesidades críticas
+            let priorityThought = null;
+            if (this.foodNeed < 30) {
+                priorityThought = '💭 Tengo tanta hambre... Necesito comer algo pronto.';
+            } else if (this.healthNeed < 30) {
+                priorityThought = '💭 No me siento bien... Necesito atención médica.';
+            } else if (this.wasteNeed > 80) {
+                priorityThought = '💭 Necesito ir al baño urgentemente...';
+            }
+
+            // Si hay pensamiento prioritario, devolverlo
+            if (priorityThought) {
+                return priorityThought;
+            }
+
+            // 3. TERCERA PRIORIDAD: Pensamiento basado en estado emocional o trauma
+            if (this.trauma) {
+                const traumaThoughts = {
+                    'survivor_guilt': '💭 Sobreviví... pero a qué precio.',
+                    'perfectionist_failure': '💭 Fallé cuando más importaba.',
+                    'incompetent_cook': '💭 No puedo confiar en mis propias habilidades.',
+                    'guilt': '💭 Debería haber hecho más.',
+                    'repressed_grief': '💭 Algunas cosas es mejor no saberlas.',
+                    'isolation_paranoia': '💭 ¿Puedo confiar en alguien aquí?',
+                    'anxiety': '💭 Algo va a salir mal, lo sé.'
+                };
+                if (traumaThoughts[this.trauma]) {
+                    return traumaThoughts[this.trauma];
+                }
+            }
+
+            // 4. CUARTA PRIORIDAD: Pensamiento basado en estado emocional
+            if (this.emotionalState && this.emotionalState !== 'stable') {
+                const emotionalThoughts = {
+                    'proud': '💭 Hice un buen trabajo.',
+                    'proud_genius': '💭 Sabía que podía lograrlo.',
+                    'devastated': '💭 No sé cómo recuperarme de esto.',
+                    'depressed': '💭 Todo parece gris últimamente.',
+                    'ashamed': '💭 Podría haberlo hecho mejor.',
+                    'broken': '💭 Tal vez no soy lo suficientemente bueno.',
+                    'furious': '💭 Esto es inaceptable.',
+                    'impressed': '💭 Eso fue... impresionante.',
+                    'grateful': '💭 Tengo suerte de estar aquí.',
+                    'hopeful': '💭 Las cosas mejorarán.',
+                    'conflicted': '💭 No estoy seguro de haber tomado la decisión correcta.'
+                };
+                if (emotionalThoughts[this.emotionalState]) {
+                    return emotionalThoughts[this.emotionalState];
+                }
+            }
+
+            // 5. PENSAMIENTO POR DEFECTO ESTÁTICO (según posición, NO rotativo)
+            const defaultThoughts = {
+                'Capitán': '💭 Mantener el rumbo es mi responsabilidad.',
+                'Médica': '💭 La salud de la tripulación es lo primero.',
+                'Ingeniero': '💭 Los sistemas funcionan óptimamente.',
+                'Navegante': '💭 Cada día más cerca del destino.',
+                'Chef': '💭 Las plantas están creciendo bien.'
             };
 
-            const crewThoughts = thoughts[this.position] || ['💭 Todo va bien.'];
-            return crewThoughts[Math.floor(Math.random() * crewThoughts.length)];
+            return defaultThoughts[this.position] || '💭 Todo va bien.';
         } catch (error) {
             console.warn(`⚠️ Error obteniendo pensamiento para ${this.name}:`, error);
             return '💭 Todo va bien.';
