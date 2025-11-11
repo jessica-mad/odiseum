@@ -85,7 +85,7 @@
 }
 
 .mobile-game-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
     color: var(--color-terminal-green);
     text-transform: uppercase;
@@ -93,7 +93,7 @@
 }
 
 .mobile-player-name {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--color-terminal-green);
 }
 
@@ -116,7 +116,7 @@
 }
 
 .mobile-mission-title {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--color-terminal-green);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -124,11 +124,11 @@
 
 .mobile-separator {
     color: var(--color-terminal-green-dark);
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .mobile-year-display {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--color-terminal-green);
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
@@ -151,7 +151,7 @@
 .mobile-terminal {
     padding: 16px;
     font-family: var(--font-monaco);
-    font-size: 14px;
+    font-size: 16px;
     color: var(--color-terminal-green);
     line-height: 1.6;
     flex: 1;
@@ -491,7 +491,7 @@
     background: var(--color-terminal-bg-light);
     color: var(--color-terminal-green);
     font-family: var(--font-monaco);
-    font-size: 14px;
+    font-size: 16px;
     padding: 8px 6px;
     text-align: center;
     border-bottom: 1px solid var(--color-terminal-green-dark);
@@ -516,14 +516,14 @@
 
 /* Cards de tripulación más compactas en móvil */
 .crew-column-content-mobile .crew-mini-card {
-    font-size: 14px;
-    padding: 6px;
+    font-size: 16px;
+    padding: 8px;
     margin: 0;
     border-width: 1px;
 }
 
 .crew-column-content-mobile .crew-card-name {
-    font-size: 14px;
+    font-size: 18px;
     margin-bottom: 4px;
 }
 
@@ -533,10 +533,44 @@
 }
 
 .crew-column-content-mobile .need-bar-icon-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
     border-width: 1px;
+}
+
+/* Elementos específicos de las mini-cards en móvil */
+.crew-column-content-mobile .crew-card-benefit-mini {
+    font-size: 14px;
+}
+
+.crew-column-content-mobile .crew-card-location {
+    font-size: 15px;
+}
+
+.crew-column-content-mobile .crew-card-thought {
+    font-size: 15px;
+}
+
+.crew-column-content-mobile .thought-marquee {
+    font-size: 15px;
+}
+
+.crew-column-content-mobile .crew-card-age {
+    font-size: 14px;
+}
+
+.crew-column-content-mobile .engineer-repair-status {
+    font-size: 14px;
+}
+
+.crew-column-content-mobile .engineer-room-select {
+    font-size: 15px;
+}
+
+.crew-column-content-mobile .engineer-repair-btn,
+.crew-column-content-mobile .engineer-cancel-btn {
+    font-size: 15px;
 }
 
 /* === MAPA MÓVIL === */
@@ -561,7 +595,7 @@
 }
 
 .speed-control-container .nav-label {
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 12px;
 }
 
@@ -608,13 +642,13 @@
 }
 
 .mobile-voyage-label {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--color-terminal-green-dim);
     text-transform: uppercase;
 }
 
 .mobile-voyage-value {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--color-terminal-green);
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
@@ -666,7 +700,7 @@
 }
 
 .mobile-voyage-label-text {
-    font-size: 9px;
+    font-size: 14px;
     color: var(--color-terminal-green-dim);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -683,7 +717,7 @@
     max-width: 320px;
     padding: 14px 20px;
     font-family: var(--font-monaco);
-    font-size: 14px;
+    font-size: 16px;
     background: var(--color-terminal-bg);
     color: var(--color-terminal-green);
     border: 3px solid var(--color-terminal-green);
@@ -719,11 +753,11 @@
     }
 
     .mobile-game-title {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .mobile-player-name {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .mobile-top-bar-2 {
@@ -733,7 +767,7 @@
 
     .mobile-mission-title,
     .mobile-year-display {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .mobile-content-area {
@@ -743,7 +777,7 @@
 
     .mobile-terminal {
         padding: 12px;
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .mobile-tabs {
