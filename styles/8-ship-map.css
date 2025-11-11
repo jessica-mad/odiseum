@@ -292,6 +292,13 @@
     flex: 1;
 }
 
+.room-status-percentage {
+    color: var(--color-terminal-green);
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
 .room-status-bar {
     width: 100%;
     height: 8px;
@@ -338,6 +345,52 @@
     color: #ff4444;
     font-weight: bold;
     animation: flicker-broken 1.5s ease-in-out infinite;
+}
+
+/* Botón único de reparación */
+.room-repair-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 8px;
+    font-family: var(--font-monaco);
+    font-size: 14px;
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--color-terminal-green);
+    border: 2px solid var(--color-terminal-green);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    text-align: center;
+}
+
+.room-repair-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.5);
+    transform: scale(1.02);
+}
+
+.room-repair-btn:active {
+    transform: scale(0.98);
+}
+
+.room-repair-btn.repairing {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+    border-color: #ff4444;
+    font-size: 18px;
+}
+
+.room-repair-btn.repairing:hover {
+    background: #ff4444;
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.5);
+}
+
+.room-status-card.repairing {
+    border-color: rgba(0, 170, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
 }
 
 /* === CELDAS DE LA GRILLA === */
@@ -417,6 +470,15 @@
         rgba(136, 136, 136, 0.12) 100%);
     border-color: rgba(136, 136, 136, 0.5);
     box-shadow: inset 0 0 8px rgba(136, 136, 136, 0.18);
+}
+
+/* Baño */
+.cell-bathroom {
+    background: radial-gradient(circle,
+        rgba(68, 170, 255, 0.2) 0%,
+        rgba(68, 170, 255, 0.12) 100%);
+    border-color: rgba(68, 170, 255, 0.5);
+    box-shadow: inset 0 0 8px rgba(68, 170, 255, 0.18);
 }
 
 /* Ingeniería */
@@ -601,6 +663,55 @@
     text-shadow: none;
 }
 
+/* Bocadillo de pensamiento del tripulante */
+.crew-thought-bubble {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 30, 10, 0.95);
+    color: var(--color-terminal-green);
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-family: var(--font-monaco);
+    font-size: 8px;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow:
+        0 0 8px rgba(0, 255, 65, 0.3),
+        inset 0 0 3px rgba(0, 255, 65, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-shadow: 0 0 2px rgba(0, 255, 65, 0.5);
+}
+
+/* Punta del bocadillo (triángulo) */
+.crew-thought-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--color-terminal-green);
+    border-bottom: none;
+}
+
+/* Mostrar bocadillo en hover */
+.crew-marker-overlay:hover .crew-thought-bubble {
+    opacity: 1;
+}
+
+/* Para tripulantes muertos, ocultar pensamiento */
+.crew-marker-overlay.dead .crew-thought-bubble {
+    display: none;
+}
+
 /* === SISTEMA DE ACORDEONES MÓVIL === */
 @media (max-width: 768px) {
     .ship-map-container {
@@ -727,6 +838,106 @@
         flex-direction: column;
         height: 100vh;
         overflow-y: auto;
+    }
+
+    /* Panel de estado de habitaciones con scroll en móvil */
+    .ship-map-rooms-status {
+        height: auto;
+        max-height: 250px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px;
+    }
+
+    /* Grid de habitaciones en columna única en móvil */
+    .rooms-status-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+
+    /* Mostrar scrollbar sutil pero visible en móvil */
+    .ship-map-rooms-status::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .ship-map-rooms-status::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 3px;
+    }
+
+    .ship-map-rooms-status::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 65, 0.4);
+        border-radius: 3px;
+    }
+
+    .ship-map-rooms-status::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 255, 65, 0.6);
+    }
+
+    .room-status-list {
+        flex-direction: column;
+        overflow-x: visible;
+    }
+
+    .room-status-card {
+        width: 100%;
+        min-width: unset;
+        flex-shrink: 0;
+        margin-bottom: 0;
+    }
+
+    /* Controles de zoom más grandes y táctiles en móvil */
+    .ship-map-zoom-controls {
+        position: fixed;
+        top: 90px;
+        right: 12px;
+        gap: 10px;
+        flex-direction: column;
+        z-index: 9000;
+    }
+
+    .zoom-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 26px;
+        border-width: 3px;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .zoom-btn:active {
+        background: var(--color-terminal-green) !important;
+        color: var(--color-terminal-bg) !important;
+        transform: scale(0.85) !important;
+    }
+
+    /* Botones de reparación también más táctiles */
+    .room-repair-btn {
+        padding: 10px 12px;
+        font-size: 16px;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .room-repair-btn.repairing {
+        font-size: 20px;
+    }
+
+    /* Bocadillos de pensamiento en móvil */
+    .crew-thought-bubble {
+        font-size: 10px;
+        max-width: 150px;
+        padding: 6px 8px;
+    }
+
+    /* Mostrar siempre en móvil (no solo en hover) */
+    .crew-marker-overlay .crew-thought-bubble {
+        opacity: 1;
     }
 }
 

@@ -314,6 +314,8 @@ function updateMobileMapPanel() {
         // Re-aplicar eventos si es necesario
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
             shipMapSystem.updateCrewLocations();
+            // IMPORTANTE: Re-aplicar eventos de zoom después de clonar
+            shipMapSystem.setupZoomControls();
         }
     }
 }

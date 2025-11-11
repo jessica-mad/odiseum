@@ -286,24 +286,8 @@ class Crew {
             }
         }
 
-        // Auto-gestionar higiene
-        if (this.wasteNeed > AUTO_MANAGE_CONFIG.hygiene.threshold && Water.quantity >= AUTO_MANAGE_CONFIG.hygiene.cost) {
-            // Calcular cuánto realmente necesita para llegar a 0
-            const needed = this.wasteNeed - 0;
-            const baseRecovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
-            const actualRecovery = Math.min(needed, baseRecovery);
-
-            // Consumir recursos proporcionalmente (regla de 3)
-            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.hygiene.cost);
-            const resourcesToUse = Math.min(resourcesNeeded, Water.quantity);
-
-            if (resourcesToUse > 0) {
-                Water.consume(resourcesToUse);
-                this.wasteNeed = Math.max(0, this.wasteNeed - actualRecovery);
-                autoManageActions.push('se aseó');
-                this.currentActivity = 'cleaning';
-            }
-        }
+        // HIGIENE YA NO SE AUTO-GESTIONA - Los tripulantes deben viajar al baño
+        // La gestión de higiene ahora se realiza en el sistema de baños (shipMapSystem.processBathroomQueue)
 
         // Auto-gestionar entretenimiento
         if (this.entertainmentNeed < AUTO_MANAGE_CONFIG.entertainment.threshold &&
@@ -471,12 +455,19 @@ class Crew {
                 const thought = this.getCurrentThought();
                 console.log(`  Benefit: "${benefit}", Location: "${location}", Thought: "${thought}"`);
 
+                // Generar botón de reparación para el ingeniero
+                let repairButton = '';
+                if (this.position && this.position.includes('Ingenier')) {
+                    repairButton = this.generateRepairButton();
+                }
+
                 card.innerHTML = `
                     <div class="crew-card-header">
                         <span class="crew-card-name">${this.name}</span>
                         <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                     </div>
                     ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                    ${repairButton}
                     <div class="crew-card-location">
                         📍 ${location}
                     </div>
@@ -617,6 +608,79 @@ class Crew {
             console.warn(`⚠️ Error obteniendo pensamiento para ${this.name}:`, error);
             return '💭 Todo va bien.';
         }
+    }
+
+    generateRepairButton() {
+        // Solo para el ingeniero
+        if (!this.position || !this.position.includes('Ingenier')) {
+            return '';
+        }
+
+        // Verificar si hay zonas disponibles para reparar
+        if (typeof shipMapSystem === 'undefined' || !shipMapSystem || !shipMapSystem.zones) {
+            return '';
+        }
+
+        const zones = shipMapSystem.zones;
+        const damagedZones = Object.entries(zones).filter(([key, zone]) => zone.integrity < 100);
+
+        if (damagedZones.length === 0) {
+            return '<div class="engineer-repair-status">✅ Todas las salas en óptimas condiciones</div>';
+        }
+
+        // Encontrar si alguna zona está siendo reparada
+        const repairingZone = damagedZones.find(([key, zone]) => zone.beingRepaired);
+
+        if (repairingZone) {
+            const [zoneKey, zone] = repairingZone;
+
+            // Verificar si el ingeniero está viajando o reparando
+            const activity = this.currentActivity?.toLowerCase() || '';
+            let statusText = '';
+            let statusIcon = '';
+
+            if (activity.includes('viajando')) {
+                statusIcon = '🚶';
+                statusText = `Viajando a ${zone.name}...`;
+            } else {
+                statusIcon = '🔧';
+                const repairPercent = Math.round((zone.repairProgress / zone.repairTimeNeeded) * 100);
+                statusText = `Reparando ${zone.name}: ${repairPercent}%`;
+            }
+
+            return `
+                <div class="engineer-repair-container">
+                    <div class="engineer-repair-status repairing">
+                        ${statusIcon} ${statusText}
+                    </div>
+                    <button class="engineer-cancel-btn" onclick="event.stopPropagation(); shipMapSystem.startRepair('${zoneKey}')">
+                        ⏸️ Cancelar
+                    </button>
+                </div>
+            `;
+        }
+
+        // Generar lista de salas disponibles para reparar
+        let optionsHTML = '<option value="">Seleccionar sala...</option>';
+        damagedZones.forEach(([zoneKey, zone]) => {
+            const percentage = Math.round(zone.integrity);
+            const damageLevel = percentage < 20 ? '🔴' : percentage < 50 ? '🟡' : '🟢';
+            optionsHTML += `<option value="${zoneKey}">${damageLevel} ${zone.icon} ${zone.name} (${percentage}%)</option>`;
+        });
+
+        return `
+            <div class="engineer-repair-container">
+                <select class="engineer-room-select" id="repair-room-select-${this.id}" onclick="event.stopPropagation()">
+                    ${optionsHTML}
+                </select>
+                <button class="engineer-repair-btn" onclick="event.stopPropagation();
+                    const select = document.getElementById('repair-room-select-${this.id}');
+                    if (select.value) shipMapSystem.startRepair(select.value);
+                    else new Notification('Selecciona una sala primero', 'ALERT');">
+                    🔧 Reparar
+                </button>
+            </div>
+        `;
     }
 
     generateAdvancedNeedBars() {
