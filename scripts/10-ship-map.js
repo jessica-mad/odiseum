@@ -38,35 +38,42 @@ class ShipMapSystem {
         this.rows = 25;
         this.cols = 25;
 
-        // Zonas y sus tiles principales (con sistema de averías)
+        // Zonas y sus tiles principales (con sistema de averías mejorado)
         this.zones = {
             bridge: {
                 name: 'Control', icon: '🎮', tiles: this.findTiles('C'), color: '#00ff41',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.5, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             medbay: {
                 name: 'Enfermería', icon: '🏥', tiles: this.findTiles('E'), color: '#ff4444',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.7, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.2, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             engineering: {
                 name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('G'), color: '#ffaa00',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             kitchen: {
                 name: 'Cocina', icon: '🍳', tiles: this.findTiles('K'), color: '#ff8844',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.8, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             greenhouse: {
                 name: 'Invernadero', icon: '🌱', tiles: this.findTiles('N'), color: '#44ff44',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.0, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             capsules: {
                 name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('D'), color: '#4488ff',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             cargo: {
                 name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.2, isBroken: false
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             }
         };
 
@@ -166,14 +173,35 @@ class ShipMapSystem {
     generateRoomsStatusHTML() {
         let html = '<h4 class="rooms-status-title">ESTADO DE LA NAVE</h4><div class="rooms-status-grid">';
 
+        // Verificar disponibilidad del ingeniero
+        const engineer = crewMembers.find(c =>
+            c.position && c.position.includes('Ingenier') && c.isAlive
+        );
+        const engineerAvailable = engineer && engineer.state === 'Despierto';
+
         Object.entries(this.zones).forEach(([zoneKey, zone]) => {
             const percentage = Math.round((zone.integrity / zone.maxIntegrity) * 100);
             let statusClass = 'good';
             if (percentage < 20) statusClass = 'critical';
             else if (percentage < 50) statusClass = 'warning';
 
+            // Calcular progreso de reparación
+            let repairInfo = '';
+            if (zone.beingRepaired) {
+                const repairPercent = Math.round((zone.repairProgress / zone.repairTimeNeeded) * 100);
+                repairInfo = `<div class="room-status-repairing">🔧 Reparando: ${repairPercent}%</div>`;
+            }
+
+            // Botón de llamar ingeniero (solo si está dañado y el ingeniero está disponible)
+            let callButton = '';
+            if (percentage < 100 && engineerAvailable && !zone.beingRepaired) {
+                callButton = `<button class="room-call-engineer-btn" onclick="shipMapSystem.startRepair('${zoneKey}')">🔧 Reparar</button>`;
+            } else if (zone.beingRepaired) {
+                callButton = `<button class="room-call-engineer-btn active" onclick="shipMapSystem.startRepair('${zoneKey}')">⏸️ Cancelar</button>`;
+            }
+
             html += `
-                <div class="room-status-card ${zone.isBroken ? 'broken' : ''}" data-zone="${zoneKey}">
+                <div class="room-status-card ${zone.isBroken ? 'broken' : ''} ${zone.beingRepaired ? 'repairing' : ''}" data-zone="${zoneKey}">
                     <div class="room-status-header">
                         <span class="room-status-icon">${zone.icon}</span>
                         <span class="room-status-name">${zone.name}</span>
@@ -183,6 +211,8 @@ class ShipMapSystem {
                     </div>
                     <div class="room-status-value">${percentage}%</div>
                     ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
+                    ${repairInfo}
+                    ${callButton}
                 </div>
             `;
         });
@@ -764,73 +794,141 @@ class ShipMapSystem {
     }
 
     /**
-     * Repara una zona cuando el ingeniero pasa por ella
+     * Inicia la reparación de una zona (nueva versión progresiva)
      */
-    repairZone(zoneKey) {
+    startRepair(zoneKey) {
         const zone = this.zones[zoneKey];
-        if (!zone || !zone.isBroken) return false;
+        if (!zone) {
+            console.warn(`Zona ${zoneKey} no encontrada`);
+            return false;
+        }
 
-        // Requiere que el ingeniero esté en la zona
+        // Verificar que el ingeniero esté vivo y despierto
         const engineer = crewMembers.find(c =>
             c.position && c.position.includes('Ingenier') && c.isAlive
         );
 
-        if (!engineer) return false;
-
-        const engineerPos = this.crewLocations[engineer.id];
-        if (!engineerPos) return false;
-
-        const cellType = this.grid[engineerPos.row]?.[engineerPos.col];
-        const engineerZone = this.getCellTypeToZoneName(cellType);
-
-        if (engineerZone === zoneKey) {
-            // Cambiar actividad del ingeniero a "Reparando"
-            engineer.currentActivity = `Reparando ${zone.name}`;
-
-            // Reparar (más lento si Ingeniería está averiada)
-            const repairMultiplier = this.zones.engineering?.isBroken ? 0.5 : 1.0;
-            zone.integrity = zone.maxIntegrity * repairMultiplier;
-            zone.isBroken = false;
-
-            // Quitar marcas visuales
-            zone.tiles.forEach(tile => {
-                const cell = document.querySelector(
-                    `.grid-cell[data-row="${tile.row}"][data-col="${tile.col}"]`
-                );
-                if (cell) {
-                    cell.classList.remove('cell-broken');
-                }
-            });
-
-            console.log(`🔧 ${engineer.name} ha reparado ${zone.name}`);
+        if (!engineer) {
             if (typeof Notification !== 'undefined') {
-                new Notification(`${engineer.name} reparó ${zone.name}`, 'INFO');
+                new Notification('No hay ingeniero disponible', 'ALERT');
             }
-
-            // Actualizar panel de estado
-            this.updateRoomsStatus();
-
-            // Resetear actividad después de un tiempo
-            setTimeout(() => {
-                if (engineer.currentActivity && engineer.currentActivity.includes('Reparando')) {
-                    engineer.currentActivity = 'idle';
-                }
-            }, 3000);
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (engineer.state !== 'Despierto') {
+            if (typeof Notification !== 'undefined') {
+                new Notification('El ingeniero debe estar despierto para reparar', 'ALERT');
+            }
+            return false;
+        }
+
+        // Si ya está reparando, cancelar
+        if (zone.beingRepaired) {
+            console.log(`🔧 Cancelando reparación de ${zone.name}`);
+            zone.beingRepaired = false;
+            zone.repairProgress = 0;
+            zone.repairTimeNeeded = 0;
+            engineer.currentActivity = 'idle';
+            if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+                panelManager.updateCrewPanel();
+            }
+            return false;
+        }
+
+        // Calcular tiempo de reparación basado en daño
+        // Daño completo (0% integridad) = 100 ticks = ~16 minutos
+        // Daño parcial se escala proporcionalmente
+        const damagePercent = 100 - zone.integrity;
+        zone.repairTimeNeeded = Math.ceil(damagePercent); // 1 tick por cada 1% de daño
+        zone.repairProgress = 0;
+        zone.beingRepaired = true;
+
+        engineer.currentActivity = `Reparando ${zone.name}`;
+
+        console.log(`🔧 ${engineer.name} inicia reparación de ${zone.name} (${damagePercent.toFixed(0)}% daño, ${zone.repairTimeNeeded} ticks)`);
+        if (typeof Notification !== 'undefined') {
+            new Notification(`${engineer.name} comienza reparación de ${zone.name}`, 'INFO');
+        }
+
+        // Actualizar panel de tripulación
+        if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+            panelManager.updateCrewPanel();
+        }
+
+        this.updateRoomsStatus();
+        return true;
     }
 
     /**
-     * Verifica y repara zonas automáticamente si el ingeniero está en ellas
+     * Procesa un tick de reparación (llamado cada 10 segundos)
      */
-    checkAndRepairZones() {
-        Object.keys(this.zones).forEach(zoneKey => {
-            if (this.zones[zoneKey].isBroken) {
-                this.repairZone(zoneKey);
+    processRepairTick() {
+        const engineer = crewMembers.find(c =>
+            c.position && c.position.includes('Ingenier') && c.isAlive && c.state === 'Despierto'
+        );
+
+        // Si no hay ingeniero disponible, cancelar todas las reparaciones
+        if (!engineer) {
+            Object.values(this.zones).forEach(zone => {
+                if (zone.beingRepaired) {
+                    zone.beingRepaired = false;
+                    zone.repairProgress = 0;
+                    zone.repairTimeNeeded = 0;
+                }
+            });
+            return;
+        }
+
+        // Procesar cada zona que esté siendo reparada
+        Object.entries(this.zones).forEach(([zoneKey, zone]) => {
+            if (!zone.beingRepaired) return;
+
+            // Calcular velocidad de reparación (más lento si Ingeniería está averiada)
+            const repairSpeedMultiplier = this.zones.engineering?.isBroken ? 0.5 : 1.0;
+            const repairIncrement = 1 * repairSpeedMultiplier;
+
+            zone.repairProgress += repairIncrement;
+
+            // Calcular restauración de integridad progresiva
+            const progressPercent = Math.min(100, (zone.repairProgress / zone.repairTimeNeeded) * 100);
+            const targetIntegrity = zone.maxIntegrity;
+            const startIntegrity = targetIntegrity - zone.repairTimeNeeded; // Integridad al inicio
+            zone.integrity = Math.min(targetIntegrity, startIntegrity + (zone.repairTimeNeeded * (progressPercent / 100)));
+
+            console.log(`🔧 Reparando ${zone.name}: ${progressPercent.toFixed(0)}% completo (${zone.integrity.toFixed(1)}/${zone.maxIntegrity})`);
+
+            // Verificar si la reparación está completa
+            if (zone.repairProgress >= zone.repairTimeNeeded) {
+                zone.integrity = zone.maxIntegrity;
+                zone.isBroken = false;
+                zone.beingRepaired = false;
+                zone.repairProgress = 0;
+                zone.repairTimeNeeded = 0;
+
+                // Quitar marcas visuales
+                zone.tiles.forEach(tile => {
+                    const cell = document.querySelector(
+                        `.grid-cell[data-row="${tile.row}"][data-col="${tile.col}"]`
+                    );
+                    if (cell) {
+                        cell.classList.remove('cell-broken');
+                    }
+                });
+
+                console.log(`✅ ${engineer.name} completó reparación de ${zone.name}`);
+                if (typeof Notification !== 'undefined') {
+                    new Notification(`${zone.icon} ${zone.name} reparada completamente`, 'SUCCESS');
+                }
+
+                engineer.currentActivity = 'idle';
+
+                // Actualizar panel de tripulación
+                if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+                    panelManager.updateCrewPanel();
+                }
             }
+
+            this.updateRoomsStatus();
         });
     }
 
@@ -838,12 +936,12 @@ class ShipMapSystem {
         // Actualizar posiciones cada 5 segundos
         setInterval(() => {
             this.updateCrewLocations();
-            this.checkAndRepairZones(); // Verificar y reparar zonas
         }, 5000);
 
-        // Degradar zonas cada 10 segundos
+        // Degradar zonas y procesar reparaciones cada 10 segundos
         setInterval(() => {
             this.degradeZones();
+            this.processRepairTick();
         }, 10000);
 
         // También actualizar cada vez que cambie algo relevante
@@ -855,7 +953,7 @@ class ShipMapSystem {
         }
 
         console.log('✅ Auto-actualización del mapa iniciada (cada 5 segundos)');
-        console.log('⚙️ Sistema de averías activado (degradación cada 10 segundos)');
+        console.log('⚙️ Sistema de averías mejorado activado (degradación y reparación cada 10 segundos)');
     }
 }
 

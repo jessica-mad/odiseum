@@ -181,6 +181,87 @@
     border-radius: 2px;
 }
 
+/* === CONTROLES DE REPARACIÓN DEL INGENIERO === */
+.engineer-repair-container {
+    margin: 6px 0;
+    padding: 6px;
+    background: rgba(0, 170, 255, 0.05);
+    border: 1px solid rgba(0, 170, 255, 0.3);
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.engineer-repair-status {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    text-align: center;
+    padding: 4px;
+    background: rgba(0, 170, 0, 0.1);
+    color: var(--color-alert-green);
+    border-radius: 2px;
+}
+
+.engineer-repair-status.repairing {
+    background: rgba(0, 170, 255, 0.2);
+    color: #0088cc;
+    font-weight: bold;
+}
+
+.engineer-room-select {
+    width: 100%;
+    padding: 4px 6px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.engineer-room-select:focus {
+    outline: 2px solid #0088cc;
+}
+
+.engineer-repair-btn,
+.engineer-cancel-btn {
+    width: 100%;
+    padding: 4px 8px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    font-weight: bold;
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-small);
+}
+
+.engineer-repair-btn:hover {
+    background: #00cc66;
+    color: var(--color-white);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+.engineer-repair-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-small);
+}
+
+.engineer-cancel-btn {
+    background: #ffeecc;
+    border-color: #ff8800;
+}
+
+.engineer-cancel-btn:hover {
+    background: #ff8800;
+    color: var(--color-white);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
 /* === VENTANAS (POPUPS) === */
 .window {
     position: absolute;

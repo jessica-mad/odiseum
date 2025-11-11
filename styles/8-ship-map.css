@@ -340,6 +340,60 @@
     animation: flicker-broken 1.5s ease-in-out infinite;
 }
 
+.room-status-repairing {
+    margin-top: 4px;
+    padding: 4px;
+    background: rgba(0, 170, 255, 0.2);
+    border: 1px solid rgba(0, 170, 255, 0.6);
+    border-radius: 3px;
+    text-align: center;
+    color: #00aaff;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.room-call-engineer-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-family: var(--font-monaco);
+    font-size: 10px;
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--color-terminal-green);
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.room-call-engineer-btn:hover {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+    transform: translateY(-1px);
+}
+
+.room-call-engineer-btn:active {
+    transform: translateY(0);
+}
+
+.room-call-engineer-btn.active {
+    background: rgba(255, 170, 0, 0.2);
+    color: #ffaa00;
+    border-color: #ffaa00;
+}
+
+.room-call-engineer-btn.active:hover {
+    background: #ffaa00;
+    color: var(--color-terminal-bg);
+}
+
+.room-status-card.repairing {
+    border-color: rgba(0, 170, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
 /* === CELDAS DE LA GRILLA === */
 .grid-cell {
     position: relative;

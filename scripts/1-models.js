@@ -471,12 +471,19 @@ class Crew {
                 const thought = this.getCurrentThought();
                 console.log(`  Benefit: "${benefit}", Location: "${location}", Thought: "${thought}"`);
 
+                // Generar botón de reparación para el ingeniero
+                let repairButton = '';
+                if (this.position && this.position.includes('Ingenier')) {
+                    repairButton = this.generateRepairButton();
+                }
+
                 card.innerHTML = `
                     <div class="crew-card-header">
                         <span class="crew-card-name">${this.name}</span>
                         <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                     </div>
                     ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                    ${repairButton}
                     <div class="crew-card-location">
                         📍 ${location}
                     </div>
@@ -617,6 +624,65 @@ class Crew {
             console.warn(`⚠️ Error obteniendo pensamiento para ${this.name}:`, error);
             return '💭 Todo va bien.';
         }
+    }
+
+    generateRepairButton() {
+        // Solo para el ingeniero
+        if (!this.position || !this.position.includes('Ingenier')) {
+            return '';
+        }
+
+        // Verificar si hay zonas disponibles para reparar
+        if (typeof shipMapSystem === 'undefined' || !shipMapSystem || !shipMapSystem.zones) {
+            return '';
+        }
+
+        const zones = shipMapSystem.zones;
+        const damagedZones = Object.entries(zones).filter(([key, zone]) => zone.integrity < 100);
+
+        if (damagedZones.length === 0) {
+            return '<div class="engineer-repair-status">✅ Todas las salas en óptimas condiciones</div>';
+        }
+
+        // Encontrar si alguna zona está siendo reparada
+        const repairingZone = damagedZones.find(([key, zone]) => zone.beingRepaired);
+
+        if (repairingZone) {
+            const [zoneKey, zone] = repairingZone;
+            const repairPercent = Math.round((zone.repairProgress / zone.repairTimeNeeded) * 100);
+            return `
+                <div class="engineer-repair-container">
+                    <div class="engineer-repair-status repairing">
+                        🔧 Reparando ${zone.name}: ${repairPercent}%
+                    </div>
+                    <button class="engineer-cancel-btn" onclick="event.stopPropagation(); shipMapSystem.startRepair('${zoneKey}')">
+                        ⏸️ Cancelar
+                    </button>
+                </div>
+            `;
+        }
+
+        // Generar lista de salas disponibles para reparar
+        let optionsHTML = '<option value="">Seleccionar sala...</option>';
+        damagedZones.forEach(([zoneKey, zone]) => {
+            const percentage = Math.round(zone.integrity);
+            const damageLevel = percentage < 20 ? '🔴' : percentage < 50 ? '🟡' : '🟢';
+            optionsHTML += `<option value="${zoneKey}">${damageLevel} ${zone.icon} ${zone.name} (${percentage}%)</option>`;
+        });
+
+        return `
+            <div class="engineer-repair-container">
+                <select class="engineer-room-select" id="repair-room-select-${this.id}" onclick="event.stopPropagation()">
+                    ${optionsHTML}
+                </select>
+                <button class="engineer-repair-btn" onclick="event.stopPropagation();
+                    const select = document.getElementById('repair-room-select-${this.id}');
+                    if (select.value) shipMapSystem.startRepair(select.value);
+                    else new Notification('Selecciona una sala primero', 'ALERT');">
+                    🔧 Reparar
+                </button>
+            </div>
+        `;
     }
 
     generateAdvancedNeedBars() {
