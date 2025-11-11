@@ -110,6 +110,9 @@ class ShipMapSystem {
         this.zoomLevel = 1; // 1 = 100%, 0.5 = 50%, 2 = 200%
         this.minZoom = 0.5;
         this.maxZoom = 3;
+
+        // Card flotante
+        this.activeCrewCard = null; // ID del tripulante con card activa
     }
 
     findTiles(type) {
@@ -789,15 +792,134 @@ class ShipMapSystem {
             marker.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevenir propagación del evento
                 console.log(`🖱️ Clic en tripulante: ${crew.name}`);
-                if (typeof openCrewManagementPopup === 'function') {
-                    openCrewManagementPopup(crew.name);
-                } else {
-                    console.error('⚠️ openCrewManagementPopup no está disponible');
-                }
+                this.showFloatingCrewCard(crew.id);
             });
         }
 
         marker.title = `${crew.name} - ${crew.position}`;
+
+        // Si hay una card activa para este tripulante, actualizarla
+        if (this.activeCrewCard === crew.id) {
+            this.updateFloatingCrewCardPosition(crew.id);
+        }
+    }
+
+    /**
+     * Muestra una card flotante siguiendo al tripulante
+     */
+    showFloatingCrewCard(crewId) {
+        const crew = crewMembers.find(c => c.id === crewId);
+        if (!crew) return;
+
+        // Si ya hay una card, cerrarla
+        this.closeFloatingCrewCard();
+
+        // Crear contenedor de la card
+        const cardContainer = document.createElement('div');
+        cardContainer.id = 'floating-crew-card';
+        cardContainer.className = 'floating-crew-card';
+
+        // Generar contenido similar a la card del panel
+        let cardContent = '';
+
+        if (!crew.isAlive) {
+            cardContent = `
+                <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${crew.name}</span>
+                    <span class="crew-card-status">💀</span>
+                </div>
+                <div class="crew-card-state deceased">FALLECIDO</div>
+            `;
+        } else if (crew.state === 'Despierto') {
+            const benefit = crew.getAwakeBenefitDescription?.() || '';
+            const location = crew.getCurrentLocation?.() || 'Nave';
+            const thought = crew.getCurrentThought?.() || '';
+
+            cardContent = `
+                <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${crew.name}</span>
+                    <span class="crew-card-age">${crew.biologicalAge.toFixed(0)} años</span>
+                </div>
+                ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                <div class="crew-card-location">
+                    📍 ${location}
+                </div>
+                <div class="crew-card-thought">
+                    <div class="thought-marquee">${thought}</div>
+                </div>
+            `;
+        } else {
+            // Encapsulado
+            cardContent = `
+                <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${crew.name}</span>
+                    <span class="crew-card-age">${crew.biologicalAge.toFixed(0)} años</span>
+                </div>
+                <div class="crew-card-needs-advanced">
+                    ${crew.generateAdvancedNeedBars?.() || '<div class="crew-card-state">Encapsulado</div>'}
+                </div>
+            `;
+        }
+
+        cardContainer.innerHTML = cardContent;
+
+        // Agregar al mapa
+        const mapContainer = document.getElementById('ship-map-container');
+        if (mapContainer) {
+            mapContainer.appendChild(cardContainer);
+            this.activeCrewCard = crewId;
+            this.updateFloatingCrewCardPosition(crewId);
+        }
+    }
+
+    /**
+     * Actualiza la posición de la card flotante para seguir al tripulante
+     */
+    updateFloatingCrewCardPosition(crewId) {
+        const cardContainer = document.getElementById('floating-crew-card');
+        if (!cardContainer || this.activeCrewCard !== crewId) return;
+
+        const pos = this.crewLocations[crewId];
+        if (!pos) return;
+
+        const marker = document.getElementById(`crew-marker-${crewId}`);
+        if (!marker) return;
+
+        // Calcular posición basada en el marcador del tripulante
+        const topPercent = (pos.row / this.rows) * 100;
+        const leftPercent = (pos.col / this.cols) * 100;
+
+        // Posicionar la card al lado del tripulante (derecha o izquierda según espacio)
+        const gridElement = document.getElementById('ship-map-grid');
+        if (gridElement) {
+            const gridRect = gridElement.getBoundingClientRect();
+            const markerLeft = (leftPercent / 100) * gridRect.width;
+
+            // Si está en la mitad derecha, mostrar card a la izquierda
+            if (leftPercent > 50) {
+                cardContainer.style.left = 'auto';
+                cardContainer.style.right = `${100 - leftPercent + 2}%`;
+            } else {
+                cardContainer.style.left = `${leftPercent + 10}%`;
+                cardContainer.style.right = 'auto';
+            }
+
+            cardContainer.style.top = `${topPercent}%`;
+        }
+    }
+
+    /**
+     * Cierra la card flotante activa
+     */
+    closeFloatingCrewCard() {
+        const cardContainer = document.getElementById('floating-crew-card');
+        if (cardContainer) {
+            cardContainer.remove();
+        }
+        this.activeCrewCard = null;
     }
 
     /**
