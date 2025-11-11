@@ -654,6 +654,11 @@ class GameLoop {
         Medicine.updateResourceUI();
         Data.updateResourceUI();
         Fuel.updateResourceUI();
+
+        // Actualizar recursos en versión móvil
+        if (typeof updateMobileResources === 'function') {
+            updateMobileResources();
+        }
     }
     
     updateCrewPopupIfOpen() {

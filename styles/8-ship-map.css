@@ -791,6 +791,65 @@
         height: 100vh;
         overflow-y: auto;
     }
+
+    /* Panel de estado de habitaciones con scroll en móvil */
+    .ship-map-rooms-status {
+        height: auto;
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 4px;
+    }
+
+    /* Ocultar scrollbar pero mantener funcionalidad en móvil */
+    .ship-map-rooms-status::-webkit-scrollbar {
+        width: 2px;
+    }
+
+    .ship-map-rooms-status::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .ship-map-rooms-status::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 65, 0.2);
+        border-radius: 2px;
+    }
+
+    .ship-map-rooms-status::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 255, 65, 0.4);
+    }
+
+    .room-status-list {
+        flex-direction: column;
+        overflow-x: visible;
+    }
+
+    .room-status-card {
+        width: 100%;
+        min-width: unset;
+        flex-shrink: 0;
+    }
+
+    /* Controles de zoom más grandes y táctiles en móvil */
+    .ship-map-zoom-controls {
+        top: 12px;
+        right: 12px;
+        gap: 8px;
+    }
+
+    .zoom-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+        border-width: 3px;
+        touch-action: manipulation;
+    }
+
+    .zoom-btn:active {
+        background: var(--color-terminal-green);
+        color: var(--color-terminal-bg);
+        transform: scale(0.9);
+    }
 }
 
 @media (min-width: 769px) and (max-height: 700px) {

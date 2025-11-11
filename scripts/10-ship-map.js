@@ -79,13 +79,14 @@ class ShipMapSystem {
                 name: 'Baño', icon: '🚽', tiles: this.findTiles('W'), color: '#44aaff',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
-                isOccupied: false, currentUser: null, queue: []
+                isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
             }
         };
 
         this.crewLocations = {};
         this.crewTargets = {};
         this.crewPaths = {};
+        this.lastSubtleMove = {}; // Rastrear último movimiento sutil
         this.crewIcons = {
             'Capitán Silva': '👨‍✈️',
             'Dra. Chen': '👩‍⚕️',
@@ -233,15 +234,36 @@ class ShipMapSystem {
         const zoomResetBtn = document.getElementById('zoom-reset-btn');
 
         if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', () => this.zoomIn());
+            zoomInBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.zoomIn();
+            });
+            zoomInBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.zoomIn();
+            });
         }
 
         if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', () => this.zoomOut());
+            zoomOutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.zoomOut();
+            });
+            zoomOutBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.zoomOut();
+            });
         }
 
         if (zoomResetBtn) {
-            zoomResetBtn.addEventListener('click', () => this.resetZoom());
+            zoomResetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.resetZoom();
+            });
+            zoomResetBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.resetZoom();
+            });
         }
     }
 
@@ -410,11 +432,12 @@ class ShipMapSystem {
         if (crew.state === 'Despierto') {
             const activity = crew.currentActivity?.toLowerCase() || '';
 
-            // MÁXIMA PRIORIDAD: Si el ingeniero está reparando, ir a esa zona
-            if (crew.position && crew.position.includes('Ingenier') && activity.includes('reparando')) {
-                // Buscar qué zona está siendo reparada
+            // MÁXIMA PRIORIDAD: Si el ingeniero está reparando o viajando a reparar
+            if (crew.position && crew.position.includes('Ingenier')) {
+                // Buscar si hay alguna zona siendo reparada
                 for (const [zoneKey, zone] of Object.entries(this.zones)) {
-                    if (zone.beingRepaired && activity.includes(zone.name.toLowerCase())) {
+                    if (zone.beingRepaired) {
+                        console.log(`🔧 Ingeniero debe ir a ${zone.name} (${zoneKey}) para reparar`);
                         return zoneKey;
                     }
                 }
@@ -452,7 +475,7 @@ class ShipMapSystem {
                 return 'medbay';
             }
 
-            // Ingeniera -> Ingeniería (engineering)
+            // Ingeniera -> Ingeniería (engineering) - SOLO si no está reparando
             if (position.includes('Ingenier')) {
                 return 'engineering';
             }
@@ -581,9 +604,30 @@ class ShipMapSystem {
                         this.animateCrewMovement(crew);
                     }
                 }
+                this.lastSubtleMove[crew.id] = Date.now();
             } else {
+                // Tripulante ya está en su zona objetivo
                 if (currentPos) {
-                    this.createOrUpdateCrewMarker(crew, currentPos);
+                    // Movimiento sutil: Cada 30-60 segundos, moverse a otra tile en la misma zona
+                    const lastMove = this.lastSubtleMove[crew.id] || 0;
+                    const timeSinceLastMove = Date.now() - lastMove;
+                    const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
+
+                    // Solo mover si no está en movimiento y han pasado 30+ segundos
+                    if (!isMoving && timeSinceLastMove > 30000 && Math.random() < 0.3) {
+                        const newPos = this.getRandomTileInZone(targetZone, crew.id);
+                        // Solo mover si la nueva posición es diferente
+                        if (newPos.row !== currentPos.row || newPos.col !== currentPos.col) {
+                            const path = this.findPath(currentPos, newPos);
+                            if (path.length > 1) {
+                                this.crewPaths[crew.id] = path;
+                                this.animateCrewMovement(crew);
+                                this.lastSubtleMove[crew.id] = Date.now();
+                            }
+                        }
+                    } else {
+                        this.createOrUpdateCrewMarker(crew, currentPos);
+                    }
                 }
             }
         });
@@ -667,13 +711,13 @@ class ShipMapSystem {
     }
 
     /**
-     * Sistema de cola del baño - Procesa el uso del baño por los tripulantes
+     * Sistema de cola del baño - FIFO: Primero en llegar, primero en usar
      */
     processBathroomQueue() {
         const bathroom = this.zones.bathroom;
         if (!bathroom) return;
 
-        // Obtener tripulantes que necesitan el baño y están en la zona
+        // Obtener tripulantes que están en la zona del baño
         const crewInBathroom = crewMembers.filter(crew => {
             if (!crew.isAlive || crew.state !== 'Despierto') return false;
             const pos = this.crewLocations[crew.id];
@@ -682,16 +726,38 @@ class ShipMapSystem {
             return cellType === 'W';
         });
 
+        // Registrar tiempo de llegada para nuevos tripulantes
+        const currentTime = Date.now();
+        crewInBathroom.forEach(crew => {
+            if (!bathroom.arrivalOrder[crew.id]) {
+                bathroom.arrivalOrder[crew.id] = currentTime;
+            }
+        });
+
+        // Limpiar tripulantes que ya no están en el baño
+        Object.keys(bathroom.arrivalOrder).forEach(crewId => {
+            if (!crewInBathroom.find(c => c.id == crewId)) {
+                delete bathroom.arrivalOrder[crewId];
+            }
+        });
+
         // Si el baño está ocupado, procesar uso
         if (bathroom.isOccupied && bathroom.currentUser) {
             const user = crewMembers.find(c => c.id === bathroom.currentUser);
             if (user && user.isAlive && user.state === 'Despierto') {
-                // Aumentar wasteNeed por tick (5 puntos por tick)
-                user.wasteNeed = Math.min(100, user.wasteNeed + 5);
-                user.currentActivity = '🚽 Usando el baño';
+                // Verificar que el usuario sigue en el baño
+                const stillInBathroom = crewInBathroom.find(c => c.id === user.id);
+                if (stillInBathroom) {
+                    // Aumentar wasteNeed por tick (5 puntos por tick)
+                    user.wasteNeed = Math.min(100, user.wasteNeed + 5);
+                    user.currentActivity = '🚽 Usando el baño';
 
-                // Si ya terminó (wasteNeed >= 100), liberar baño
-                if (user.wasteNeed >= 100) {
+                    // Si ya terminó (wasteNeed >= 100), liberar baño
+                    if (user.wasteNeed >= 100) {
+                        this.releaseBathroom();
+                    }
+                } else {
+                    // Usuario salió del baño, liberar
                     this.releaseBathroom();
                 }
             } else {
@@ -700,13 +766,14 @@ class ShipMapSystem {
             }
         }
 
-        // Si el baño no está ocupado, asignar al siguiente en cola
+        // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR
         if (!bathroom.isOccupied && crewInBathroom.length > 0) {
-            // Buscar el tripulante con menor wasteNeed (más urgencia)
-            const nextUser = crewInBathroom.reduce((min, crew) =>
-                crew.wasteNeed < min.wasteNeed ? crew : min
-            );
+            // Ordenar por tiempo de llegada (FIFO)
+            const sortedByArrival = crewInBathroom.sort((a, b) => {
+                return bathroom.arrivalOrder[a.id] - bathroom.arrivalOrder[b.id];
+            });
 
+            const nextUser = sortedByArrival[0];
             bathroom.isOccupied = true;
             bathroom.currentUser = nextUser.id;
             nextUser.currentActivity = '🚽 Usando el baño';
@@ -818,7 +885,8 @@ class ShipMapSystem {
             'K': 'kitchen',
             'N': 'greenhouse',
             'D': 'capsules',
-            'B': 'cargo'
+            'B': 'cargo',
+            'W': 'bathroom'
         };
         return mapping[cellType];
     }
