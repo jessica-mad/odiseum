@@ -52,42 +52,42 @@ class ShipMapSystem {
         // Zonas y sus tiles principales (con sistema de averías mejorado)
         this.zones = {
             bridge: {
-                name: 'Control', icon: '🎮', tiles: this.findTiles('C'), color: '#00ff41',
+                name: 'Control', icon: '🎮', tiles: this.findTiles('c'), color: '#00ff41',
                 integrity: 100, maxIntegrity: 100, degradationRate: 1.5, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             medbay: {
-                name: 'Enfermería', icon: '🏥', tiles: this.findTiles('E'), color: '#ff4444',
+                name: 'Enfermería', icon: '🏥', tiles: this.findTiles('e'), color: '#ff4444',
                 integrity: 100, maxIntegrity: 100, degradationRate: 1.2, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             engineering: {
-                name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('G'), color: '#ffaa00',
+                name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('g'), color: '#ffaa00',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             kitchen: {
-                name: 'Cocina', icon: '🍳', tiles: this.findTiles('K'), color: '#ff8844',
+                name: 'Cocina', icon: '🍳', tiles: this.findTiles('k'), color: '#ff8844',
                 integrity: 100, maxIntegrity: 100, degradationRate: 1.8, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             greenhouse: {
-                name: 'Invernadero', icon: '🌱', tiles: this.findTiles('N'), color: '#44ff44',
+                name: 'Invernadero', icon: '🌱', tiles: this.findTiles('n'), color: '#44ff44',
                 integrity: 100, maxIntegrity: 100, degradationRate: 1.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             capsules: {
-                name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('D'), color: '#4488ff',
+                name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('d'), color: '#4488ff',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             cargo: {
-                name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888',
+                name: 'Bodega', icon: '📦', tiles: this.findTiles('b'), color: '#888888',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             bathroom: {
-                name: 'Baño', icon: '🚽', tiles: this.findTiles('W'), color: '#44aaff',
+                name: 'Baño', icon: '🚽', tiles: this.findTiles('w'), color: '#44aaff',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
