@@ -796,6 +796,7 @@ function updateNeedDisplay(needType, value, isInverse = false) {
 
 function openCrewManagementPopup(name) {
     console.log('🔍 Abriendo ficha de tripulante:', name);
+
     const crewMember = crewMembers.find(c => c.name === name);
     if (!crewMember) {
         console.error('❌ Tripulante no encontrado:', name);
@@ -803,123 +804,139 @@ function openCrewManagementPopup(name) {
     }
     console.log('✅ Tripulante encontrado:', crewMember.name);
 
-    // Header - Pensamiento actual
-    const thought = crewMember.getCurrentThought();
-    const thoughtEmoji = thought.split(' ')[0]; // Primer carácter (emoji)
-    const thoughtText = thought.substring(thoughtEmoji.length).trim();
-    document.getElementById('crew-thought-emoji').textContent = thoughtEmoji;
-    document.getElementById('crew-thought-text').textContent = thoughtText;
+    try {
+        // Header - Pensamiento actual
+        const thought = crewMember.getCurrentThought();
+        const thoughtEmoji = thought.split(' ')[0];
+        const thoughtText = thought.substring(thoughtEmoji.length).trim();
+        const emojiEl = document.getElementById('crew-thought-emoji');
+        const textEl = document.getElementById('crew-thought-text');
+        if (emojiEl) emojiEl.textContent = thoughtEmoji;
+        if (textEl) textEl.textContent = thoughtText;
 
-    // Información básica
-    document.getElementById('crew-name').textContent = crewMember.name;
-    document.getElementById('crew-age').textContent = crewMember.initialAge;
-    document.getElementById('crew-bio-age').textContent = crewMember.biologicalAge.toFixed(1);
-    document.getElementById('crew-position').textContent = crewMember.position;
-    document.getElementById('crew-state').textContent = crewMember.state;
-    document.getElementById('crew-activity').textContent = crewMember.currentActivity;
+        // Información básica
+        const nameEl = document.getElementById('crew-name');
+        const ageEl = document.getElementById('crew-age');
+        const bioAgeEl = document.getElementById('crew-bio-age');
+        const positionEl = document.getElementById('crew-position');
+        const stateEl = document.getElementById('crew-state');
+        const activityEl = document.getElementById('crew-activity');
 
-    // Ánimo con emoji
-    const moodEmoji = getMoodEmoji(crewMember.emotionalState || crewMember.mood || 'neutral');
-    document.getElementById('crew-mood-emoji').textContent = moodEmoji;
-    document.getElementById('crew-mood').textContent = crewMember.emotionalState || crewMember.mood || 'estable';
+        if (nameEl) nameEl.textContent = crewMember.name;
+        if (ageEl) ageEl.textContent = crewMember.initialAge;
+        if (bioAgeEl) bioAgeEl.textContent = crewMember.biologicalAge.toFixed(1);
+        if (positionEl) positionEl.textContent = crewMember.position;
+        if (stateEl) stateEl.textContent = crewMember.state;
+        if (activityEl) activityEl.textContent = crewMember.currentActivity;
 
-    // Beneficio activo
-    const benefitReadout = document.getElementById('crew-benefit-readout');
-    if (benefitReadout) {
-        const benefitText = crewMember.getAwakeBenefitDescription();
-        benefitReadout.textContent = benefitText || 'Inactivo (encapsulado)';
-    }
+        // Ánimo con emoji
+        const moodEmoji = getMoodEmoji(crewMember.emotionalState || crewMember.mood || 'neutral');
+        const moodEmojiEl = document.getElementById('crew-mood-emoji');
+        const moodEl = document.getElementById('crew-mood');
+        if (moodEmojiEl) moodEmojiEl.textContent = moodEmoji;
+        if (moodEl) moodEl.textContent = crewMember.emotionalState || crewMember.mood || 'estable';
 
-    // Necesidades con barras de progreso
-    updateNeedDisplay('food', crewMember.foodNeed);
-    updateNeedDisplay('health', crewMember.healthNeed);
-    updateNeedDisplay('waste', crewMember.wasteNeed, true); // Inverso
-    updateNeedDisplay('entertainment', crewMember.entertainmentNeed);
-    updateNeedDisplay('rest', crewMember.restNeed);
+        // Beneficio activo
+        const benefitReadout = document.getElementById('crew-benefit-readout');
+        if (benefitReadout) {
+            const benefitText = crewMember.getAwakeBenefitDescription();
+            benefitReadout.textContent = benefitText || 'Inactivo (encapsulado)';
+        }
 
-    // Mostrar información personal
-    const personalInfoContainer = document.getElementById('crew-personal-info');
-    if (personalInfoContainer && crewMember.leftBehind) {
-        personalInfoContainer.innerHTML = `
-            <h4>💔 Información Personal</h4>
-            <div class="personal-info-item">
-                <strong>Dejó atrás:</strong>
-                <p>${crewMember.leftBehind.family}</p>
-            </div>
-            <div class="personal-info-item">
-                <strong>Últimas palabras:</strong>
-                <p>${crewMember.leftBehind.lastWords}</p>
-            </div>
-            <div class="personal-info-item">
-                <strong>Sueño en Nueva Tierra:</strong>
-                <p>${crewMember.leftBehind.dream}</p>
-            </div>
-            <div class="personal-info-item">
-                <strong>Actitud ante la muerte:</strong>
-                <p>${crewMember.fearOfDeath}</p>
-            </div>
-        `;
-    }
-    
-    // Mostrar log personal con consecuencias marcadas
-    const logContainer = document.getElementById('crew-personal-log-content');
-    logContainer.innerHTML = '';
+        // Necesidades con barras de progreso
+        updateNeedDisplay('food', crewMember.foodNeed);
+        updateNeedDisplay('health', crewMember.healthNeed);
+        updateNeedDisplay('waste', crewMember.wasteNeed, true);
+        updateNeedDisplay('entertainment', crewMember.entertainmentNeed);
+        updateNeedDisplay('rest', crewMember.restNeed);
 
-    if (crewMember.personalLog.length === 0) {
-        logContainer.innerHTML = '<p style="color: #999;">No hay entradas en el registro personal.</p>';
-    } else {
-        const recentLogs = crewMember.personalLog.slice(-20).reverse(); // Mostrar más logs
-        recentLogs.forEach(log => {
-            const entryDiv = document.createElement('div');
-            entryDiv.className = 'personal-log-entry';
-
-            // Detectar tipo de entrada
-            const isAI = log.entry.includes('[IA]');
-            const isPositive = log.entry.match(/✅|✔️|👍|💚|🟢|logró|exitosamente|mejoró|sanó|recuperó/i);
-            const isNegative = log.entry.match(/❌|⚠️|👎|💔|🔴|falló|trauma|murió|crisis|crítico|peligro/i);
-            const isEvent = log.entry.match(/📌|🎯|⚡|evento|interacción|historia/i);
-
-            if (isAI) entryDiv.classList.add('ai-generated');
-            if (isPositive) entryDiv.classList.add('log-positive');
-            if (isNegative) entryDiv.classList.add('log-negative');
-            if (isEvent) entryDiv.classList.add('log-event');
-
-            // Agregar icono de consecuencia
-            let consequenceIcon = '';
-            if (isPositive) consequenceIcon = '<span class="consequence-icon positive">✅</span>';
-            else if (isNegative) consequenceIcon = '<span class="consequence-icon negative">❌</span>';
-            else if (isEvent) consequenceIcon = '<span class="consequence-icon event">📌</span>';
-
-            const moodEmojiIcon = getMoodEmoji(log.mood || 'neutral');
-
-            entryDiv.innerHTML = `
-                <div class="log-header">
-                    <span class="log-day">Año ${log.year.toFixed(1)}</span>
-                    ${consequenceIcon}
+        // Información personal
+        const personalInfoContainer = document.getElementById('crew-personal-info');
+        if (personalInfoContainer && crewMember.leftBehind) {
+            personalInfoContainer.innerHTML = `
+                <h4>💔 Información Personal</h4>
+                <div class="personal-info-item">
+                    <strong>Dejó atrás:</strong>
+                    <p>${crewMember.leftBehind.family}</p>
                 </div>
-                <div class="log-text">${log.entry}</div>
-                <div class="log-metadata">
-                    <span>🔧 ${log.activity || 'N/A'}</span>
-                    <span>${moodEmojiIcon} ${log.mood || 'neutral'}</span>
+                <div class="personal-info-item">
+                    <strong>Últimas palabras:</strong>
+                    <p>${crewMember.leftBehind.lastWords}</p>
+                </div>
+                <div class="personal-info-item">
+                    <strong>Sueño en Nueva Tierra:</strong>
+                    <p>${crewMember.leftBehind.dream}</p>
+                </div>
+                <div class="personal-info-item">
+                    <strong>Actitud ante la muerte:</strong>
+                    <p>${crewMember.fearOfDeath}</p>
                 </div>
             `;
+        }
 
-            logContainer.appendChild(entryDiv);
-        });
+        // Log personal
+        const logContainer = document.getElementById('crew-personal-log-content');
+        if (logContainer) {
+            logContainer.innerHTML = '';
+
+            if (crewMember.personalLog.length === 0) {
+                logContainer.innerHTML = '<p style="color: #999;">No hay entradas en el registro personal.</p>';
+            } else {
+                const recentLogs = crewMember.personalLog.slice(-20).reverse();
+                recentLogs.forEach(log => {
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = 'personal-log-entry';
+
+                    const isAI = log.entry.includes('[IA]');
+                    const isPositive = log.entry.match(/✅|✔️|👍|💚|🟢|logró|exitosamente|mejoró|sanó|recuperó/i);
+                    const isNegative = log.entry.match(/❌|⚠️|👎|💔|🔴|falló|trauma|murió|crisis|crítico|peligro/i);
+                    const isEvent = log.entry.match(/📌|🎯|⚡|evento|interacción|historia/i);
+
+                    if (isAI) entryDiv.classList.add('ai-generated');
+                    if (isPositive) entryDiv.classList.add('log-positive');
+                    if (isNegative) entryDiv.classList.add('log-negative');
+                    if (isEvent) entryDiv.classList.add('log-event');
+
+                    let consequenceIcon = '';
+                    if (isPositive) consequenceIcon = '<span class="consequence-icon positive">✅</span>';
+                    else if (isNegative) consequenceIcon = '<span class="consequence-icon negative">❌</span>';
+                    else if (isEvent) consequenceIcon = '<span class="consequence-icon event">📌</span>';
+
+                    const moodEmojiIcon = getMoodEmoji(log.mood || 'neutral');
+
+                    entryDiv.innerHTML = `
+                        <div class="log-header">
+                            <span class="log-day">Año ${log.year.toFixed(1)}</span>
+                            ${consequenceIcon}
+                        </div>
+                        <div class="log-text">${log.entry}</div>
+                        <div class="log-metadata">
+                            <span>🔧 ${log.activity || 'N/A'}</span>
+                            <span>${moodEmojiIcon} ${log.mood || 'neutral'}</span>
+                        </div>
+                    `;
+
+                    logContainer.appendChild(entryDiv);
+                });
+            }
+        }
+
+        // Generar historia
+        generateCrewStoryAuto(crewMember);
+    } catch (error) {
+        console.error('⚠️ Error al cargar datos del tripulante:', error);
     }
 
-    // Generar automáticamente la historia al abrir
-    generateCrewStoryAuto(crewMember);
-
+    // SIEMPRE mostrar el popup al final
     const popup = document.getElementById('crew-management-popup');
-    console.log('📦 Popup element:', popup);
-    console.log('🎨 Mostrando popup con display: block');
-    popup.style.display = 'block';
-    console.log('📍 Popup display después de cambio:', popup.style.display);
-    console.log('📍 Popup computed style:', window.getComputedStyle(popup).display);
-    console.log('📍 Popup z-index:', window.getComputedStyle(popup).zIndex);
+    if (popup) {
+        console.log('📦 Mostrando popup...');
+        popup.style.display = 'block';
+        console.log('📍 z-index:', window.getComputedStyle(popup).zIndex);
+    } else {
+        console.error('❌ Popup element not found!');
+    }
 }
-
 function closeCrewManagementPopup(event) {
     if (event) {
         event.preventDefault();
