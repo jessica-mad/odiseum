@@ -164,6 +164,21 @@
     opacity: 0.9;
 }
 
+/* === NOTIFICACIONES MÓVIL === */
+.notification {
+    font-size: 18px !important;
+    padding: 14px 16px !important;
+    line-height: 1.5;
+}
+
+.notification .notification-icon {
+    font-size: 20px;
+}
+
+.notification .notification-text {
+    font-size: 18px;
+}
+
 /* === VIÑETAS ESTILO CARPETA FÍSICA === */
 .mobile-tabs {
     position: fixed;
@@ -541,7 +556,7 @@
 
 /* Elementos específicos de las mini-cards en móvil */
 .crew-column-content-mobile .crew-card-benefit-mini {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .crew-column-content-mobile .crew-card-location {
@@ -778,6 +793,11 @@
     .mobile-terminal {
         padding: 12px;
         font-size: 15px;
+    }
+
+    .notification {
+        font-size: 16px !important;
+        padding: 12px 14px !important;
     }
 
     .mobile-tabs {

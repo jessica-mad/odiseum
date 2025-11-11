@@ -30,7 +30,7 @@ class ShipMapSystem {
             ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 20
             ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'B', 'B', 'B', 'B', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 21
             ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'B', 'B', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 22
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 23
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W', 'W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 23
             ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 24
             ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.']   // Fila 25
         ];
@@ -74,6 +74,12 @@ class ShipMapSystem {
                 name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
+            },
+            bathroom: {
+                name: 'Baño', icon: '🚽', tiles: this.findTiles('W'), color: '#44aaff',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                isOccupied: false, currentUser: null, queue: []
             }
         };
 
@@ -299,6 +305,7 @@ class ShipMapSystem {
             'N': 'cell-greenhouse',   // Invernadero
             'D': 'cell-capsules',     // Cápsulas
             'B': 'cell-cargo',        // Bodega
+            'W': 'cell-bathroom',     // Baño
             'P': 'cell-corridor',     // Pasillo
             '.': 'cell-empty'
         };
@@ -313,7 +320,8 @@ class ShipMapSystem {
             'K': '🍳',  // Cocina
             'N': '🌱',  // Invernadero
             'D': '🛏️',  // Cápsulas
-            'B': '📦'   // Bodega
+            'B': '📦',  // Bodega
+            'W': '🚽'   // Baño
         };
 
         // Mostrar solo en el centro de cada zona (aproximado)
@@ -324,6 +332,7 @@ class ShipMapSystem {
         if (type === 'N' && row === 14 && col === 15) return labels[type];  // Invernadero
         if (type === 'D' && row === 12 && col === 7) return labels[type];   // Cápsulas
         if (type === 'B' && row === 20 && col === 11) return labels[type];  // Bodega
+        if (type === 'W' && row === 22 && col === 11) return labels[type];  // Baño
 
         return '';
     }
@@ -333,13 +342,14 @@ class ShipMapSystem {
      */
     getZoneNameFromCell(cellType) {
         const zoneNames = {
-            'C': 'Puente de Mando',
+            'C': 'Control',
             'E': 'Enfermería',
-            'G': 'Sala de Máquinas',
+            'G': 'Ingeniería',
             'K': 'Cocina',
             'N': 'Invernadero',
-            'D': 'Cápsulas de Sueño',
+            'D': 'Cápsulas Sueño',
             'B': 'Bodega',
+            'W': 'Baño',
             'P': 'Pasillo'
         };
         return zoneNames[cellType] || null;
@@ -417,6 +427,11 @@ class ShipMapSystem {
 
             if (crew.healthNeed < 50) {
                 return 'medbay';
+            }
+
+            // Prioridad ALTA: Necesidad de baño (cuando wasteNeed está bajo)
+            if (crew.wasteNeed < 70) {
+                return 'bathroom';
             }
 
             // Prioridad: alimentación
@@ -649,6 +664,82 @@ class ShipMapSystem {
         };
 
         marker.title = `${crew.name} - ${crew.position}`;
+    }
+
+    /**
+     * Sistema de cola del baño - Procesa el uso del baño por los tripulantes
+     */
+    processBathroomQueue() {
+        const bathroom = this.zones.bathroom;
+        if (!bathroom) return;
+
+        // Obtener tripulantes que necesitan el baño y están en la zona
+        const crewInBathroom = crewMembers.filter(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto') return false;
+            const pos = this.crewLocations[crew.id];
+            if (!pos) return false;
+            const cellType = this.grid[pos.row]?.[pos.col];
+            return cellType === 'W';
+        });
+
+        // Si el baño está ocupado, procesar uso
+        if (bathroom.isOccupied && bathroom.currentUser) {
+            const user = crewMembers.find(c => c.id === bathroom.currentUser);
+            if (user && user.isAlive && user.state === 'Despierto') {
+                // Aumentar wasteNeed por tick (5 puntos por tick)
+                user.wasteNeed = Math.min(100, user.wasteNeed + 5);
+                user.currentActivity = '🚽 Usando el baño';
+
+                // Si ya terminó (wasteNeed >= 100), liberar baño
+                if (user.wasteNeed >= 100) {
+                    this.releaseBathroom();
+                }
+            } else {
+                // Usuario ya no es válido, liberar baño
+                this.releaseBathroom();
+            }
+        }
+
+        // Si el baño no está ocupado, asignar al siguiente en cola
+        if (!bathroom.isOccupied && crewInBathroom.length > 0) {
+            // Buscar el tripulante con menor wasteNeed (más urgencia)
+            const nextUser = crewInBathroom.reduce((min, crew) =>
+                crew.wasteNeed < min.wasteNeed ? crew : min
+            );
+
+            bathroom.isOccupied = true;
+            bathroom.currentUser = nextUser.id;
+            nextUser.currentActivity = '🚽 Usando el baño';
+        }
+
+        // Actualizar cola visual (tripulantes esperando)
+        bathroom.queue = crewInBathroom
+            .filter(c => c.id !== bathroom.currentUser)
+            .map(c => c.id);
+
+        // Actualizar actividad de los que esperan
+        bathroom.queue.forEach(crewId => {
+            const crew = crewMembers.find(c => c.id === crewId);
+            if (crew) {
+                crew.currentActivity = '⏳ Esperando baño';
+            }
+        });
+    }
+
+    /**
+     * Libera el baño para el siguiente usuario
+     */
+    releaseBathroom() {
+        const bathroom = this.zones.bathroom;
+        if (!bathroom) return;
+
+        const user = crewMembers.find(c => c.id === bathroom.currentUser);
+        if (user) {
+            user.currentActivity = 'Trabajando';
+        }
+
+        bathroom.isOccupied = false;
+        bathroom.currentUser = null;
     }
 
     /**
@@ -978,10 +1069,11 @@ class ShipMapSystem {
             this.updateCrewLocations();
         }, 5000);
 
-        // Degradar zonas y procesar reparaciones cada 10 segundos
+        // Degradar zonas, procesar reparaciones y gestionar baño cada 10 segundos
         setInterval(() => {
             this.degradeZones();
             this.processRepairTick();
+            this.processBathroomQueue();
         }, 10000);
 
         // También actualizar cada vez que cambie algo relevante

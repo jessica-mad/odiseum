@@ -286,24 +286,8 @@ class Crew {
             }
         }
 
-        // Auto-gestionar higiene
-        if (this.wasteNeed > AUTO_MANAGE_CONFIG.hygiene.threshold && Water.quantity >= AUTO_MANAGE_CONFIG.hygiene.cost) {
-            // Calcular cuánto realmente necesita para llegar a 0
-            const needed = this.wasteNeed - 0;
-            const baseRecovery = AUTO_MANAGE_CONFIG.hygiene.recovery * efficiencyMultiplier;
-            const actualRecovery = Math.min(needed, baseRecovery);
-
-            // Consumir recursos proporcionalmente (regla de 3)
-            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.hygiene.cost);
-            const resourcesToUse = Math.min(resourcesNeeded, Water.quantity);
-
-            if (resourcesToUse > 0) {
-                Water.consume(resourcesToUse);
-                this.wasteNeed = Math.max(0, this.wasteNeed - actualRecovery);
-                autoManageActions.push('se aseó');
-                this.currentActivity = 'cleaning';
-            }
-        }
+        // HIGIENE YA NO SE AUTO-GESTIONA - Los tripulantes deben viajar al baño
+        // La gestión de higiene ahora se realiza en el sistema de baños (shipMapSystem.processBathroomQueue)
 
         // Auto-gestionar entretenimiento
         if (this.entertainmentNeed < AUTO_MANAGE_CONFIG.entertainment.threshold &&
