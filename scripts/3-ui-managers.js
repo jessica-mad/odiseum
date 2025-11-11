@@ -795,8 +795,13 @@ function updateNeedDisplay(needType, value, isInverse = false) {
 }
 
 function openCrewManagementPopup(name) {
+    console.log('🔍 Abriendo ficha de tripulante:', name);
     const crewMember = crewMembers.find(c => c.name === name);
-    if (!crewMember) return;
+    if (!crewMember) {
+        console.error('❌ Tripulante no encontrado:', name);
+        return;
+    }
+    console.log('✅ Tripulante encontrado:', crewMember.name);
 
     // Header - Pensamiento actual
     const thought = crewMember.getCurrentThought();
@@ -906,7 +911,13 @@ function openCrewManagementPopup(name) {
     // Generar automáticamente la historia al abrir
     generateCrewStoryAuto(crewMember);
 
-    document.getElementById('crew-management-popup').style.display = 'block';
+    const popup = document.getElementById('crew-management-popup');
+    console.log('📦 Popup element:', popup);
+    console.log('🎨 Mostrando popup con display: block');
+    popup.style.display = 'block';
+    console.log('📍 Popup display después de cambio:', popup.style.display);
+    console.log('📍 Popup computed style:', window.getComputedStyle(popup).display);
+    console.log('📍 Popup z-index:', window.getComputedStyle(popup).zIndex);
 }
 
 function closeCrewManagementPopup(event) {

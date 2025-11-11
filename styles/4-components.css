@@ -285,6 +285,12 @@
     min-width: 700px;
     max-width: 800px;
     width: 700px;
+    z-index: 10500; /* Por encima de paneles móviles */
+}
+
+/* Popup de tripulante por encima de paneles */
+#crew-management-popup {
+    z-index: 10500; /* Por encima de paneles móviles */
 }
 
 .title-bar {
