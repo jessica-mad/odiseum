@@ -143,6 +143,15 @@ class ShipMapSystem {
     }
 
     initialize() {
+        // DEBUG: Verificar que las zonas tienen tiles
+        console.log('🗺️ Inicializando mapa de la nave...');
+        Object.entries(this.zones).forEach(([zoneKey, zone]) => {
+            console.log(`  ${zone.icon} ${zone.name}: ${zone.tiles.length} tiles`);
+            if (zone.tiles.length === 0) {
+                console.error(`  ❌ ZONA ${zone.name} NO TIENE TILES`);
+            }
+        });
+
         this.createMapUI();
         this.updateCrewLocations();
         this.startAutoUpdate();
@@ -548,8 +557,15 @@ class ShipMapSystem {
      * Obtiene una celda aleatoria libre en una zona (sin colisiones)
      */
     getRandomTileInZone(zone, excludeCrewId = null) {
-        if (!this.zones[zone] || !this.zones[zone].tiles.length) {
-            return { row: 6, col: 9 };
+        if (!this.zones[zone]) {
+            console.error(`⚠️ Zona ${zone} no existe`);
+            return { row: 13, col: 6 }; // Fallback a pasillo central
+        }
+
+        if (!this.zones[zone].tiles || !this.zones[zone].tiles.length) {
+            console.error(`⚠️ Zona ${zone} no tiene tiles. Total zonas:`, Object.keys(this.zones));
+            console.error(`Tiles de la zona ${zone}:`, this.zones[zone].tiles);
+            return { row: 13, col: 6 }; // Fallback a pasillo central
         }
 
         const tiles = this.zones[zone].tiles;
@@ -612,25 +628,39 @@ class ShipMapSystem {
     }
 
     updateCrewLocations() {
-        if (!Array.isArray(crewMembers)) return;
+        if (!Array.isArray(crewMembers)) {
+            console.warn('⚠️ crewMembers no es un array');
+            return;
+        }
 
         const gridContainer = document.getElementById('ship-map-grid');
-        if (!gridContainer) return;
+        if (!gridContainer) {
+            console.warn('⚠️ No se encontró ship-map-grid');
+            return;
+        }
+
+        console.log(`👥 Actualizando ubicación de ${crewMembers.length} tripulantes`);
 
         crewMembers.forEach(crew => {
             const targetZone = this.getTargetZoneForCrew(crew);
-            if (!targetZone) return;
+            if (!targetZone) {
+                console.warn(`⚠️ ${crew.name} no tiene zona objetivo`);
+                return;
+            }
 
             const currentPos = this.crewLocations[crew.id];
             const currentTarget = this.crewTargets[crew.id];
 
             if (currentTarget !== targetZone) {
+                console.log(`🎯 ${crew.name} va a ${targetZone} (antes: ${currentTarget || 'ninguno'})`);
                 this.crewTargets[crew.id] = targetZone;
                 const targetPos = this.getRandomTileInZone(targetZone, crew.id);
+                console.log(`  📍 Posición asignada: [${targetPos.row}, ${targetPos.col}]`);
 
                 if (!currentPos) {
                     this.crewLocations[crew.id] = targetPos;
                     this.createOrUpdateCrewMarker(crew, targetPos);
+                    console.log(`  ✅ ${crew.name} posicionado en [${targetPos.row}, ${targetPos.col}]`);
                 } else {
                     const path = this.findPath(currentPos, targetPos);
                     if (path.length > 1) {
