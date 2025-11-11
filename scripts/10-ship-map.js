@@ -192,19 +192,16 @@ class ShipMapSystem {
             if (percentage < 20) statusClass = 'critical';
             else if (percentage < 50) statusClass = 'warning';
 
-            // Calcular progreso de reparación
-            let repairInfo = '';
-            if (zone.beingRepaired) {
-                const repairPercent = Math.round((zone.repairProgress / zone.repairTimeNeeded) * 100);
-                repairInfo = `<div class="room-status-repairing">🔧 Reparando: ${repairPercent}%</div>`;
-            }
-
-            // Botón de llamar ingeniero (solo si está dañado y el ingeniero está disponible)
-            let callButton = '';
-            if (percentage < 100 && engineerAvailable && !zone.beingRepaired) {
-                callButton = `<button class="room-call-engineer-btn" onclick="shipMapSystem.startRepair('${zoneKey}')">🔧 Reparar</button>`;
-            } else if (zone.beingRepaired) {
-                callButton = `<button class="room-call-engineer-btn active" onclick="shipMapSystem.startRepair('${zoneKey}')">⏸️ Cancelar</button>`;
+            // Botón único de reparación
+            let repairButton = '';
+            if (engineerAvailable && percentage < 100) {
+                if (zone.beingRepaired) {
+                    // Está reparando: mostrar ❌ para cancelar
+                    repairButton = `<button class="room-repair-btn repairing" onclick="shipMapSystem.startRepair('${zoneKey}')">❌</button>`;
+                } else {
+                    // No está reparando: mostrar ⚙️ XX%
+                    repairButton = `<button class="room-repair-btn" onclick="shipMapSystem.startRepair('${zoneKey}')">⚙️ ${percentage}%</button>`;
+                }
             }
 
             html += `
@@ -212,14 +209,13 @@ class ShipMapSystem {
                     <div class="room-status-header">
                         <span class="room-status-icon">${zone.icon}</span>
                         <span class="room-status-name">${zone.name}</span>
+                        <span class="room-status-percentage">${percentage}%</span>
                     </div>
                     <div class="room-status-bar">
                         <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
                     </div>
-                    <div class="room-status-value">${percentage}%</div>
                     ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
-                    ${repairInfo}
-                    ${callButton}
+                    ${repairButton}
                 </div>
             `;
         });
@@ -234,37 +230,63 @@ class ShipMapSystem {
         const zoomResetBtn = document.getElementById('zoom-reset-btn');
 
         if (zoomInBtn) {
+            // Desktop
             zoomInBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.zoomIn();
+            });
+            // Mobile
+            zoomInBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
             });
             zoomInBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.zoomIn();
             });
         }
 
         if (zoomOutBtn) {
+            // Desktop
             zoomOutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.zoomOut();
+            });
+            // Mobile
+            zoomOutBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
             });
             zoomOutBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.zoomOut();
             });
         }
 
         if (zoomResetBtn) {
+            // Desktop
             zoomResetBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.resetZoom();
+            });
+            // Mobile
+            zoomResetBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
             });
             zoomResetBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.resetZoom();
             });
         }
+
+        console.log('✅ Controles de zoom configurados (desktop y mobile)');
     }
 
     zoomIn() {
@@ -608,25 +630,33 @@ class ShipMapSystem {
             } else {
                 // Tripulante ya está en su zona objetivo
                 if (currentPos) {
-                    // Movimiento sutil: Cada 30-60 segundos, moverse a otra tile en la misma zona
-                    const lastMove = this.lastSubtleMove[crew.id] || 0;
-                    const timeSinceLastMove = Date.now() - lastMove;
-                    const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
+                    // NO MOVER ENCAPSULADOS - deben quedarse quietos
+                    const isEncapsulated = crew.state === 'Encapsulado';
 
-                    // Solo mover si no está en movimiento y han pasado 30+ segundos
-                    if (!isMoving && timeSinceLastMove > 30000 && Math.random() < 0.3) {
-                        const newPos = this.getRandomTileInZone(targetZone, crew.id);
-                        // Solo mover si la nueva posición es diferente
-                        if (newPos.row !== currentPos.row || newPos.col !== currentPos.col) {
-                            const path = this.findPath(currentPos, newPos);
-                            if (path.length > 1) {
-                                this.crewPaths[crew.id] = path;
-                                this.animateCrewMovement(crew);
-                                this.lastSubtleMove[crew.id] = Date.now();
-                            }
-                        }
-                    } else {
+                    if (isEncapsulated) {
+                        // Los encapsulados NO se mueven
                         this.createOrUpdateCrewMarker(crew, currentPos);
+                    } else {
+                        // Movimiento sutil: Cada 30-60 segundos, moverse a otra tile en la misma zona
+                        const lastMove = this.lastSubtleMove[crew.id] || 0;
+                        const timeSinceLastMove = Date.now() - lastMove;
+                        const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
+
+                        // Solo mover si no está en movimiento y han pasado 30+ segundos
+                        if (!isMoving && timeSinceLastMove > 30000 && Math.random() < 0.3) {
+                            const newPos = this.getRandomTileInZone(targetZone, crew.id);
+                            // Solo mover si la nueva posición es diferente
+                            if (newPos.row !== currentPos.row || newPos.col !== currentPos.col) {
+                                const path = this.findPath(currentPos, newPos);
+                                if (path.length > 1) {
+                                    this.crewPaths[crew.id] = path;
+                                    this.animateCrewMovement(crew);
+                                    this.lastSubtleMove[crew.id] = Date.now();
+                                }
+                            }
+                        } else {
+                            this.createOrUpdateCrewMarker(crew, currentPos);
+                        }
                     }
                 }
             }
@@ -1132,17 +1162,21 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // Actualizar posiciones cada 5 segundos
+        // Actualizar posiciones cada 3 segundos (más frecuente para detectar necesidades)
         setInterval(() => {
             this.updateCrewLocations();
-        }, 5000);
+        }, 3000);
 
-        // Degradar zonas, procesar reparaciones y gestionar baño cada 10 segundos
+        // Degradar zonas y gestionar baño cada 10 segundos
         setInterval(() => {
             this.degradeZones();
-            this.processRepairTick();
             this.processBathroomQueue();
         }, 10000);
+
+        // REPARACIONES: Procesar cada tick del juego (más rápido)
+        setInterval(() => {
+            this.processRepairTick();
+        }, 1000); // Cada 1 segundo = cada tick
 
         // También actualizar cada vez que cambie algo relevante
         if (typeof addEventListener === 'function') {
@@ -1152,8 +1186,8 @@ class ShipMapSystem {
             });
         }
 
-        console.log('✅ Auto-actualización del mapa iniciada (cada 5 segundos)');
-        console.log('⚙️ Sistema de averías mejorado activado (degradación y reparación cada 10 segundos)');
+        console.log('✅ Auto-actualización del mapa iniciada (cada 3 segundos)');
+        console.log('⚙️ Sistema de averías activado (degradación cada 10 segundos, reparación cada 1 segundo)');
     }
 }
 

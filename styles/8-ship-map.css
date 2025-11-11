@@ -292,6 +292,13 @@
     flex: 1;
 }
 
+.room-status-percentage {
+    color: var(--color-terminal-green);
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
 .room-status-bar {
     width: 100%;
     height: 8px;
@@ -340,53 +347,45 @@
     animation: flicker-broken 1.5s ease-in-out infinite;
 }
 
-.room-status-repairing {
-    margin-top: 4px;
-    padding: 4px;
-    background: rgba(0, 170, 255, 0.2);
-    border: 1px solid rgba(0, 170, 255, 0.6);
-    border-radius: 3px;
-    text-align: center;
-    color: #00aaff;
-    font-weight: bold;
-    font-size: 10px;
-}
-
-.room-call-engineer-btn {
+/* Botón único de reparación */
+.room-repair-btn {
     width: 100%;
     margin-top: 6px;
-    padding: 4px 8px;
+    padding: 6px 8px;
     font-family: var(--font-monaco);
-    font-size: 10px;
+    font-size: 14px;
     background: rgba(0, 255, 65, 0.1);
     color: var(--color-terminal-green);
-    border: 1px solid var(--color-terminal-green);
-    border-radius: 3px;
+    border: 2px solid var(--color-terminal-green);
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: bold;
+    text-align: center;
 }
 
-.room-call-engineer-btn:hover {
+.room-repair-btn:hover {
     background: var(--color-terminal-green);
     color: var(--color-terminal-bg);
-    box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
-    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.5);
+    transform: scale(1.02);
 }
 
-.room-call-engineer-btn:active {
-    transform: translateY(0);
+.room-repair-btn:active {
+    transform: scale(0.98);
 }
 
-.room-call-engineer-btn.active {
-    background: rgba(255, 170, 0, 0.2);
-    color: #ffaa00;
-    border-color: #ffaa00;
+.room-repair-btn.repairing {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+    border-color: #ff4444;
+    font-size: 18px;
 }
 
-.room-call-engineer-btn.active:hover {
-    background: #ffaa00;
+.room-repair-btn.repairing:hover {
+    background: #ff4444;
     color: var(--color-terminal-bg);
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.5);
 }
 
 .room-status-card.repairing {
@@ -795,28 +794,38 @@
     /* Panel de estado de habitaciones con scroll en móvil */
     .ship-map-rooms-status {
         height: auto;
-        max-height: 200px;
+        max-height: 250px;
         overflow-y: auto;
         overflow-x: hidden;
-        padding-right: 4px;
+        padding: 8px;
     }
 
-    /* Ocultar scrollbar pero mantener funcionalidad en móvil */
+    /* Grid de habitaciones en columna única en móvil */
+    .rooms-status-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+
+    /* Mostrar scrollbar sutil pero visible en móvil */
     .ship-map-rooms-status::-webkit-scrollbar {
-        width: 2px;
+        width: 6px;
     }
 
     .ship-map-rooms-status::-webkit-scrollbar-track {
-        background: transparent;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 3px;
     }
 
     .ship-map-rooms-status::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 65, 0.2);
-        border-radius: 2px;
+        background: rgba(0, 255, 65, 0.4);
+        border-radius: 3px;
     }
 
     .ship-map-rooms-status::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 255, 65, 0.4);
+        background: rgba(0, 255, 65, 0.6);
     }
 
     .room-status-list {
@@ -828,27 +837,46 @@
         width: 100%;
         min-width: unset;
         flex-shrink: 0;
+        margin-bottom: 0;
     }
 
     /* Controles de zoom más grandes y táctiles en móvil */
     .ship-map-zoom-controls {
-        top: 12px;
+        position: fixed;
+        top: 90px;
         right: 12px;
-        gap: 8px;
+        gap: 10px;
+        flex-direction: column;
+        z-index: 9000;
     }
 
     .zoom-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 24px;
+        width: 50px;
+        height: 50px;
+        font-size: 26px;
         border-width: 3px;
         touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .zoom-btn:active {
-        background: var(--color-terminal-green);
-        color: var(--color-terminal-bg);
-        transform: scale(0.9);
+        background: var(--color-terminal-green) !important;
+        color: var(--color-terminal-bg) !important;
+        transform: scale(0.85) !important;
+    }
+
+    /* Botones de reparación también más táctiles */
+    .room-repair-btn {
+        padding: 10px 12px;
+        font-size: 16px;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .room-repair-btn.repairing {
+        font-size: 20px;
     }
 }
 
