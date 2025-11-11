@@ -742,6 +742,230 @@ table td {
     width: 100%;
 }
 
+/* === NUEVO HEADER DE TARJETA CON PENSAMIENTO === */
+.crew-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.crew-thought-bubble {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: #f5f5f5;
+    border: var(--border-width) solid var(--border-color);
+    border-radius: 4px;
+}
+
+.crew-thought-emoji {
+    font-size: 48px;
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
+}
+
+.crew-thought-text {
+    flex: 1;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    font-style: italic;
+    color: #333;
+}
+
+.crew-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+.crew-info-main,
+.crew-info-status {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+}
+
+.crew-info-main h3 {
+    font-size: var(--font-size-title);
+    margin-bottom: var(--spacing-md);
+    grid-column: 1 / -1;
+}
+
+.crew-info-main p,
+.crew-info-status p {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* === NUEVA TABLA DE NECESIDADES CON BARRAS === */
+.needs-list-modern {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.need-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background: #fafafa;
+    border: var(--border-width) solid var(--border-color);
+}
+
+.need-emoji-btn {
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
+    border: var(--border-width) solid var(--border-color);
+    background: var(--color-white);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.need-emoji-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.need-emoji-btn:active {
+    transform: scale(0.95);
+}
+
+.need-info {
+    flex: 1;
+}
+
+.need-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xs);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+}
+
+.need-label {
+    font-weight: bold;
+}
+
+.need-percentage {
+    color: #666;
+}
+
+.need-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #e0e0e0;
+    border: var(--border-width) solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.need-progress-fill {
+    height: 100%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.need-progress-fill.ok {
+    background: #4caf50;
+}
+
+.need-progress-fill.warning {
+    background: #ff9800;
+}
+
+.need-progress-fill.critical {
+    background: #f44336;
+}
+
+.need-progress-fill.waste {
+    /* Para higiene, invertimos los colores */
+}
+
+.need-progress-fill.waste.ok {
+    background: #4caf50;
+}
+
+.need-progress-fill.waste.warning {
+    background: #ff9800;
+}
+
+.need-progress-fill.waste.critical {
+    background: #f44336;
+}
+
+/* === MEJORAR LOG PERSONAL CON CONSECUENCIAS === */
+.personal-log-entry {
+    margin-bottom: 10px;
+    padding: 8px;
+    background: var(--color-white);
+    border-left: 3px solid #666;
+    transition: all 0.2s;
+}
+
+.personal-log-entry.log-positive {
+    border-left-color: #4caf50;
+    background: #f1f8f4;
+}
+
+.personal-log-entry.log-negative {
+    border-left-color: #f44336;
+    background: #fef5f5;
+}
+
+.personal-log-entry.log-event {
+    border-left-color: #2196f3;
+    background: #f3f9ff;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.consequence-icon {
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.consequence-icon.positive {
+    background: #e8f5e9;
+}
+
+.consequence-icon.negative {
+    background: #ffebee;
+}
+
+.consequence-icon.event {
+    background: #e3f2fd;
+}
+
+.log-metadata {
+    display: flex;
+    gap: var(--spacing-md);
+    font-size: var(--font-size-xs);
+    color: #999;
+    margin-top: var(--spacing-xs);
+}
+
+/* === HISTORIA CON MEJOR FORMATO === */
+.story-content {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+.story-content p {
+    margin-bottom: var(--spacing-md);
+}
+
 /* === ESTILOS MÓVILES PARA POPUPS === */
 @media (max-width: 768px) {
     /* Popup de tripulante a pantalla completa en móvil */
@@ -791,5 +1015,34 @@ table td {
     .window-content {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    /* Ajustes para el nuevo diseño de tarjetas en móvil */
+    .crew-thought-emoji {
+        font-size: 36px;
+        min-width: 50px;
+    }
+
+    .crew-thought-text {
+        font-size: var(--font-size-sm);
+    }
+
+    .crew-info-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .need-emoji-btn {
+        font-size: 24px;
+        width: 45px;
+        height: 45px;
+    }
+
+    .need-header {
+        font-size: var(--font-size-xs);
+    }
+
+    .need-progress-bar {
+        height: 10px;
     }
 }

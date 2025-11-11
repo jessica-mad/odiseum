@@ -748,6 +748,52 @@ function closeLogbookPopup(event) {
     document.getElementById('logbook-popup').style.display = 'none';
 }
 
+function getMoodEmoji(mood) {
+    const moodEmojis = {
+        'happy': '😊',
+        'sad': '😢',
+        'angry': '😠',
+        'anxious': '😰',
+        'proud': '😌',
+        'devastated': '😭',
+        'depressed': '😔',
+        'ashamed': '😓',
+        'broken': '💔',
+        'furious': '😤',
+        'impressed': '😮',
+        'grateful': '🙏',
+        'hopeful': '🌟',
+        'conflicted': '😕',
+        'neutral': '😐',
+        'stable': '😐'
+    };
+    return moodEmojis[mood] || '😐';
+}
+
+function updateNeedDisplay(needType, value, isInverse = false) {
+    const amount = Math.round(value);
+    const percentage = isInverse ? (100 - amount) : amount; // Para higiene, invertir
+
+    // Actualizar texto del porcentaje
+    document.getElementById(`${needType}-need-amount`).textContent = amount;
+
+    // Actualizar barra de progreso
+    const bar = document.getElementById(`${needType}-need-bar`);
+    if (bar) {
+        bar.style.width = `${percentage}%`;
+
+        // Colorear según nivel
+        bar.classList.remove('critical', 'warning', 'ok');
+        if (percentage < 30) {
+            bar.classList.add('critical');
+        } else if (percentage < 60) {
+            bar.classList.add('warning');
+        } else {
+            bar.classList.add('ok');
+        }
+    }
+}
+
 function openCrewManagementPopup(name) {
     // No abrir fichas individuales en móvil
     if (window.innerWidth <= 768) {
@@ -757,27 +803,39 @@ function openCrewManagementPopup(name) {
     const crewMember = crewMembers.find(c => c.name === name);
     if (!crewMember) return;
 
+    // Header - Pensamiento actual
+    const thought = crewMember.getCurrentThought();
+    const thoughtEmoji = thought.split(' ')[0]; // Primer carácter (emoji)
+    const thoughtText = thought.substring(thoughtEmoji.length).trim();
+    document.getElementById('crew-thought-emoji').textContent = thoughtEmoji;
+    document.getElementById('crew-thought-text').textContent = thoughtText;
+
+    // Información básica
     document.getElementById('crew-name').textContent = crewMember.name;
     document.getElementById('crew-age').textContent = crewMember.initialAge;
     document.getElementById('crew-bio-age').textContent = crewMember.biologicalAge.toFixed(1);
     document.getElementById('crew-position').textContent = crewMember.position;
     document.getElementById('crew-state').textContent = crewMember.state;
     document.getElementById('crew-activity').textContent = crewMember.currentActivity;
-    document.getElementById('crew-mood').textContent = crewMember.mood;
-    document.getElementById('crew-img').src = crewMember.img;
-    document.getElementById('crew-img').alt = crewMember.name;
-    
-    document.getElementById('food-need-amount').textContent = Math.round(crewMember.foodNeed);
-    document.getElementById('health-need-amount').textContent = Math.round(crewMember.healthNeed);
-    document.getElementById('waste-need-amount').textContent = Math.round(crewMember.wasteNeed);
-    document.getElementById('entertainment-need-amount').textContent = Math.round(crewMember.entertainmentNeed);
-    document.getElementById('rest-need-amount').textContent = Math.round(crewMember.restNeed);
 
+    // Ánimo con emoji
+    const moodEmoji = getMoodEmoji(crewMember.emotionalState || crewMember.mood || 'neutral');
+    document.getElementById('crew-mood-emoji').textContent = moodEmoji;
+    document.getElementById('crew-mood').textContent = crewMember.emotionalState || crewMember.mood || 'estable';
+
+    // Beneficio activo
     const benefitReadout = document.getElementById('crew-benefit-readout');
     if (benefitReadout) {
         const benefitText = crewMember.getAwakeBenefitDescription();
-        benefitReadout.textContent = benefitText || 'Beneficio inactivo (encapsulado).';
+        benefitReadout.textContent = benefitText || 'Inactivo (encapsulado)';
     }
+
+    // Necesidades con barras de progreso
+    updateNeedDisplay('food', crewMember.foodNeed);
+    updateNeedDisplay('health', crewMember.healthNeed);
+    updateNeedDisplay('waste', crewMember.wasteNeed, true); // Inverso
+    updateNeedDisplay('entertainment', crewMember.entertainmentNeed);
+    updateNeedDisplay('rest', crewMember.restNeed);
 
     // Mostrar información personal
     const personalInfoContainer = document.getElementById('crew-personal-info');
@@ -803,31 +861,56 @@ function openCrewManagementPopup(name) {
         `;
     }
     
-    // Mostrar log personal
+    // Mostrar log personal con consecuencias marcadas
     const logContainer = document.getElementById('crew-personal-log-content');
     logContainer.innerHTML = '';
-    
+
     if (crewMember.personalLog.length === 0) {
         logContainer.innerHTML = '<p style="color: #999;">No hay entradas en el registro personal.</p>';
     } else {
-        const recentLogs = crewMember.personalLog.slice(-10).reverse();
+        const recentLogs = crewMember.personalLog.slice(-20).reverse(); // Mostrar más logs
         recentLogs.forEach(log => {
             const entryDiv = document.createElement('div');
             entryDiv.className = 'personal-log-entry';
-            if (log.entry.includes('[IA]')) {
-                entryDiv.classList.add('ai-generated');
-            }
-            
+
+            // Detectar tipo de entrada
+            const isAI = log.entry.includes('[IA]');
+            const isPositive = log.entry.match(/✅|✔️|👍|💚|🟢|logró|exitosamente|mejoró|sanó|recuperó/i);
+            const isNegative = log.entry.match(/❌|⚠️|👎|💔|🔴|falló|trauma|murió|crisis|crítico|peligro/i);
+            const isEvent = log.entry.match(/📌|🎯|⚡|evento|interacción|historia/i);
+
+            if (isAI) entryDiv.classList.add('ai-generated');
+            if (isPositive) entryDiv.classList.add('log-positive');
+            if (isNegative) entryDiv.classList.add('log-negative');
+            if (isEvent) entryDiv.classList.add('log-event');
+
+            // Agregar icono de consecuencia
+            let consequenceIcon = '';
+            if (isPositive) consequenceIcon = '<span class="consequence-icon positive">✅</span>';
+            else if (isNegative) consequenceIcon = '<span class="consequence-icon negative">❌</span>';
+            else if (isEvent) consequenceIcon = '<span class="consequence-icon event">📌</span>';
+
+            const moodEmojiIcon = getMoodEmoji(log.mood || 'neutral');
+
             entryDiv.innerHTML = `
-                <div class="log-day">Año ${log.year.toFixed(1)}</div>
+                <div class="log-header">
+                    <span class="log-day">Año ${log.year.toFixed(1)}</span>
+                    ${consequenceIcon}
+                </div>
                 <div class="log-text">${log.entry}</div>
-                <div class="log-metadata">Actividad: ${log.activity} | Ánimo: ${log.mood}</div>
+                <div class="log-metadata">
+                    <span>🔧 ${log.activity || 'N/A'}</span>
+                    <span>${moodEmojiIcon} ${log.mood || 'neutral'}</span>
+                </div>
             `;
-            
+
             logContainer.appendChild(entryDiv);
         });
     }
-    
+
+    // Generar automáticamente la historia al abrir
+    generateCrewStoryAuto(crewMember);
+
     document.getElementById('crew-management-popup').style.display = 'block';
 }
 
@@ -896,6 +979,12 @@ function generateCrewStory() {
 }
 
 function generateAIStory(crewMember) {
+    // Información del viaje actual
+    const currentYear = typeof gameLoop !== 'undefined' && gameLoop ? gameLoop.currentYear.toFixed(1) : '0.0';
+    const travelProgress = typeof gameLoop !== 'undefined' && gameLoop && gameLoop.totalDistance > 0
+        ? ((gameLoop.currentDistance / gameLoop.totalDistance) * 100).toFixed(1)
+        : '0.0';
+
     // Aquí se generará la historia basada en los datos del tripulante
     const stories = {
         intro: [
@@ -925,8 +1014,13 @@ function generateAIStory(crewMember) {
         ],
         present: [
             `Actualmente, ${crewMember.name} se encuentra ${crewMember.state === 'Despierto' ? 'activo(a) y cumpliendo con sus deberes' : 'encapsulado(a), soñando con el futuro'}.`,
-            `Su estado de ánimo es ${crewMember.mood}, lo que refleja el peso del viaje.`,
+            `Su estado de ánimo es ${crewMember.emotionalState || crewMember.mood || 'estable'}, lo que refleja el peso del viaje.`,
             `Día tras día, ${crewMember.name} contribuye al éxito de la misión con dedicación incansable.`,
+        ],
+        travelStatus: [
+            `📊 Estado del viaje: Han transcurrido ${currentYear} años desde el inicio de la misión.`,
+            `🚀 Progreso actual: La nave Odiseum ha completado el ${travelProgress}% del viaje hacia Nueva Tierra.`,
+            `⏳ ${crewMember.name} ha estado despierto por ${crewMember.yearsAwake.toFixed(1)} años, envejeciendo ${(crewMember.biologicalAge - crewMember.initialAge).toFixed(1)} años.`,
         ],
         conclusion: [
             `La historia de ${crewMember.name} es una de sacrificio, esperanza y determinación inquebrantable.`,
@@ -943,10 +1037,22 @@ function generateAIStory(crewMember) {
         stories.mission[Math.floor(Math.random() * stories.mission.length)],
         stories.dreams[Math.floor(Math.random() * stories.dreams.length)],
         stories.present[Math.floor(Math.random() * stories.present.length)],
+        '\n--- Estado del Viaje ---',
+        ...stories.travelStatus, // Incluir todos los datos del viaje
+        '\n---',
         stories.conclusion[Math.floor(Math.random() * stories.conclusion.length)]
     ];
 
     return storyParts.join('\n\n');
+}
+
+function generateCrewStoryAuto(crewMember) {
+    // Generar la historia automáticamente sin delay
+    const storyContainer = document.getElementById('crew-ai-story-content');
+    if (!storyContainer) return;
+
+    const story = generateAIStory(crewMember);
+    storyContainer.innerHTML = `<div class="story-content">${story.replace(/\n\n/g, '</p><p>')}</div>`;
 }
 
 /* === GESTIÓN DE TRIPULACIÓN === */

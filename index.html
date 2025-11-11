@@ -498,16 +498,23 @@
             </div>
             <div class="window-content">
                 <div class="crew-header">
-                    <img id="crew-img" src="" alt="Tripulante" class="crew-avatar">
-                    <div class="crew-info">
-                        <h3 id="crew-name">---</h3>
-                        <p>Edad: <span id="crew-age">--</span> años</p>
-                        <p>Edad Biológica: <span id="crew-bio-age">--</span> años</p>
-                        <p>Posición: <span id="crew-position">---</span></p>
-                        <p>Estado: <span id="crew-state">---</span></p>
-                        <p>Actividad: <span id="crew-activity">---</span></p>
-                        <p>Ánimo: <span id="crew-mood">---</span></p>
-                        <p class="crew-benefit-line">Beneficio activo: <span id="crew-benefit-readout">Beneficio inactivo (encapsulado).</span></p>
+                    <div class="crew-thought-bubble">
+                        <div id="crew-thought-emoji" class="crew-thought-emoji">💭</div>
+                        <div id="crew-thought-text" class="crew-thought-text">Pensando...</div>
+                    </div>
+                    <div class="crew-info-grid">
+                        <div class="crew-info-main">
+                            <h3 id="crew-name">---</h3>
+                            <p><strong>👤 Posición:</strong> <span id="crew-position">---</span></p>
+                            <p><strong>📅 Edad al abordar:</strong> <span id="crew-age">--</span> años</p>
+                            <p><strong>🧬 Edad actual:</strong> <span id="crew-bio-age">--</span> años</p>
+                        </div>
+                        <div class="crew-info-status">
+                            <p><strong>⚙️ Estado:</strong> <span id="crew-state">---</span></p>
+                            <p><strong>🔧 Actividad:</strong> <span id="crew-activity">---</span></p>
+                            <p><strong>😊 Ánimo:</strong> <span id="crew-mood-emoji">😐</span> <span id="crew-mood">---</span></p>
+                            <p class="crew-benefit-line"><strong>⚡ Beneficio:</strong> <span id="crew-benefit-readout">Inactivo</span></p>
+                        </div>
                     </div>
                 </div>
 
@@ -523,33 +530,73 @@
                 <div id="crew-tab-needs" class="crew-tab-content active">
                     <div class="crew-needs">
                         <h4>Necesidades Vitales</h4>
-                        <table class="needs-table" id="needs-list">
-                            <tr>
-                                <td>🍕 Alimentación</td>
-                                <td><span id="food-need-amount">100</span>%</td>
-                                <td><button class="manage-btn" onclick="manageFoodNeed()">Alimentar</button></td>
-                            </tr>
-                            <tr>
-                                <td>❤️ Salud</td>
-                                <td><span id="health-need-amount">100</span>%</td>
-                                <td><button class="manage-btn" onclick="manageHealthNeed()">Curar</button></td>
-                            </tr>
-                            <tr>
-                                <td>🚽 Higiene</td>
-                                <td><span id="waste-need-amount">0</span>%</td>
-                                <td><button class="manage-btn" onclick="manageWasteNeed()">Limpiar</button></td>
-                            </tr>
-                            <tr>
-                                <td>🎮 Entretenimiento</td>
-                                <td><span id="entertainment-need-amount">100</span>%</td>
-                                <td><button class="manage-btn" onclick="manageEntertainmentNeed()">Entretener</button></td>
-                            </tr>
-                            <tr>
-                                <td>😴 Descanso</td>
-                                <td><span id="rest-need-amount">100</span>%</td>
-                                <td><button class="manage-btn" onclick="manageRestNeed()">Descansar</button></td>
-                            </tr>
-                        </table>
+                        <div class="needs-list-modern">
+                            <!-- Alimentación -->
+                            <div class="need-item">
+                                <button class="need-emoji-btn" onclick="manageFoodNeed()" title="Alimentar">🍕</button>
+                                <div class="need-info">
+                                    <div class="need-header">
+                                        <span class="need-label">Alimentación</span>
+                                        <span class="need-percentage"><span id="food-need-amount">100</span>%</span>
+                                    </div>
+                                    <div class="need-progress-bar">
+                                        <div id="food-need-bar" class="need-progress-fill" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Salud -->
+                            <div class="need-item">
+                                <button class="need-emoji-btn" onclick="manageHealthNeed()" title="Curar">❤️</button>
+                                <div class="need-info">
+                                    <div class="need-header">
+                                        <span class="need-label">Salud</span>
+                                        <span class="need-percentage"><span id="health-need-amount">100</span>%</span>
+                                    </div>
+                                    <div class="need-progress-bar">
+                                        <div id="health-need-bar" class="need-progress-fill" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Higiene -->
+                            <div class="need-item">
+                                <button class="need-emoji-btn" onclick="manageWasteNeed()" title="Limpiar">🚽</button>
+                                <div class="need-info">
+                                    <div class="need-header">
+                                        <span class="need-label">Higiene</span>
+                                        <span class="need-percentage"><span id="waste-need-amount">0</span>%</span>
+                                    </div>
+                                    <div class="need-progress-bar">
+                                        <div id="waste-need-bar" class="need-progress-fill waste" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Entretenimiento -->
+                            <div class="need-item">
+                                <button class="need-emoji-btn" onclick="manageEntertainmentNeed()" title="Entretener">🎮</button>
+                                <div class="need-info">
+                                    <div class="need-header">
+                                        <span class="need-label">Entretenimiento</span>
+                                        <span class="need-percentage"><span id="entertainment-need-amount">100</span>%</span>
+                                    </div>
+                                    <div class="need-progress-bar">
+                                        <div id="entertainment-need-bar" class="need-progress-fill" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Descanso -->
+                            <div class="need-item">
+                                <button class="need-emoji-btn" onclick="manageRestNeed()" title="Descansar">😴</button>
+                                <div class="need-info">
+                                    <div class="need-header">
+                                        <span class="need-label">Descanso</span>
+                                        <span class="need-percentage"><span id="rest-need-amount">100</span>%</span>
+                                    </div>
+                                    <div class="need-progress-bar">
+                                        <div id="rest-need-bar" class="need-progress-fill" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="crew-actions">
                         <button id="wake-sleep-btn" onclick="updateWakeSleepFromPopup()">Cambiar Estado</button>
