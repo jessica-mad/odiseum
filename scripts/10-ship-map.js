@@ -736,6 +736,7 @@ class ShipMapSystem {
         if (!overlay) return;
 
         let marker = document.getElementById(`crew-marker-${crew.id}`);
+        let isNewMarker = false;
 
         if (!marker) {
             marker = document.createElement('div');
@@ -743,6 +744,7 @@ class ShipMapSystem {
             marker.id = `crew-marker-${crew.id}`;
             marker.dataset.crewId = crew.id;
             overlay.appendChild(marker);
+            isNewMarker = true;
         }
 
         marker.className = 'crew-marker-overlay';
@@ -782,11 +784,18 @@ class ShipMapSystem {
             <div class="crew-name-grid">${crew.name.split(' ')[0]}</div>
         `;
 
-        marker.onclick = () => {
-            if (typeof openCrewManagementPopup === 'function') {
-                openCrewManagementPopup(crew.name);
-            }
-        };
+        // Establecer event listener solo una vez para nuevos marcadores
+        if (isNewMarker) {
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevenir propagación del evento
+                console.log(`🖱️ Clic en tripulante: ${crew.name}`);
+                if (typeof openCrewManagementPopup === 'function') {
+                    openCrewManagementPopup(crew.name);
+                } else {
+                    console.error('⚠️ openCrewManagementPopup no está disponible');
+                }
+            });
+        }
 
         marker.title = `${crew.name} - ${crew.position}`;
     }
