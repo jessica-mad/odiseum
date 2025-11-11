@@ -93,7 +93,7 @@
 }
 
 .mobile-player-name {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
 }
 
@@ -116,7 +116,7 @@
 }
 
 .mobile-mission-title {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -128,7 +128,7 @@
 }
 
 .mobile-year-display {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
@@ -151,7 +151,7 @@
 .mobile-terminal {
     padding: 16px;
     font-family: var(--font-monaco);
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
     line-height: 1.6;
     flex: 1;
@@ -491,7 +491,7 @@
     background: var(--color-terminal-bg-light);
     color: var(--color-terminal-green);
     font-family: var(--font-monaco);
-    font-size: 12px;
+    font-size: 14px;
     padding: 8px 6px;
     text-align: center;
     border-bottom: 1px solid var(--color-terminal-green-dark);
@@ -516,7 +516,7 @@
 
 /* Cards de tripulación más compactas en móvil */
 .crew-column-content-mobile .crew-mini-card {
-    font-size: 11px;
+    font-size: 14px;
     padding: 6px;
     margin: 0;
     border-width: 1px;
@@ -608,13 +608,13 @@
 }
 
 .mobile-voyage-label {
-    font-size: 10px;
+    font-size: 14px;
     color: var(--color-terminal-green-dim);
     text-transform: uppercase;
 }
 
 .mobile-voyage-value {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-terminal-green);
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
@@ -719,11 +719,11 @@
     }
 
     .mobile-game-title {
-        font-size: 12px;
+        font-size: 14px;
     }
 
     .mobile-player-name {
-        font-size: 11px;
+        font-size: 14px;
     }
 
     .mobile-top-bar-2 {
@@ -733,7 +733,7 @@
 
     .mobile-mission-title,
     .mobile-year-display {
-        font-size: 11px;
+        font-size: 14px;
     }
 
     .mobile-content-area {
@@ -743,7 +743,7 @@
 
     .mobile-terminal {
         padding: 12px;
-        font-size: 11px;
+        font-size: 14px;
     }
 
     .mobile-tabs {

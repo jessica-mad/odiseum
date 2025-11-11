@@ -649,11 +649,25 @@ class Crew {
 
         if (repairingZone) {
             const [zoneKey, zone] = repairingZone;
-            const repairPercent = Math.round((zone.repairProgress / zone.repairTimeNeeded) * 100);
+
+            // Verificar si el ingeniero está viajando o reparando
+            const activity = this.currentActivity?.toLowerCase() || '';
+            let statusText = '';
+            let statusIcon = '';
+
+            if (activity.includes('viajando')) {
+                statusIcon = '🚶';
+                statusText = `Viajando a ${zone.name}...`;
+            } else {
+                statusIcon = '🔧';
+                const repairPercent = Math.round((zone.repairProgress / zone.repairTimeNeeded) * 100);
+                statusText = `Reparando ${zone.name}: ${repairPercent}%`;
+            }
+
             return `
                 <div class="engineer-repair-container">
                     <div class="engineer-repair-status repairing">
-                        🔧 Reparando ${zone.name}: ${repairPercent}%
+                        ${statusIcon} ${statusText}
                     </div>
                     <button class="engineer-cancel-btn" onclick="event.stopPropagation(); shipMapSystem.startRepair('${zoneKey}')">
                         ⏸️ Cancelar

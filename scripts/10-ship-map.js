@@ -400,6 +400,16 @@ class ShipMapSystem {
         if (crew.state === 'Despierto') {
             const activity = crew.currentActivity?.toLowerCase() || '';
 
+            // MÁXIMA PRIORIDAD: Si el ingeniero está reparando, ir a esa zona
+            if (crew.position && crew.position.includes('Ingenier') && activity.includes('reparando')) {
+                // Buscar qué zona está siendo reparada
+                for (const [zoneKey, zone] of Object.entries(this.zones)) {
+                    if (zone.beingRepaired && activity.includes(zone.name.toLowerCase())) {
+                        return zoneKey;
+                    }
+                }
+            }
+
             // Prioridad: atención médica
             if (activity.includes('atendiendo')) {
                 return 'medbay';
@@ -883,6 +893,32 @@ class ShipMapSystem {
         Object.entries(this.zones).forEach(([zoneKey, zone]) => {
             if (!zone.beingRepaired) return;
 
+            // Verificar si el ingeniero está en la zona
+            const engineerPos = this.crewLocations[engineer.id];
+            if (!engineerPos) {
+                engineer.currentActivity = `Viajando a ${zone.name}`;
+                this.updateRoomsStatus();
+                return;
+            }
+
+            const cellType = this.grid[engineerPos.row]?.[engineerPos.col];
+            const engineerZone = this.getCellTypeToZoneName(cellType);
+
+            // Si el ingeniero no está en la zona correcta, está viajando
+            if (engineerZone !== zoneKey) {
+                engineer.currentActivity = `Viajando a ${zone.name}`;
+                console.log(`🚶 ${engineer.name} está viajando a ${zone.name} (actualmente en ${engineerZone || 'pasillo'})`);
+                this.updateRoomsStatus();
+                // Actualizar panel de tripulación para mostrar el estado de viaje
+                if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+                    panelManager.updateCrewPanel();
+                }
+                return;
+            }
+
+            // El ingeniero está en la zona, actualizar actividad
+            engineer.currentActivity = `Reparando ${zone.name}`;
+
             // Calcular velocidad de reparación (más lento si Ingeniería está averiada)
             const repairSpeedMultiplier = this.zones.engineering?.isBroken ? 0.5 : 1.0;
             const repairIncrement = 1 * repairSpeedMultiplier;
@@ -929,6 +965,10 @@ class ShipMapSystem {
             }
 
             this.updateRoomsStatus();
+            // Actualizar panel de tripulación durante la reparación
+            if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
+                panelManager.updateCrewPanel();
+            }
         });
     }
 
