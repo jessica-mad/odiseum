@@ -795,11 +795,6 @@ function updateNeedDisplay(needType, value, isInverse = false) {
 }
 
 function openCrewManagementPopup(name) {
-    // No abrir fichas individuales en móvil
-    if (window.innerWidth <= 768) {
-        return;
-    }
-
     const crewMember = crewMembers.find(c => c.name === name);
     if (!crewMember) return;
 

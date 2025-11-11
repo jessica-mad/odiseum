@@ -924,25 +924,56 @@ class Logbook {
         }
     }
     
+    makeCrewNamesClickable(text) {
+        // Obtener nombres de todos los tripulantes
+        if (typeof crewMembers === 'undefined' || !crewMembers) return text;
+
+        let processedText = text;
+        crewMembers.forEach(crew => {
+            // Buscar el nombre completo o solo el nombre de pila
+            const fullName = crew.name;
+            const firstName = fullName.split(' ')[0];
+
+            // Reemplazar nombre completo
+            const fullNameRegex = new RegExp(`\\b${fullName}\\b`, 'g');
+            processedText = processedText.replace(fullNameRegex,
+                `<span class="crew-link" onclick="openCrewManagementPopup('${fullName}')" style="color: #0066cc; text-decoration: underline; cursor: pointer; font-weight: bold;">${fullName}</span>`
+            );
+
+            // Reemplazar nombre de pila (solo si no está dentro de un span ya)
+            if (!processedText.includes(`>${firstName}<`)) {
+                const firstNameRegex = new RegExp(`\\b${firstName}\\b`, 'g');
+                processedText = processedText.replace(firstNameRegex,
+                    `<span class="crew-link" onclick="openCrewManagementPopup('${fullName}')" style="color: #0066cc; text-decoration: underline; cursor: pointer; font-weight: bold;">${firstName}</span>`
+                );
+            }
+        });
+
+        return processedText;
+    }
+
     updateUI() {
         const container = document.getElementById('logbook-entries');
         if (!container) return;
-        
+
         container.innerHTML = '';
-        
+
         const sortedEntries = [...this.entries].reverse();
-        
+
         sortedEntries.forEach(entry => {
             const entryDiv = document.createElement('div');
             entryDiv.className = `logbook-entry ${entry.type}`;
-            
+
             const icon = LOG_ICONS[entry.type] || LOG_ICONS.info;
-            
+
+            // Hacer que los nombres de tripulantes sean clicables
+            const processedText = this.makeCrewNamesClickable(entry.text);
+
             entryDiv.innerHTML = `
                 <div class="logbook-entry-date">[AÑO ${entry.year.toFixed(1)}] ${entry.timestamp}</div>
-                <div class="logbook-entry-text"><span class="logbook-entry-icon">${icon}</span>${entry.text}</div>
+                <div class="logbook-entry-text"><span class="logbook-entry-icon">${icon}</span>${processedText}</div>
             `;
-            
+
             container.appendChild(entryDiv);
         });
     }
