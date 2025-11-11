@@ -726,7 +726,16 @@ class ShipMapSystem {
         marker.style.height = `${heightPercent}%`;
 
         const icon = this.getCrewIcon(crew);
+
+        // Obtener pensamiento actual del tripulante
+        let thoughtHTML = '';
+        if (crew.isAlive && crew.state === 'Despierto' && crew.currentThought) {
+            const thought = crew.currentThought.substring(0, 50); // Limitar longitud
+            thoughtHTML = `<div class="crew-thought-bubble">${thought}${crew.currentThought.length > 50 ? '...' : ''}</div>`;
+        }
+
         marker.innerHTML = `
+            ${thoughtHTML}
             <div class="crew-icon-grid">${icon}</div>
             <div class="crew-name-grid">${crew.name.split(' ')[0]}</div>
         `;
