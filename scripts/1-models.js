@@ -461,7 +461,7 @@ class Crew {
             <td>${this.position}</td>
             <td><span id="age-display-${this.id}">${this.initialAge} → ${this.biologicalAge.toFixed(1)}</span></td>
             <td id="state-${this.id}">${this.state}</td>
-            <td><button onclick="openCrewManagementPopup('${this.name}')">Gestionar</button></td>
+            <td><button onclick="switchTerminalTab('crew-${this.id}')">Ver Ficha</button></td>
         `;
         crewList.appendChild(row);
     }
