@@ -13,7 +13,7 @@ const missionConfigurator = {
 
     /* === INICIALIZACIÓN === */
     init() {
-        console.log('[Configurador] Inicializando...');
+        console.log('=== [CONFIGURADOR] INICIANDO INIT ===');
 
         // Resetear estado
         this.currentStep = 1;
@@ -21,6 +21,12 @@ const missionConfigurator = {
         this.selectedResources = this.getDefaultResources();
         this.currentBudget = 0;
         this.currentWeight = 0;
+
+        console.log('[Configurador] Estado inicial:');
+        console.log('  - selectedCrew:', this.selectedCrew);
+        console.log('  - selectedResources:', this.selectedResources);
+        console.log('  - currentBudget:', this.currentBudget);
+        console.log('  - currentWeight:', this.currentWeight);
 
         // Verificar si hay un seed cargado
         if (window.loadedSeed) {
@@ -154,16 +160,25 @@ const missionConfigurator = {
 
     /* === SELECCIONAR TRIPULANTE === */
     selectCrewMember(roleKey, option, card) {
+        console.log('=== [CONFIGURADOR] selectCrewMember LLAMADO ===');
+        console.log('[selectCrewMember] roleKey:', roleKey);
+        console.log('[selectCrewMember] option:', option);
+        console.log('[selectCrewMember] option.name:', option.name);
+        console.log('[selectCrewMember] option.stats:', option.stats);
+        console.log('[selectCrewMember] selectedCrew ANTES:', JSON.stringify(this.selectedCrew, null, 2));
+
         // Verificar si ya está seleccionado
         const previousSelection = this.selectedCrew[roleKey];
 
         // Si es la misma opción, deseleccionar
         if (previousSelection && previousSelection.id === option.id) {
+            console.log('[selectCrewMember] DESELECCIONANDO:', option.name);
             delete this.selectedCrew[roleKey];
             card.classList.remove('selected');
             this.currentBudget -= option.cost;
             this.updateBudgetDisplay();
             this.validateStep1();
+            console.log('[selectCrewMember] selectedCrew DESPUÉS de deseleccionar:', JSON.stringify(this.selectedCrew, null, 2));
             return;
         }
 
@@ -173,6 +188,7 @@ const missionConfigurator = {
 
         // Validar presupuesto
         if (newBudget > CREW_BUDGET) {
+            console.log('[selectCrewMember] PRESUPUESTO EXCEDIDO:', newBudget, '>', CREW_BUDGET);
             this.showBudgetAlert('Presupuesto excedido. Debes estar exactamente en 25 puntos.');
             return;
         }
@@ -192,11 +208,14 @@ const missionConfigurator = {
         card.classList.add('selected');
         this.currentBudget = newBudget;
 
+        console.log('[selectCrewMember] ALMACENADO:', roleKey, '→', option.name);
+        console.log('[selectCrewMember] ALMACENADO stats:', option.stats);
+        console.log('[selectCrewMember] selectedCrew DESPUÉS:', JSON.stringify(this.selectedCrew, null, 2));
+        console.log('[selectCrewMember] Budget actualizado:', this.currentBudget);
+
         // Actualizar UI
         this.updateBudgetDisplay();
         this.validateStep1();
-
-        console.log('[Configurador] Crew seleccionado:', roleKey, option.name, 'Budget:', this.currentBudget);
     },
 
     /* === ACTUALIZAR DISPLAY DE BUDGET === */
@@ -337,10 +356,18 @@ const missionConfigurator = {
 
     /* === ACTUALIZAR VALOR DE RECURSO === */
     updateResourceValue(key, value) {
+        console.log('=== [CONFIGURADOR] updateResourceValue LLAMADO ===');
+        console.log('[updateResourceValue] key:', key);
+        console.log('[updateResourceValue] value:', value);
+        console.log('[updateResourceValue] selectedResources ANTES:', JSON.stringify(this.selectedResources, null, 2));
+
         const config = RESOURCE_LIMITS[key];
 
         // Actualizar valor
         this.selectedResources[key] = value;
+
+        console.log('[updateResourceValue] ALMACENADO:', key, '→', value);
+        console.log('[updateResourceValue] selectedResources DESPUÉS:', JSON.stringify(this.selectedResources, null, 2));
 
         // Calcular peso
         const weight = value * config.weightPerUnit;
@@ -355,8 +382,6 @@ const missionConfigurator = {
         // Recalcular peso total
         this.updateWeightDisplay();
         this.validateStep2();
-
-        console.log('[Configurador] Recurso actualizado:', key, value);
     },
 
     /* === ACTUALIZAR DISPLAY DE PESO === */
@@ -613,7 +638,27 @@ const missionConfigurator = {
 
     /* === CONFIRMAR Y COMENZAR === */
     confirmAndStart() {
-        console.log('=== [CONFIGURADOR] CONFIRMANDO ===');
+        console.log('=== [CONFIGURADOR] confirmAndStart LLAMADO ===');
+        console.log('[confirmAndStart] this.selectedCrew:', this.selectedCrew);
+        console.log('[confirmAndStart] this.selectedCrew (JSON):', JSON.stringify(this.selectedCrew, null, 2));
+        console.log('[confirmAndStart] this.selectedResources:', this.selectedResources);
+        console.log('[confirmAndStart] this.selectedResources (JSON):', JSON.stringify(this.selectedResources, null, 2));
+        console.log('[confirmAndStart] this.currentBudget:', this.currentBudget);
+        console.log('[confirmAndStart] this.currentWeight:', this.currentWeight);
+
+        // VERIFICAR SI HAY DATOS
+        const crewCount = Object.keys(this.selectedCrew).length;
+        const resourcesCount = Object.keys(this.selectedResources).length;
+
+        console.log('[confirmAndStart] Número de tripulantes seleccionados:', crewCount);
+        console.log('[confirmAndStart] Número de recursos configurados:', resourcesCount);
+
+        if (crewCount === 0) {
+            console.error('[confirmAndStart] ERROR CRÍTICO: selectedCrew está VACÍO!');
+        }
+        if (resourcesCount === 0) {
+            console.error('[confirmAndStart] ERROR CRÍTICO: selectedResources está VACÍO!');
+        }
 
         // Crear objeto de configuración final
         const gameConfiguration = {
@@ -626,9 +671,9 @@ const missionConfigurator = {
         // Guardar en variable global
         window.gameConfiguration = gameConfiguration;
 
-        console.log('[Configurador] selectedCrew:', this.selectedCrew);
-        console.log('[Configurador] selectedResources:', this.selectedResources);
-        console.log('[Configurador] gameConfiguration completo:', JSON.stringify(gameConfiguration, null, 2));
+        console.log('[confirmAndStart] gameConfiguration.crew:', gameConfiguration.crew);
+        console.log('[confirmAndStart] gameConfiguration.resources:', gameConfiguration.resources);
+        console.log('[confirmAndStart] gameConfiguration completo (JSON):', JSON.stringify(gameConfiguration, null, 2));
 
         // Verificar que todos los roles estén presentes
         const roles = ['comandante', 'doctor', 'ingeniero', 'navegante', 'chef'];
