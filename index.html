@@ -416,15 +416,33 @@
                 </div>
             </div>
 
-            <!-- Terminal de Notificaciones -->
+            <!-- Terminal de Notificaciones con Tabs -->
             <div class="terminal-notification-area">
                 <div class="terminal-header">
-                    <span class="terminal-prompt">&gt; CONSOLA DE SISTEMA</span>
+                    <div class="terminal-tabs">
+                        <button class="terminal-tab active" onclick="switchTerminalTab('console')" id="tab-console">
+                            &gt; CONSOLA
+                        </button>
+                        <button class="terminal-tab" onclick="switchTerminalTab('crew')" id="tab-crew">
+                            &gt; TRIPULACIÓN
+                        </button>
+                    </div>
                     <span class="terminal-time" id="terminal-time">00:00:00</span>
                 </div>
-                <div class="terminal-content" id="terminal-notifications">
-                    <div class="terminal-line">&gt; Sistema iniciado...</div>
-                    <div class="terminal-line">&gt; Esperando instrucciones...</div>
+
+                <!-- Tab 1: Consola de Sistema -->
+                <div class="terminal-tab-content active" id="terminal-content-console">
+                    <div class="terminal-content" id="terminal-notifications">
+                        <div class="terminal-line">&gt; Sistema iniciado...</div>
+                        <div class="terminal-line">&gt; Esperando instrucciones...</div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Fichas de Tripulación -->
+                <div class="terminal-tab-content" id="terminal-content-crew">
+                    <div class="crew-cards-grid" id="terminal-crew-cards">
+                        <!-- Se genera dinámicamente con JS -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -753,5 +771,6 @@
     <script src="scripts/10-ship-map.js"></script>
     <script src="scripts/6-main.js"></script>
     <script src="scripts/11-configurator.js"></script>
+    <script src="scripts/terminal-tabs.js"></script>
 </body>
 </html>
