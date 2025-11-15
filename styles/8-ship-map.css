@@ -307,6 +307,7 @@
 }
 
 .room-card-status {
+    display: block;
     padding: 8px 10px;
     background: var(--color-terminal-bg);
     border-bottom: 1px solid var(--color-terminal-green-dark);
@@ -387,6 +388,7 @@
 }
 
 .room-percentage {
+    display: inline-block;
     font-weight: bold;
     color: var(--color-terminal-green);
     font-size: 11px;
@@ -396,6 +398,7 @@
 }
 
 .room-card-crew {
+    display: block;
     padding: 8px 10px;
     background: var(--color-terminal-bg);
     border-bottom: 1px solid var(--color-terminal-green-dark);
@@ -466,6 +469,7 @@
 }
 
 .greenhouse-cooldown-mini {
+    display: flex;
     margin-top: 6px;
     height: 16px;
     background: var(--color-terminal-bg-light);
@@ -473,7 +477,6 @@
     border-radius: 3px;
     position: relative;
     overflow: hidden;
-    display: flex;
     align-items: center;
     justify-content: center;
 }
