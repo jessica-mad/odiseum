@@ -678,29 +678,8 @@ window.nextConfigStep = function(currentStep) {
     }
 };
 
-// Override de startGameWithConfiguration para incluir confirmación
-window.startGameWithConfiguration = function(config) {
-    console.log('[Game] Iniciando juego con configuración:', config);
-
-    // Ocultar el configurador
-    const configurator = document.getElementById('mission-configurator');
-    if (configurator) {
-        configurator.style.display = 'none';
-    }
-
-    // Mostrar el desktop
-    const desktop = document.getElementById('desktop');
-    if (desktop) {
-        desktop.style.display = 'flex';
-    }
-
-    // TODO: Aplicar la configuración al juego
-    // Por ahora, simplemente iniciamos el juego con valores por defecto
-
-    initializeGame();
-    ensureIntroEntryInLogbook(false);
-    startFirstTranche();
-};
+// NOTA: La función startGameWithConfiguration está definida en scripts/6-main.js
+// y se encarga de aplicar la configuración correctamente.
 
 /* === INICIALIZACIÓN AUTOMÁTICA === */
 window.addEventListener('load', () => {

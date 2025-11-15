@@ -199,15 +199,28 @@ function initializeGame(config) {
     // Guardar configuración en variable global
     window.missionConfig = config || null;
 
+    console.log('[initializeGame] Configuración recibida:', config);
+
+    // Inicializar bitácora PRIMERO (antes de cualquier log)
+    logbook = new Logbook();
+
+    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
+        awakeBenefitSystem.reset();
+    }
+
+    if (typeof shipIntegritySystem !== 'undefined' && shipIntegritySystem) {
+        shipIntegritySystem.reset();
+    }
+
     // Configurar duración de misión basada en el navegante
     if (config && config.crew && config.crew.navegante) {
         const navigatorOption = config.crew.navegante;
-        if (navigatorOption.stats && navigatorOption.stats.missionLength) {
+        if (navigatorOption.stats && navigatorOption.stats.totalTranches) {
             // El navegante ajusta cuántos tranches tomará la misión
             // Misión base: 12 tranches a 3000 UA
             // Ajustar distancia proporcionalmente
             const baseTranches = 12;
-            const configuredTranches = navigatorOption.stats.missionLength;
+            const configuredTranches = navigatorOption.stats.totalTranches;
             const missionLengthMultiplier = configuredTranches / baseTranches;
 
             // Almacenar el multiplicador globalmente para que el sistema de eventos lo use
@@ -219,7 +232,7 @@ function initializeGame(config) {
                 window.eventDifficultyModifier = navigatorOption.stats.eventDifficulty;
             }
 
-            // Log de configuración
+            // Log de configuración (ahora el logbook ya existe)
             if (configuredTranches < baseTranches) {
                 logbook.addEntry(`${navigatorOption.name} (Navegante Arriesgado): Ruta rápida configurada (${configuredTranches} tranches estimados)`, LOG_TYPES.WARNING);
             } else if (configuredTranches > baseTranches) {
@@ -228,17 +241,6 @@ function initializeGame(config) {
                 logbook.addEntry(`${navigatorOption.name} (Navegante Estándar): Ruta estándar configurada (${configuredTranches} tranches estimados)`, LOG_TYPES.INFO);
             }
         }
-    }
-
-    // Inicializar bitácora
-    logbook = new Logbook();
-
-    if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
-        awakeBenefitSystem.reset();
-    }
-
-    if (typeof shipIntegritySystem !== 'undefined' && shipIntegritySystem) {
-        shipIntegritySystem.reset();
     }
 
     // Valores por defecto de recursos (si no hay config)
@@ -255,6 +257,8 @@ function initializeGame(config) {
     // Usar recursos de config si existen, sino usar defaults
     const resources = config && config.resources ? config.resources : defaultResources;
 
+    console.log('[initializeGame] Recursos a usar:', resources);
+
     // Crear recursos con valores personalizados o por defecto
     Energy = new Resource('Energía', resources.energy, resources.energy, 'energy-meter', 'energy-amount', 'resource-strip-energy');
     Food = new Resource('Alimentos', resources.food, resources.food, 'food-meter', 'food-amount', 'resource-strip-food');
@@ -268,7 +272,9 @@ function initializeGame(config) {
     eventSystem = new EventSystem();
 
     // Crear tripulación desde datos (con config si existe)
+    console.log('[initializeGame] Creando tripulación con config:', config);
     crewMembers = createCrewFromData(config);
+    console.log('[initializeGame] Tripulación creada:', crewMembers.map(c => c.name));
 
     if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
         awakeBenefitSystem.refreshState(crewMembers);

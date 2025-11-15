@@ -130,8 +130,8 @@ class AwakeBenefitSystem {
 
         // Obtener velocidad de curación del doctor (desde configStats si existe)
         let healRate = this.isCaptainAwake ? 1.2 : 1.0;
-        if (this.doctor && this.doctor.configStats && this.doctor.configStats.healingSpeed) {
-            healRate = this.doctor.configStats.healingSpeed;
+        if (this.doctor && this.doctor.configStats && this.doctor.configStats.healingRate) {
+            healRate = this.doctor.configStats.healingRate;
         }
 
         const patient = sickestPatient;
@@ -194,13 +194,13 @@ class AwakeBenefitSystem {
         }
 
         // Usar foodConsumption del chef si existe en configStats
-        let reduction = this.isCaptainAwake ? 0.07 : 0.05; // Default
+        // foodConsumption es un multiplicador: 0.90 = -10%, 1.0 = normal, 1.1 = +10%
+        let multiplier = this.isCaptainAwake ? 0.93 : 0.95; // Default
         if (this.chef && this.chef.configStats && typeof this.chef.configStats.foodConsumption !== 'undefined') {
-            // foodConsumption viene como -0.10 (negativo significa reducción)
-            reduction = Math.abs(this.chef.configStats.foodConsumption);
+            multiplier = this.chef.configStats.foodConsumption;
         }
 
-        return Math.max(0, amount * (1 - reduction));
+        return Math.max(0, amount * multiplier);
     }
 
     describeBenefitForCrew(crew) {
@@ -216,8 +216,8 @@ class AwakeBenefitSystem {
             }
             case 'doctor': {
                 let healRate = this.isCaptainAwake ? 1.2 : 1.0;
-                if (this.doctor && this.doctor.configStats && this.doctor.configStats.healingSpeed) {
-                    healRate = this.doctor.configStats.healingSpeed;
+                if (this.doctor && this.doctor.configStats && this.doctor.configStats.healingRate) {
+                    healRate = this.doctor.configStats.healingRate;
                 }
                 const target = this.currentPatientName || 'en espera de pacientes';
                 return `Atención médica x${healRate.toFixed(1)} • ${target}`;
@@ -232,12 +232,18 @@ class AwakeBenefitSystem {
                 return `Trayectoria optimizada: +${boost}% a la velocidad de crucero.`;
             }
             case 'cook': {
-                let reduction = this.isCaptainAwake ? 0.07 : 0.05;
+                let multiplier = this.isCaptainAwake ? 0.93 : 0.95;
                 if (this.chef && this.chef.configStats && typeof this.chef.configStats.foodConsumption !== 'undefined') {
-                    reduction = Math.abs(this.chef.configStats.foodConsumption);
+                    multiplier = this.chef.configStats.foodConsumption;
                 }
-                const savings = Math.round(reduction * 100);
-                return `Raciones eficientes: ahorro del ${savings}% en comida despierta.`;
+                const percentChange = Math.round((1 - multiplier) * 100);
+                if (percentChange > 0) {
+                    return `Raciones eficientes: ahorro del ${percentChange}% en comida despierta.`;
+                } else if (percentChange < 0) {
+                    return `Raciones creativas: gasto adicional del ${Math.abs(percentChange)}% en comida.`;
+                } else {
+                    return `Producción normal de alimentos.`;
+                }
             }
             default:
                 return '';
@@ -1598,7 +1604,7 @@ class SpecialAbilitiesSystem {
 
     // Doctor Botánico: Síntesis de medicina (10 Data + 20 Water → 15 Medicine)
     medicineSynthesis() {
-        const doctor = this.getCrewWithAbility('medicineSynthesis');
+        const doctor = this.getCrewWithAbility('canSynthMedicine');
         if (!doctor) {
             new Notification('No hay doctor con habilidad de síntesis disponible', NOTIFICATION_TYPES.ALERT);
             return false;
@@ -1639,7 +1645,7 @@ class SpecialAbilitiesSystem {
 
     // Ingeniero Prodigio: Mejora de sala (50 Energy + 20 Data → +10% capacidad de un recurso)
     roomUpgrade(resourceName) {
-        const engineer = this.getCrewWithAbility('roomUpgrade');
+        const engineer = this.getCrewWithAbility('canUpgradeRooms');
         if (!engineer) {
             new Notification('No hay ingeniero con habilidad de mejora disponible', NOTIFICATION_TYPES.ALERT);
             return false;
@@ -1698,7 +1704,7 @@ class SpecialAbilitiesSystem {
 
     // Chef Creativo: Conversión de agua a comida (30 Water → 10 Food)
     waterToFood() {
-        const chef = this.getCrewWithAbility('waterToFood');
+        const chef = this.getCrewWithAbility('canConvertWater');
         if (!chef) {
             new Notification('No hay chef con habilidad de conversión disponible', NOTIFICATION_TYPES.ALERT);
             return false;
@@ -1733,33 +1739,33 @@ class SpecialAbilitiesSystem {
     getAvailableAbilities() {
         const abilities = [];
 
-        if (this.getCrewWithAbility('medicineSynthesis')) {
+        if (this.getCrewWithAbility('canSynthMedicine')) {
             abilities.push({
                 id: 'medicineSynthesis',
                 name: 'Síntesis de Medicina',
                 description: '10 Datos + 20 Agua → 15 Medicina',
                 icon: '💊',
-                crew: this.getCrewWithAbility('medicineSynthesis').name
+                crew: this.getCrewWithAbility('canSynthMedicine').name
             });
         }
 
-        if (this.getCrewWithAbility('roomUpgrade')) {
+        if (this.getCrewWithAbility('canUpgradeRooms')) {
             abilities.push({
                 id: 'roomUpgrade',
                 name: 'Mejora de Almacenamiento',
                 description: '50 Energía + 20 Datos → +10% capacidad',
                 icon: '🔧',
-                crew: this.getCrewWithAbility('roomUpgrade').name
+                crew: this.getCrewWithAbility('canUpgradeRooms').name
             });
         }
 
-        if (this.getCrewWithAbility('waterToFood')) {
+        if (this.getCrewWithAbility('canConvertWater')) {
             abilities.push({
                 id: 'waterToFood',
                 name: 'Receta de Emergencia',
                 description: '30 Agua → 10 Comida',
                 icon: '🍲',
-                crew: this.getCrewWithAbility('waterToFood').name
+                crew: this.getCrewWithAbility('canConvertWater').name
             });
         }
 

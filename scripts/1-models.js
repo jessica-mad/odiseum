@@ -268,10 +268,10 @@ class Crew {
             let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
 
             // Bonus de +50% si el doctor está despierto (legacy default)
-            // O usar healingSpeed del configStats si existe
+            // O usar healingRate del configStats si existe
             if (doctorAwake) {
-                if (doctor.configStats && doctor.configStats.healingSpeed) {
-                    baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * doctor.configStats.healingSpeed * efficiencyMultiplier;
+                if (doctor.configStats && doctor.configStats.healingRate) {
+                    baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * doctor.configStats.healingRate * efficiencyMultiplier;
                 } else {
                     baseRecovery *= 1.5;
                 }
@@ -285,8 +285,8 @@ class Crew {
             let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
 
             // Aplicar modificador de consumo de medicina si el doctor lo tiene
-            if (doctorAwake && doctor.configStats && doctor.configStats.medicineConsumption) {
-                resourcesNeeded = Math.ceil(resourcesNeeded * doctor.configStats.medicineConsumption);
+            if (doctorAwake && doctor.configStats && doctor.configStats.medicineUsage) {
+                resourcesNeeded = Math.ceil(resourcesNeeded * doctor.configStats.medicineUsage);
             }
 
             const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
