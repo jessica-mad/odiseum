@@ -162,22 +162,21 @@
 
 /* === WRAPPER CON ZOOM === */
 .ship-map-zoom-wrapper {
-    flex: 1;
-    overflow: auto;
+    flex: 0 0 auto; /* No expandir, solo ocupar el espacio necesario */
+    height: 420px; /* Altura fija: 400px del mapa + padding */
+    overflow: visible;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     position: relative;
-    min-width: 0;
-    min-height: 0;
-    padding-top: 8px;
+    padding: 8px;
 }
 
 /* === WRAPPER DEL MAPA === */
 .ship-map-wrapper {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,15 +234,15 @@
 /* === PANEL DE ESTADO DE SALAS === */
 .ship-map-rooms-status {
     width: 100%;
-    height: 140px;
+    flex: 1; /* Ocupar el espacio restante */
+    min-height: 140px; /* Altura mínima */
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow-y: hidden;
+    overflow-y: auto; /* Permitir scroll si es necesario */
     padding: 8px;
     background: rgba(0, 0, 0, 0.3);
     border-top: 2px solid var(--color-terminal-green);
-    flex-shrink: 0;
 }
 
 .rooms-status-title {
@@ -261,7 +260,7 @@
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 6px;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible; /* Permitir que las cards se vean completas */
     padding-bottom: 4px;
 }
 
