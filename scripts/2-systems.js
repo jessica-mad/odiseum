@@ -9,25 +9,43 @@ class TimeSystem {
         this.trancheCount = 0;
         this.tickCount = 0;
     }
-    
+
     advanceTick() {
         this.tickCount++;
         this.currentYear += YEARS_PER_TICK;
     }
-    
+
     advanceTranche() {
         this.trancheCount++;
         this.tickCount = 0;
     }
-    
+
     getCurrentYear() {
         return this.currentYear;
     }
-    
+
     getCurrentTranche() {
         return this.trancheCount;
     }
-    
+
+    // Calcula la fecha real basada en el tiempo de viaje
+    getCurrentDate() {
+        const yearsElapsed = this.currentYear;
+        const daysElapsed = yearsElapsed * 365.25; // Incluir años bisiestos
+        const currentDate = new Date(MISSION_START_DATE);
+        currentDate.setDate(currentDate.getDate() + Math.floor(daysElapsed));
+        return currentDate;
+    }
+
+    // Formatea la fecha en formato legible
+    getFormattedDate() {
+        const date = this.getCurrentDate();
+        const day = date.getDate();
+        const month = date.getMonth() + 1; // 0-indexed
+        const year = date.getFullYear();
+        return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+    }
+
     updateCalendarUI() {
         const display = `Año ${this.currentYear.toFixed(1)}`;
 

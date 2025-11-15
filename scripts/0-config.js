@@ -13,6 +13,7 @@ const YEARS_PER_TICK = YEARS_PER_TRANCHE / TICKS_PER_TRANCHE; // ~0.167 años po
 const TOTAL_MISSION_DISTANCE = 3000; // UA
 const DESTINATION_NAME = "Nueva Tierra (Kepler-442b)";
 const DESTINATION_SYSTEM = "Kepler-442";
+const MISSION_START_DATE = new Date(2130, 2, 11); // 11 de marzo de 2130 (mes 2 = marzo, 0-indexed)
 
 /* === ESTADOS DEL JUEGO === */
 const GAME_STATES = {

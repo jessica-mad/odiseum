@@ -211,9 +211,12 @@ function createCrewPersonalLog(crew) {
         const recentEntries = crew.personalLog.slice(-10).reverse();
 
         recentEntries.forEach(entry => {
+            // Usar la fecha formateada si existe, si no mostrar el año
+            const dateLabel = entry.date || `AÑO ${entry.year || 0}`;
+
             html += `
                 <div class="crew-log-entry">
-                    <span class="crew-log-year">AÑO ${entry.year || 0}</span>
+                    <span class="crew-log-year">${dateLabel}</span>
                     <span class="crew-log-text">${entry.entry}</span>
                 </div>
             `;
