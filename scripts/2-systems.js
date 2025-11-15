@@ -47,24 +47,26 @@ class TimeSystem {
     }
 
     updateCalendarUI() {
-        const display = `Año ${this.currentYear.toFixed(1)}`;
+        const yearsDisplay = `Año ${this.currentYear.toFixed(1)}`;
+        const dateDisplay = this.getFormattedDate();
+        const combinedDisplay = `${yearsDisplay} (${dateDisplay})`;
 
         // Actualizar calendario desktop
         const desktopCalendar = document.getElementById('calendar');
         if (desktopCalendar) {
-            desktopCalendar.textContent = display;
+            desktopCalendar.textContent = combinedDisplay;
         }
 
         // Actualizar calendario móvil (footer)
         const mobileCalendar = document.getElementById('mobile-calendar');
         if (mobileCalendar) {
-            mobileCalendar.textContent = display;
+            mobileCalendar.textContent = combinedDisplay;
         }
 
         // Actualizar año en top bar 2 móvil
         const mobileYearDisplay = document.getElementById('mobile-year-display');
         if (mobileYearDisplay) {
-            mobileYearDisplay.textContent = `AÑO ${this.currentYear.toFixed(1)}`;
+            mobileYearDisplay.textContent = `${yearsDisplay} (${dateDisplay})`;
         }
     }
 }
