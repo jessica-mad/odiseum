@@ -3,11 +3,11 @@
 // ============================================
 
 /* === CONSTANTES TEMPORALES === */
-const TRANCHE_DURATION_MS = 60000; // 1 minuto por tramo
+const TRANCHE_DURATION_MS = 30000; // 30 segundos por tramo
 const SIMULATION_TICK_RATE = 2000; // 2 segundos por tick
-const TICKS_PER_TRANCHE = 30; // 30 ticks por tramo
+const TICKS_PER_TRANCHE = 15; // 15 ticks por tramo
 const YEARS_PER_TRANCHE = 5; // 5 años narrativos por tramo
-const YEARS_PER_TICK = YEARS_PER_TRANCHE / TICKS_PER_TRANCHE; // ~0.167 años por tick
+const YEARS_PER_TICK = YEARS_PER_TRANCHE / TICKS_PER_TRANCHE; // ~0.333 años por tick
 
 /* === CONSTANTES DE MISIÓN === */
 const TOTAL_MISSION_DISTANCE = 3000; // UA
