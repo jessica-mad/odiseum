@@ -189,25 +189,36 @@
 .ship-map-square-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 13 / 36; /* Proporción 13 columnas × 36 filas */
-    max-width: min(100%, calc((100vh - 200px) * 13 / 36)); /* Limitar al espacio vertical disponible */
-    max-height: calc(100vh - 200px);
+    max-width: 400px; /* Limitar ancho máximo */
+    height: 400px; /* Altura fija para hacer cuadrado */
+    margin: 0 auto; /* Centrar */
+    overflow: hidden; /* Ocultar overflow para pan */
+    cursor: grab;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 65, 0.3);
 }
 
-/* === GRILLA DEL MAPA (36x13) === */
+.ship-map-square-container:active {
+    cursor: grabbing;
+}
+
+/* === GRILLA DEL MAPA (36x13) - Ahora scrolleable/paneable === */
 .ship-map-grid {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    /* Proporción real del mapa escalada para ser visible */
+    width: 200px; /* 13 columnas */
+    height: 554px; /* 36 filas (200 * 36/13) */
     display: grid;
     grid-template-columns: repeat(13, 1fr);
     grid-template-rows: repeat(36, 1fr);
     gap: 0.5px;
     padding: 4px;
     background: var(--color-terminal-bg);
-    overflow: hidden;
+    transition: none; /* Remover transición para pan suave */
+    will-change: transform;
+    user-select: none;
 }
 
 /* === OVERLAY DE TRIPULANTES === */
@@ -333,6 +344,21 @@
     text-align: right;
     color: var(--color-terminal-green);
     font-size: 10px;
+}
+
+.room-status-crew {
+    margin-top: 4px;
+    padding: 4px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 3px;
+    font-size: 10px;
+    color: rgba(0, 255, 65, 0.8);
+    text-align: center;
+    max-height: 32px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .room-status-broken {

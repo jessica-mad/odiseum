@@ -114,6 +114,13 @@ class ShipMapSystem {
 
         // Card flotante
         this.activeCrewCard = null; // ID del tripulante con card activa
+
+        // Sistema de pan/drag
+        this.panX = 0;
+        this.panY = 0;
+        this.isDragging = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
     }
 
     findTiles(type) {
@@ -199,6 +206,9 @@ class ShipMapSystem {
 
         // Setup zoom controls
         this.setupZoomControls();
+
+        // Setup pan/drag controls
+        this.setupPanControls();
     }
 
     generateRoomsStatusHTML() {
@@ -215,6 +225,18 @@ class ShipMapSystem {
             let statusClass = 'good';
             if (percentage < 20) statusClass = 'critical';
             else if (percentage < 50) statusClass = 'warning';
+
+            // Obtener tripulantes en esta zona
+            const crewInZone = this.getCrewInZone(zoneKey);
+            let crewListHTML = '';
+            if (crewInZone.length > 0) {
+                const crewNames = crewInZone.map(c => {
+                    const firstName = c.name.split(' ')[0];
+                    const icon = this.getCrewIcon(c);
+                    return `${icon} ${firstName}`;
+                }).join(', ');
+                crewListHTML = `<div class="room-status-crew">${crewNames}</div>`;
+            }
 
             // Botón único de reparación
             let repairButton = '';
@@ -238,6 +260,7 @@ class ShipMapSystem {
                     <div class="room-status-bar">
                         <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
                     </div>
+                    ${crewListHTML}
                     ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
                     ${repairButton}
                 </div>
@@ -246,6 +269,29 @@ class ShipMapSystem {
 
         html += '</div>';
         return html;
+    }
+
+    /**
+     * Obtiene la lista de tripulantes que están en una zona específica
+     */
+    getCrewInZone(zoneKey) {
+        const crew = [];
+
+        crewMembers.forEach(c => {
+            if (!c.isAlive) return;
+
+            const pos = this.crewLocations[c.id];
+            if (!pos) return;
+
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType);
+
+            if (currentZone === zoneKey) {
+                crew.push(c);
+            }
+        });
+
+        return crew;
     }
 
     setupZoomControls() {
@@ -338,6 +384,73 @@ class ShipMapSystem {
             wrapper.style.transform = `scale(${this.zoomLevel})`;
             wrapper.style.transformOrigin = 'center center';
             console.log(`🔍 Zoom aplicado: ${(this.zoomLevel * 100).toFixed(0)}%`);
+        }
+    }
+
+    setupPanControls() {
+        const container = document.querySelector('.ship-map-square-container');
+        if (!container) {
+            console.warn('⚠️ No se encontró .ship-map-square-container para pan');
+            return;
+        }
+
+        // Mouse events
+        container.addEventListener('mousedown', (e) => {
+            this.isDragging = true;
+            this.dragStartX = e.clientX - this.panX;
+            this.dragStartY = e.clientY - this.panY;
+            container.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!this.isDragging) return;
+
+            this.panX = e.clientX - this.dragStartX;
+            this.panY = e.clientY - this.dragStartY;
+            this.applyPan();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (this.isDragging) {
+                this.isDragging = false;
+                container.style.cursor = 'grab';
+            }
+        });
+
+        // Touch events for mobile
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                this.isDragging = true;
+                this.dragStartX = e.touches[0].clientX - this.panX;
+                this.dragStartY = e.touches[0].clientY - this.panY;
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!this.isDragging || e.touches.length !== 1) return;
+
+            this.panX = e.touches[0].clientX - this.dragStartX;
+            this.panY = e.touches[0].clientY - this.dragStartY;
+            this.applyPan();
+        });
+
+        document.addEventListener('touchend', () => {
+            this.isDragging = false;
+        });
+
+        console.log('✅ Controles de pan/drag configurados');
+    }
+
+    applyPan() {
+        const grid = document.getElementById('ship-map-grid');
+        const overlay = document.getElementById('ship-map-crew-overlay');
+
+        if (grid) {
+            grid.style.transform = `translate(${this.panX}px, ${this.panY}px)`;
+        }
+
+        if (overlay) {
+            overlay.style.transform = `translate(${this.panX}px, ${this.panY}px)`;
         }
     }
 
