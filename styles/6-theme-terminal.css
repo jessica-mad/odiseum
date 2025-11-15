@@ -2010,6 +2010,81 @@
     flex: 1;
 }
 
+/* === PERFIL COMPACTO DE TRIPULANTE === */
+.crew-profile-compact {
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.crew-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+}
+
+.crew-compact-name {
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+    font-weight: bold;
+}
+
+.crew-compact-status {
+    font-size: 20px;
+}
+
+.crew-compact-info {
+    padding: 6px 12px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+.crew-compact-thought {
+    padding: 8px 12px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    overflow: hidden;
+}
+
+.crew-compact-thought .thought-marquee {
+    font-size: var(--font-size-xs);
+}
+
+.crew-compact-needs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+/* Log personal más compacto */
+.crew-profile-compact .crew-log-container {
+    max-height: 250px;
+    font-size: var(--font-size-xs);
+    padding: 6px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+.crew-profile-compact .crew-log-entry {
+    padding: 4px 6px;
+    gap: 8px;
+}
+
 /* === RESPONSIVE MÓVIL === */
 @media (max-width: 768px) {
     .crew-profile-header {
@@ -2037,5 +2112,25 @@
 
     .crew-info-label {
         min-width: auto;
+    }
+
+    /* Perfil compacto en móvil */
+    .crew-profile-compact {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .crew-compact-info {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .crew-compact-needs {
+        padding: 6px;
+        gap: 4px;
+    }
+
+    .crew-profile-compact .crew-log-container {
+        max-height: 200px;
     }
 }

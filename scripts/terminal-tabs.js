@@ -107,146 +107,104 @@ function switchTerminalTab(tabName) {
 /* === CREAR PERFIL COMPLETO DE TRIPULANTE === */
 function createFullCrewProfile(crew) {
     const container = document.createElement('div');
-    container.className = 'crew-profile-full';
+    container.className = 'crew-profile-compact';
 
     // Determinar estado e icono
     let statusIcon = '❤️';
-    let statusClass = 'alive';
     if (!crew.isAlive) {
         statusIcon = '💀';
-        statusClass = 'dead';
     } else if (crew.state === 'Despierto') {
         statusIcon = '⚡';
-        statusClass = 'awake';
     } else if (crew.state === 'Encapsulado') {
         statusIcon = '💤';
-        statusClass = 'asleep';
     }
 
     // Información básica
-    const roleLabel = crew.getRoleLabel ? crew.getRoleLabel() : '';
-    const state = crew.state || 'Desconocido';
-    const age = crew.biologicalAge ? crew.biologicalAge.toFixed(1) : crew.initialAge;
+    const roleLabel = crew.getRoleLabel ? crew.getRoleLabel() : '👤';
+    const age = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
     const location = crew.getCurrentLocation ? crew.getCurrentLocation() : 'Nave';
     const activity = crew.currentActivity || 'Sin actividad';
     const thought = crew.getCurrentThought ? crew.getCurrentThought() : '💭 ...';
 
-    // Generar HTML del perfil
+    // Generar HTML del perfil compacto
     container.innerHTML = `
-        <div class="crew-profile-header ${statusClass}">
-            <div class="crew-profile-avatar">${roleLabel}</div>
-            <div class="crew-profile-title">
-                <h2>${crew.name}</h2>
-                <div class="crew-profile-subtitle">${crew.position} ${statusIcon}</div>
-            </div>
+        <!-- HEADER: [Rol + Nombre] [emoji estado] -->
+        <div class="crew-compact-header">
+            <span class="crew-compact-name">${roleLabel} ${crew.name}</span>
+            <span class="crew-compact-status">${statusIcon}</span>
         </div>
 
-        <div class="crew-profile-main">
-            <!-- SECCIÓN: INFORMACIÓN BÁSICA -->
-            <div class="crew-profile-section">
-                <div class="crew-profile-section-title">&gt; INFORMACIÓN</div>
-                <div class="crew-profile-info-grid">
-                    <div class="crew-info-item">
-                        <span class="crew-info-label">ESTADO:</span>
-                        <span class="crew-info-value ${statusClass}">${state}</span>
-                    </div>
-                    <div class="crew-info-item">
-                        <span class="crew-info-label">EDAD INICIAL:</span>
-                        <span class="crew-info-value">${crew.initialAge} años</span>
-                    </div>
-                    <div class="crew-info-item">
-                        <span class="crew-info-label">EDAD BIOLÓGICA:</span>
-                        <span class="crew-info-value">${age} años</span>
-                    </div>
-                    <div class="crew-info-item">
-                        <span class="crew-info-label">AÑOS DESPIERTO:</span>
-                        <span class="crew-info-value">${crew.yearsAwake || 0} años</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN: UBICACIÓN Y ACTIVIDAD -->
-            <div class="crew-profile-section">
-                <div class="crew-profile-section-title">&gt; ESTADO ACTUAL</div>
-                <div class="crew-profile-info-grid">
-                    <div class="crew-info-item">
-                        <span class="crew-info-label">📍 UBICACIÓN:</span>
-                        <span class="crew-info-value">${location}</span>
-                    </div>
-                    <div class="crew-info-item">
-                        <span class="crew-info-label">🔧 ACTIVIDAD:</span>
-                        <span class="crew-info-value">${activity}</span>
-                    </div>
-                    <div class="crew-info-item full-width">
-                        <span class="crew-info-label">PENSAMIENTO:</span>
-                        <span class="crew-info-value thought">${thought}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN: NECESIDADES (solo si está vivo) -->
-            ${crew.isAlive ? createCrewNeedsSection(crew) : ''}
-
-            <!-- SECCIÓN: LOG PERSONAL (últimas 10 entradas) -->
-            ${createCrewPersonalLog(crew)}
+        <!-- INFO: [emoji] ! [Edad inicial] ! [Edad actual] ! [Actividad] ! [Ubicación] -->
+        <div class="crew-compact-info">
+            ${roleLabel} ! ${crew.initialAge}a ! ${age}a ! ${activity} ! 📍 ${location}
         </div>
+
+        <!-- PENSAMIENTO: marquesina -->
+        <div class="crew-compact-thought">
+            <div class="thought-marquee">${thought}</div>
+        </div>
+
+        <!-- NECESIDADES (solo si está vivo) -->
+        ${crew.isAlive ? createCompactCrewNeeds(crew) : ''}
+
+        <!-- LOG PERSONAL -->
+        ${createCrewPersonalLog(crew)}
     `;
 
     return container;
 }
 
-/* === CREAR SECCIÓN DE NECESIDADES === */
-function createCrewNeedsSection(crew) {
+/* === CREAR NECESIDADES COMPACTAS === */
+function createCompactCrewNeeds(crew) {
+    const isAwake = crew.state === 'Despierto';
+
+    // Todas las necesidades del tripulante
     const needs = [
-        { label: 'SALUD', value: crew.healthNeed || 0, icon: '❤️' },
-        { label: 'COMIDA', value: crew.foodNeed || 0, icon: '🍽️' },
-        { label: 'AGUA', value: 100, icon: '💧' }, // Placeholder
-        { label: 'HIGIENE', value: crew.wasteNeed || 0, icon: '🚿', inverted: true },
-        { label: 'DESCANSO', value: crew.restNeed || 0, icon: '😴' },
-        { label: 'ENTRET.', value: crew.entertainmentNeed || 0, icon: '🎮' }
+        { icon: '🍲', label: 'alimentación', value: crew.foodNeed || 0, max: 100 },
+        { icon: '❤️', label: 'salud', value: crew.healthNeed || 0, max: 100 },
+        { icon: '🚽', label: 'higiene', value: crew.wasteNeed || 0, max: 100, inverse: true },
+        { icon: '😴', label: 'descanso', value: crew.restNeed || 0, max: 100 },
+        { icon: '🎮', label: 'entretenimiento', value: crew.entertainmentNeed || 0, max: 100 }
     ];
 
-    let html = '<div class="crew-profile-section">';
-    html += '<div class="crew-profile-section-title">&gt; NECESIDADES</div>';
-    html += '<div class="crew-needs-grid">';
+    let html = '<div class="crew-compact-needs">';
 
     needs.forEach(need => {
-        const value = need.value;
-        const displayValue = need.inverted ? (100 - value) : value;
+        const percentage = (need.value / need.max) * 100;
+        let colorClass = 'good';
 
-        // Determinar color
-        let colorClass = '';
-        if (need.inverted) {
-            if (value > 80) colorClass = 'low';
-            else if (value > 50) colorClass = 'medium';
+        if (need.inverse) {
+            if (percentage > 80) colorClass = 'critical';
+            else if (percentage > 60) colorClass = 'warning';
         } else {
-            if (value < 30) colorClass = 'low';
-            else if (value < 60) colorClass = 'medium';
+            if (percentage < 20) colorClass = 'critical';
+            else if (percentage < 40) colorClass = 'warning';
         }
 
+        // Botón desactivado si está despierto
+        const buttonDisabled = isAwake ? 'disabled' : '';
+        const buttonOnClick = isAwake ? '' : `onclick="event.stopPropagation(); quickManage('${crew.name}', '${need.label}')"`;
+
         html += `
-            <div class="crew-need-bar">
-                <div class="crew-need-header">
-                    <span class="crew-need-icon">${need.icon}</span>
-                    <span class="crew-need-label">${need.label}</span>
-                    <span class="crew-need-value">${Math.round(displayValue)}%</span>
+            <div class="need-bar-advanced">
+                <button class="need-bar-icon-btn" ${buttonDisabled} ${buttonOnClick}>
+                    ${need.icon}
+                </button>
+                <div class="need-bar-track">
+                    <div class="need-bar-fill-advanced ${colorClass}" style="width: ${percentage}%"></div>
                 </div>
-                <div class="crew-need-track">
-                    <div class="crew-need-fill ${colorClass}" style="width: ${displayValue}%"></div>
-                </div>
+                <span class="need-bar-percent">${Math.round(percentage)}%</span>
             </div>
         `;
     });
 
-    html += '</div></div>';
+    html += '</div>';
     return html;
 }
 
 /* === CREAR LOG PERSONAL === */
 function createCrewPersonalLog(crew) {
-    let html = '<div class="crew-profile-section">';
-    html += '<div class="crew-profile-section-title">&gt; LOG PERSONAL (Últimas 10 entradas)</div>';
-    html += '<div class="crew-log-container">';
+    let html = '<div class="crew-log-container">';
 
     if (Array.isArray(crew.personalLog) && crew.personalLog.length > 0) {
         // Mostrar últimas 10 entradas (más recientes primero)
@@ -261,10 +219,10 @@ function createCrewPersonalLog(crew) {
             `;
         });
     } else {
-        html += '<div class="crew-log-entry"><span class="crew-log-text">Sin entradas en el log personal</span></div>';
+        html += '<div class="crew-log-entry"><span class="crew-log-text">Sin entradas...</span></div>';
     }
 
-    html += '</div></div>';
+    html += '</div>';
     return html;
 }
 
