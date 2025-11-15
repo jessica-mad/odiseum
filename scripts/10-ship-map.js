@@ -235,30 +235,19 @@ class ShipMapSystem {
 
             // Obtener tripulantes en esta zona
             const crewInZone = this.getCrewInZone(zoneKey);
-            let crewListHTML = '';
+            let crewActivityHTML = '';
             if (crewInZone.length > 0) {
-                const crewNames = crewInZone.map(c => {
+                crewActivityHTML = crewInZone.map(c => {
                     const firstName = c.name.split(' ')[0];
                     const icon = this.getCrewIcon(c);
-                    return `${icon} ${firstName}`;
-                }).join(', ');
-                crewListHTML = `<div class="room-status-crew">${crewNames}</div>`;
+                    const activity = c.currentActivity || 'Idle';
+                    return `${icon} ${firstName} - ${activity}`;
+                }).join('<br>');
+            } else {
+                crewActivityHTML = 'Sin tripulantes';
             }
 
-            // Botón único de reparación
-            let repairButton = '';
-            if (engineerAvailable && percentage < 100) {
-                if (zone.beingRepaired) {
-                    // Está reparando: mostrar ❌ para cancelar
-                    repairButton = `<button class="room-repair-btn repairing" onclick="shipMapSystem.startRepair('${zoneKey}')">❌</button>`;
-                } else {
-                    // No está reparando: mostrar ⚙️ XX%
-                    repairButton = `<button class="room-repair-btn" onclick="shipMapSystem.startRepair('${zoneKey}')">⚙️ ${percentage}%</button>`;
-                }
-            }
-
-            // Sistema especial para invernadero
-            let greenhouseControls = '';
+            // INVERNADERO: diseño especial
             if (zoneKey === 'greenhouse') {
                 const cooldownPercent = zone.cooldownProgress || 0;
                 const isReady = zone.isReady || cooldownPercent >= 100;
@@ -270,40 +259,64 @@ class ShipMapSystem {
                 const foodBtnDisabled = isReady && chef ? '' : 'disabled';
                 const medicineBtnDisabled = isReady && doctor ? '' : 'disabled';
 
-                greenhouseControls = `
-                    <div class="greenhouse-harvest-controls">
-                        <div class="greenhouse-cooldown-bar">
-                            <div class="greenhouse-cooldown-fill" style="height: ${cooldownPercent}%"></div>
-                            <span class="greenhouse-cooldown-label">${Math.round(cooldownPercent)}%</span>
+                html += `
+                    <div class="room-card-compact ${zone.isBroken ? 'broken' : ''}" data-zone="${zoneKey}">
+                        <div class="room-card-header">
+                            <span>${zone.icon} ${zone.name}</span>
                         </div>
-                        <div class="greenhouse-buttons">
-                            <button class="greenhouse-harvest-btn" ${foodBtnDisabled} onclick="shipMapSystem.harvestGreenhouse('food')" title="Chef cosecha alimentos">
-                                🍕
-                            </button>
-                            <button class="greenhouse-harvest-btn" ${medicineBtnDisabled} onclick="shipMapSystem.harvestGreenhouse('medicine')" title="Doctor cosecha medicina">
-                                ❤️
-                            </button>
+                        <div class="room-card-status">
+                            <div class="room-status-row">
+                                <button class="greenhouse-harvest-btn-inline" ${foodBtnDisabled} onclick="shipMapSystem.harvestGreenhouse('food')" title="Chef cosecha alimentos">🍕</button>
+                                <button class="greenhouse-harvest-btn-inline" ${medicineBtnDisabled} onclick="shipMapSystem.harvestGreenhouse('medicine')" title="Doctor cosecha medicina">❤️</button>
+                                <div class="room-status-bar-inline">
+                                    <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="room-percentage">${percentage}%</span>
+                            </div>
+                            <div class="greenhouse-cooldown-mini">
+                                <div class="greenhouse-cooldown-fill-mini" style="width: ${cooldownPercent}%"></div>
+                                <span class="greenhouse-cooldown-text">${Math.round(cooldownPercent)}% listo</span>
+                            </div>
                         </div>
+                        <div class="room-card-crew">
+                            ${crewActivityHTML}
+                        </div>
+                        ${zone.isBroken ? '<div class="room-card-alert">⚠️ AVERIADA</div>' : ''}
+                        ${engineerAvailable && percentage < 100 ? (zone.beingRepaired ? '<div class="room-card-alert repairing" onclick="shipMapSystem.startRepair(\''+zoneKey+'\')">❌ Cancelar</div>' : '<div class="room-card-alert repair" onclick="shipMapSystem.startRepair(\''+zoneKey+'\')">⚙️ Reparar</div>') : ''}
+                    </div>
+                `;
+            } else {
+                // HABITACIONES NORMALES: diseño compacto
+                let buttonHTML = '';
+                if (engineerAvailable && percentage < 100) {
+                    if (zone.beingRepaired) {
+                        buttonHTML = `<button class="room-action-btn cancel" onclick="shipMapSystem.startRepair('${zoneKey}')">❌</button>`;
+                    } else {
+                        buttonHTML = `<button class="room-action-btn repair" onclick="shipMapSystem.startRepair('${zoneKey}')">⚙️</button>`;
+                    }
+                }
+
+                html += `
+                    <div class="room-card-compact ${zone.isBroken ? 'broken' : ''} ${zone.beingRepaired ? 'repairing' : ''}" data-zone="${zoneKey}">
+                        <div class="room-card-header">
+                            <span>${zone.icon} ${zone.name}</span>
+                        </div>
+                        <div class="room-card-status">
+                            <div class="room-status-row">
+                                ${buttonHTML}
+                                <div class="room-status-bar-inline">
+                                    <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="room-percentage">${percentage}%</span>
+                            </div>
+                        </div>
+                        <div class="room-card-crew">
+                            ${crewActivityHTML}
+                        </div>
+                        ${zone.isBroken ? '<div class="room-card-alert">⚠️ AVERIADA</div>' : ''}
                     </div>
                 `;
             }
-
-            html += `
-                <div class="room-status-card ${zone.isBroken ? 'broken' : ''} ${zone.beingRepaired ? 'repairing' : ''}" data-zone="${zoneKey}">
-                    <div class="room-status-header">
-                        <span class="room-status-icon">${zone.icon}</span>
-                        <span class="room-status-name">${zone.name}</span>
-                        <span class="room-status-percentage">${percentage}%</span>
-                    </div>
-                    <div class="room-status-bar">
-                        <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
-                    </div>
-                    ${crewListHTML}
-                    ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
-                    ${repairButton}
-                    ${greenhouseControls}
-                </div>
-            `;
         });
 
         html += '</div>';

@@ -260,27 +260,35 @@
 
 .rooms-status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
     overflow-x: auto;
-    overflow-y: visible; /* Permitir que las cards se vean completas */
+    overflow-y: visible;
     padding-bottom: 4px;
 }
 
-.room-status-card {
+/* === TARJETAS DE HABITACIONES COMPACTAS === */
+.room-card-compact {
     background: var(--color-terminal-bg);
-    border: 2px solid rgba(0, 255, 65, 0.3);
+    border: 2px solid var(--color-terminal-green-dark);
     border-radius: 4px;
-    padding: 8px;
+    overflow: hidden;
     font-family: var(--font-monaco);
     font-size: 11px;
-    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
-.room-status-card.broken {
+.room-card-compact.broken {
     border-color: rgba(255, 0, 0, 0.8);
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
     animation: pulse-broken-card 2s ease-in-out infinite;
+}
+
+.room-card-compact.repairing {
+    border-color: rgba(0, 170, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
 }
 
 @keyframes pulse-broken-card {
@@ -288,221 +296,210 @@
     50% { opacity: 0.8; }
 }
 
-.room-status-header {
+.room-card-header {
+    padding: 8px 10px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    text-align: center;
+    font-size: 12px;
+}
+
+.room-card-status {
+    padding: 8px 10px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+}
+
+.room-status-row {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 6px;
 }
 
-.room-status-icon {
-    font-size: 16px;
+.room-action-btn {
+    font-size: 18px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
-.room-status-name {
-    color: var(--color-terminal-green);
-    font-weight: bold;
+.room-action-btn:hover {
+    background: var(--color-terminal-green);
+    transform: scale(1.1);
+}
+
+.room-action-btn.cancel {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+}
+
+.room-action-btn.cancel:hover {
+    background: #ff4444;
+}
+
+.room-status-bar-inline {
     flex: 1;
-}
-
-.room-status-percentage {
-    color: var(--color-terminal-green);
-    font-size: 12px;
-    font-weight: bold;
-    opacity: 0.8;
-}
-
-.room-status-bar {
-    width: 100%;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 4px;
+    height: 14px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
     overflow: hidden;
-    margin-bottom: 4px;
+    position: relative;
 }
 
 .room-status-fill {
     height: 100%;
     transition: width 0.3s ease;
+    border-radius: 3px;
 }
 
 .room-status-fill.good {
-    background: linear-gradient(90deg, #00ff41, #00cc33);
-    box-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+    background: linear-gradient(
+        to right,
+        var(--color-terminal-green) 0%,
+        rgba(0, 255, 65, 0.7) 100%
+    );
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
 }
 
 .room-status-fill.warning {
-    background: linear-gradient(90deg, #ffaa00, #ff8800);
-    box-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+    background: linear-gradient(
+        to right,
+        #ffaa00 0%,
+        rgba(255, 170, 0, 0.7) 100%
+    );
+    box-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
 }
 
 .room-status-fill.critical {
-    background: linear-gradient(90deg, #ff4444, #ff0000);
-    box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
-    animation: pulse-critical-bar 1s infinite;
+    background: linear-gradient(
+        to right,
+        #ff4444 0%,
+        rgba(255, 68, 68, 0.7) 100%
+    );
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
 }
 
-.room-status-value {
-    text-align: right;
+.room-percentage {
+    font-weight: bold;
     color: var(--color-terminal-green);
-    font-size: 10px;
+    font-size: 11px;
+    flex-shrink: 0;
+    min-width: 35px;
+    text-align: right;
 }
 
-.room-status-crew {
-    margin-top: 4px;
-    padding: 4px;
-    background: rgba(0, 255, 65, 0.05);
-    border: 1px solid rgba(0, 255, 65, 0.2);
-    border-radius: 3px;
+.room-card-crew {
+    padding: 8px 10px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
     font-size: 10px;
-    color: rgba(0, 255, 65, 0.8);
-    text-align: center;
-    max-height: 32px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: var(--color-terminal-green-dim);
+    min-height: 28px;
+    line-height: 1.3;
 }
 
-.room-status-broken {
-    margin-top: 4px;
-    padding: 4px;
+.room-card-alert {
+    padding: 6px 10px;
     background: rgba(255, 0, 0, 0.2);
-    border: 1px solid rgba(255, 0, 0, 0.6);
-    border-radius: 3px;
     text-align: center;
     color: #ff4444;
     font-weight: bold;
-    animation: flicker-broken 1.5s ease-in-out infinite;
-}
-
-/* Botón único de reparación */
-.room-repair-btn {
-    width: 100%;
-    margin-top: 6px;
-    padding: 6px 8px;
-    font-family: var(--font-monaco);
-    font-size: 14px;
-    background: rgba(0, 255, 65, 0.1);
-    color: var(--color-terminal-green);
-    border: 2px solid var(--color-terminal-green);
-    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: bold;
-    text-align: center;
 }
 
-.room-repair-btn:hover {
-    background: var(--color-terminal-green);
-    color: var(--color-terminal-bg);
-    box-shadow: 0 0 12px rgba(0, 255, 65, 0.5);
-    transform: scale(1.02);
+.room-card-alert:hover {
+    background: rgba(255, 0, 0, 0.4);
 }
 
-.room-repair-btn:active {
-    transform: scale(0.98);
+.room-card-alert.repair {
+    background: rgba(0, 255, 65, 0.2);
+    color: var(--color-terminal-green);
 }
 
-.room-repair-btn.repairing {
-    background: rgba(255, 68, 68, 0.2);
-    color: #ff4444;
-    border-color: #ff4444;
-    font-size: 18px;
+.room-card-alert.repair:hover {
+    background: rgba(0, 255, 65, 0.4);
 }
 
-.room-repair-btn.repairing:hover {
-    background: #ff4444;
-    color: var(--color-terminal-bg);
-    box-shadow: 0 0 12px rgba(255, 68, 68, 0.5);
+.room-card-alert.repairing {
+    background: rgba(0, 170, 255, 0.2);
+    color: #00aaff;
 }
 
-.room-status-card.repairing {
-    border-color: rgba(0, 170, 255, 0.6);
-    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+.room-card-alert.repairing:hover {
+    background: rgba(0, 170, 255, 0.4);
 }
 
 /* === SISTEMA DE INVERNADERO === */
-.greenhouse-harvest-controls {
-    margin-top: 8px;
-    display: flex;
-    gap: 8px;
-    align-items: stretch;
-}
-
-.greenhouse-cooldown-bar {
-    flex: 1;
-    min-width: 30px;
-    max-width: 40px;
-    background: var(--color-terminal-bg-light);
-    border: 2px solid var(--color-terminal-green-dark);
-    border-radius: 4px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.greenhouse-cooldown-fill {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(
-        to top,
-        var(--color-terminal-green) 0%,
-        rgba(0, 255, 65, 0.7) 50%,
-        rgba(0, 255, 65, 0.4) 100%
-    );
-    border-radius: 2px;
-    transition: height 0.3s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
-}
-
-.greenhouse-cooldown-label {
-    position: relative;
-    z-index: 1;
-    font-family: var(--font-monaco);
-    font-size: 10px;
-    color: var(--color-terminal-green);
-    font-weight: bold;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
-}
-
-.greenhouse-buttons {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.greenhouse-harvest-btn {
-    flex: 1;
-    padding: 8px;
+.greenhouse-harvest-btn-inline {
     font-size: 20px;
     background: rgba(0, 255, 65, 0.1);
-    border: 2px solid var(--color-terminal-green);
-    border-radius: 4px;
+    border: 1px solid var(--color-terminal-green);
+    border-radius: 3px;
     cursor: pointer;
+    padding: 4px 8px;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-shrink: 0;
 }
 
-.greenhouse-harvest-btn:hover:not(:disabled) {
+.greenhouse-harvest-btn-inline:hover:not(:disabled) {
     background: var(--color-terminal-green);
-    transform: scale(1.05);
-    box-shadow: 0 0 12px rgba(0, 255, 65, 0.5);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
 }
 
-.greenhouse-harvest-btn:active:not(:disabled) {
+.greenhouse-harvest-btn-inline:active:not(:disabled) {
     transform: scale(0.95);
 }
 
-.greenhouse-harvest-btn:disabled {
+.greenhouse-harvest-btn-inline:disabled {
     opacity: 0.3;
     cursor: not-allowed;
     border-color: var(--color-terminal-green-dark);
+}
+
+.greenhouse-cooldown-mini {
+    margin-top: 6px;
+    height: 16px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.greenhouse-cooldown-fill-mini {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to right,
+        var(--color-terminal-green) 0%,
+        rgba(0, 255, 65, 0.7) 100%
+    );
+    transition: width 0.3s ease;
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.greenhouse-cooldown-text {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-monaco);
+    font-size: 9px;
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
 }
 
 /* === CELDAS DE LA GRILLA === */
