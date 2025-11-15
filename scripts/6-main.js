@@ -304,10 +304,16 @@ function initializeGame(config) {
     
     // Inicializar relaciones entre tripulantes
     crewMembers.forEach(crew => crew.initializeRelationships(crewMembers));
-    
+
     // Las mini-cards se generan automáticamente cuando se abre el panel de tripulación
     // No necesitamos llenar el contenedor aquí
-    
+
+    // Generar tabs de tripulantes en el terminal
+    if (typeof generateCrewTabs === 'function') {
+        console.log('[initializeGame] Generando tabs de tripulantes...');
+        generateCrewTabs();
+    }
+
     // Cargar mensajes cuánticos
     loadQuantumMessages();
     
