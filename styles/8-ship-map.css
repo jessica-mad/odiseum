@@ -207,13 +207,13 @@
     top: 0;
     left: 0;
     /* Proporción real del mapa escalada para ser visible */
-    width: 260px; /* 13 columnas - aumentado para mejor visibilidad */
-    height: 720px; /* 36 filas (260 * 36/13) */
+    width: 200px; /* 13 columnas */
+    height: 554px; /* 36 filas (200 * 36/13) */
     display: grid;
     grid-template-columns: repeat(13, 1fr);
     grid-template-rows: repeat(36, 1fr);
-    gap: 1px;
-    padding: 8px;
+    gap: 0.5px;
+    padding: 4px;
     background: var(--color-terminal-bg);
     transition: none; /* Remover transición para pan suave */
     will-change: transform;
@@ -225,9 +225,9 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 260px; /* Mismo tamaño que grid */
-    height: 720px; /* Mismo tamaño que grid */
-    padding: 8px; /* Mismo padding que grid */
+    width: 200px; /* Mismo tamaño que grid */
+    height: 554px; /* Mismo tamaño que grid */
+    padding: 4px; /* Mismo padding que grid */
     pointer-events: none;
     z-index: 10;
 }
@@ -426,12 +426,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 10px;
     transition: all 0.2s ease;
+    min-width: 0;
     min-height: 0;
-    aspect-ratio: 1; /* Forzar celdas cuadradas */
-    width: 100%;
-    height: 100%;
 }
 
 .grid-cell:hover {
