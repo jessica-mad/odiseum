@@ -413,7 +413,8 @@ class ShipMapSystem {
         document.addEventListener('mouseup', () => {
             if (this.isDragging) {
                 this.isDragging = false;
-                container.style.cursor = 'grab';
+                const container = document.querySelector('.ship-map-square-container');
+                if (container) container.style.cursor = 'grab';
             }
         });
 
@@ -566,7 +567,37 @@ class ShipMapSystem {
         } : null;
     }
 
+    /**
+     * Obtiene la lista de tripulantes que están en una zona específica
+     * @param {string} zoneKey - Clave de la zona (bridge, medbay, etc.)
+     * @returns {Array} - Array de tripulantes en la zona
+     */
+    getCrewInZone(zoneKey) {
+        const crew = [];
+
+        crewMembers.forEach(c => {
+            if (!c.isAlive) return;
+
+            const pos = this.crewLocations[c.id];
+            if (!pos) return;
+
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType);
+
+            if (currentZone === zoneKey) {
+                crew.push(c);
+            }
+        });
+
+        return crew;
+    }
+
     getCrewIcon(crew) {
+        // Si está muerto, mostrar calavera
+        if (!crew.isAlive) {
+            return '💀';
+        }
+
         if (this.crewIcons[crew.name]) {
             return this.crewIcons[crew.name];
         }
@@ -602,27 +633,33 @@ class ShipMapSystem {
                 }
             }
 
-            // Prioridad: atención médica
-            if (activity.includes('atendiendo')) {
-                return 'medbay';
-            }
-
-            if (crew.healthNeed < 50) {
-                return 'medbay';
-            }
-
-            // Prioridad ALTA: Necesidad de baño (cuando wasteNeed está bajo)
+            // PRIORIDAD 1: Higiene (wasteNeed < 70%)
             if (crew.wasteNeed < 70) {
                 return 'bathroom';
             }
 
-            // Prioridad: alimentación
-            if (crew.foodNeed < 40) {
+            // PRIORIDAD 2: Salud (healthNeed < 50%) - ir a enfermería
+            if (crew.healthNeed < 50) {
+                return 'medbay';
+            }
+
+            // PRIORIDAD 3: Alimentación (foodNeed entre 45-70%)
+            if (crew.foodNeed >= 45 && crew.foodNeed < 70) {
                 return 'kitchen';
             }
 
             // Mapeo de posiciones a zonas de trabajo
             const position = crew.position || '';
+
+            // Chef necesita ir al invernadero por provisiones de alimentos (cuando foodNeed > 80%)
+            if ((position.includes('Chef') || activity.includes('cocinando')) && crew.foodNeed > 80) {
+                return 'greenhouse';
+            }
+
+            // Doctora necesita ir al invernadero por medicina (cuando healthNeed > 80%)
+            if ((position.includes('Doctor') || position.includes('Doctora')) && crew.healthNeed > 80) {
+                return 'greenhouse';
+            }
 
             // Navegante -> Puente de Mando (bridge)
             if (position.includes('Navegante')) {
@@ -642,6 +679,11 @@ class ShipMapSystem {
             // Botánica -> Invernadero (greenhouse)
             if (position.includes('Botánic')) {
                 return 'greenhouse';
+            }
+
+            // Chef -> Cocina (kitchen)
+            if (position.includes('Chef')) {
+                return 'kitchen';
             }
 
             // Geóloga -> Alterna entre Bodega y Laboratorio
