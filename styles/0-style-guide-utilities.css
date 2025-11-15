@@ -1,0 +1,186 @@
+/* ============================================
+   UTILIDADES DE MANUAL DE ESTILO - ODISEUM V2.0
+   ============================================
+
+   Este archivo contiene clases de utilidad para aplicar
+   las reglas del manual de estilo de forma consistente.
+   ============================================ */
+
+/* === REGLA 1: CAJAS SOLO PARA CLICABLES === */
+
+/* Clase base para elementos clicables (botones, cards) */
+.clickable-box {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.clickable-box:hover {
+    transform: translateX(-2px);
+    box-shadow: 3px 3px 0 var(--border-color);
+}
+
+.clickable-box:active {
+    box-shadow: var(--shadow-inset);
+    transform: translate(1px, 1px);
+}
+
+/* Separadores para contenido NO clicable (sin cajas) */
+.info-separator {
+    border-top: var(--border-width) solid var(--border-color);
+    padding-top: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    /* NO background, NO box-shadow */
+}
+
+.info-separator-bottom {
+    border-bottom: var(--border-width) solid var(--border-color);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+/* === REGLA 2: MAYÚSCULAS === */
+
+/* Títulos en mayúsculas */
+.title-uppercase {
+    text-transform: uppercase;
+}
+
+/* Botones en mayúsculas (ya aplicado globalmente, pero por si se necesita override) */
+.button-text {
+    text-transform: uppercase;
+}
+
+/* === REGLA 3: TAMAÑOS DE FUENTE MÍNIMOS === */
+
+/* Desktop */
+.text-desktop-min {
+    font-size: var(--font-size-min-desktop);
+}
+
+/* Móvil */
+.text-mobile-min {
+    font-size: var(--font-size-min-mobile);
+}
+
+/* === REGLA 4: ESTADOS DE SELECCIÓN === */
+
+/* Elemento seleccionado - aro verde */
+.state-selected {
+    outline: 3px solid var(--color-selected-outline);
+    outline-offset: 2px;
+    position: relative;
+}
+
+/* Variante con animación suave */
+.state-selected-animated {
+    outline: 3px solid var(--color-selected-outline);
+    outline-offset: 2px;
+    position: relative;
+    animation: pulse-selection 2s infinite;
+}
+
+@keyframes pulse-selection {
+    0%, 100% {
+        outline-color: var(--color-selected-outline);
+    }
+    50% {
+        outline-color: var(--color-terminal-green-dim);
+    }
+}
+
+/* Elemento NO seleccionado - verde oscuro casi negro, apariencia deshabilitada */
+.state-deselected {
+    background: var(--color-deselected-bg);
+    color: var(--color-deselected-text);
+    border-color: var(--color-deselected-border);
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Variante sin bloqueo de eventos (permite hover pero deshabilitado) */
+.state-deselected-interactive {
+    background: var(--color-deselected-bg);
+    color: var(--color-deselected-text);
+    border-color: var(--color-deselected-border);
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* === COMBINACIONES COMUNES === */
+
+/* Card clicable seleccionada */
+.card-selected {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-medium);
+    outline: 3px solid var(--color-selected-outline);
+    outline-offset: 2px;
+    cursor: pointer;
+}
+
+/* Card clicable NO seleccionada (deshabilitada) */
+.card-deselected {
+    background: var(--color-deselected-bg);
+    color: var(--color-deselected-text);
+    border: var(--border-width) solid var(--color-deselected-border);
+    box-shadow: none;
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Botón seleccionado */
+.button-selected {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--border-color);
+    outline: 3px solid var(--color-selected-outline);
+    outline-offset: 2px;
+}
+
+/* Botón NO seleccionado (deshabilitado) */
+.button-deselected {
+    background: var(--color-deselected-bg);
+    color: var(--color-deselected-text);
+    border-color: var(--color-deselected-border);
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* === ESTADOS HOVER PARA ELEMENTOS SELECCIONABLES === */
+
+/* Elemento seleccionable en hover (no seleccionado aún) */
+.selectable:hover:not(.state-selected):not(.state-deselected) {
+    outline: 2px solid var(--color-terminal-green-dim);
+    outline-offset: 2px;
+    transition: outline var(--transition-fast);
+}
+
+/* === EJEMPLOS DE USO === */
+
+/*
+EJEMPLO 1: Card clicable con estados
+<div class="clickable-box state-selected">
+    <h3 class="title-uppercase">Título</h3>
+    <p>Contenido...</p>
+</div>
+
+EJEMPLO 2: Sección informativa NO clicable
+<div class="info-separator">
+    <h3 class="title-uppercase">Título</h3>
+    <p>Información estática...</p>
+</div>
+
+EJEMPLO 3: Botón con estado
+<button class="button-selected">Confirmar</button>
+<button class="button-deselected">Cancelar</button>
+
+EJEMPLO 4: Lista de opciones seleccionables
+<div class="clickable-box selectable">Opción 1</div>
+<div class="clickable-box state-selected">Opción 2 (Seleccionada)</div>
+<div class="clickable-box state-deselected">Opción 3 (Deshabilitada)</div>
+*/

@@ -30,6 +30,7 @@ body {
     font-family: var(--font-monaco);
     background: var(--color-terminal-bg);
     color: var(--color-terminal-green);
+    font-size: var(--font-size-min-desktop);
     user-select: none;
 }
 
@@ -38,6 +39,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-monaco);
     font-weight: normal;
     color: var(--color-terminal-green);
+    text-transform: uppercase; /* Manual de estilo: todos los titulares en mayúsculas */
 }
 
 p {
@@ -51,7 +53,8 @@ button {
     background: var(--color-white);
     border: var(--border-width) solid var(--border-color);
     padding: var(--spacing-sm) var(--spacing-lg);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-min-desktop);
+    text-transform: uppercase; /* Manual de estilo: botones en mayúsculas */
     box-shadow: var(--shadow-medium);
     transition: all var(--transition-fast);
 }
@@ -183,4 +186,50 @@ meter::-webkit-meter-even-less-good-value {
 
 .text-bold {
     font-weight: bold;
+}
+
+/* === ESTADOS DE SELECCIÓN === */
+.selected {
+    outline: 3px solid var(--color-selected-outline) !important;
+    outline-offset: 2px;
+}
+
+.deselected {
+    background: var(--color-deselected-bg) !important;
+    color: var(--color-deselected-text) !important;
+    border-color: var(--color-deselected-border) !important;
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* === RESPONSIVE - TAMAÑOS DE FUENTE === */
+/* Desktop (por defecto) */
+@media (min-width: 769px) {
+    body {
+        font-size: var(--font-size-min-desktop);
+    }
+}
+
+/* Móvil */
+@media (max-width: 768px) {
+    body {
+        font-size: var(--font-size-min-mobile);
+    }
+
+    /* Elementos táctiles más grandes en móvil */
+    button {
+        min-height: 44px;
+        padding: 12px 24px;
+        font-size: var(--font-size-min-mobile);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-size: var(--font-size-min-mobile);
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        font-size: var(--font-size-min-mobile);
+        min-height: 44px;
+    }
 }

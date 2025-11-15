@@ -33,6 +33,12 @@
     --color-alert-yellow-glow: rgba(255, 255, 0, 0.5);
     --color-alert-green: #00ff41;
     
+    /* === COLORES DE ESTADOS DE SELECCIÓN === */
+    --color-selected-outline: #00ff41;      /* Verde brillante para elementos seleccionados */
+    --color-deselected-bg: #0a1a0a;         /* Verde muy oscuro casi negro para fondo */
+    --color-deselected-text: #2d4d2d;       /* Verde oscuro para texto */
+    --color-deselected-border: #1a2a1a;     /* Verde oscuro para bordes */
+
     /* === COLORES DE BORDE === */
     --border-color: var(--color-black);
     --border-width: 2px;
@@ -61,15 +67,20 @@
     --font-monaco: 'Monaco', 'Courier New', monospace;
     
     /* === TAMAÑOS DE FUENTE === */
+    /* Tamaños mínimos según manual de estilo */
+    --font-size-min-desktop: 14pt;  /* 18.67px */
+    --font-size-min-mobile: 15pt;   /* 20px */
+
+    /* Escala de tamaños (manteniendo compatibilidad) */
     --font-size-xs: 9px;
     --font-size-sm: 10px;
-    --font-size-base: 11px;
-    --font-size-md: 12px;
-    --font-size-lg: 13px;
-    --font-size-xl: 14px;
-    --font-size-xxl: 16px;
-    --font-size-title: 18px;
-    --font-size-hero: 24px;
+    --font-size-base: 14pt;         /* Actualizado a mínimo desktop */
+    --font-size-md: 15pt;
+    --font-size-lg: 16pt;
+    --font-size-xl: 18pt;
+    --font-size-xxl: 20pt;
+    --font-size-title: 22pt;
+    --font-size-hero: 28pt;
     
     /* === TRANSICIONES === */
     --transition-fast: 0.15s ease;
