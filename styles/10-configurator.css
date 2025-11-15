@@ -554,7 +554,8 @@
 
 .crew-options-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    /* En escritorio: exactamente 3 columnas por rol */
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-md);
 }
 
