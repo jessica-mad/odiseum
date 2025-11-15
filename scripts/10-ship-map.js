@@ -75,7 +75,13 @@ class ShipMapSystem {
             greenhouse: {
                 name: 'Invernadero', icon: '🌱', tiles: this.findTiles('n'), color: '#44ff44',
                 integrity: 100, maxIntegrity: 100, degradationRate: 2.0, isBroken: false,
-                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                // Sistema de cooldown para cosecha
+                cooldownProgress: 100, // 0-100, cuando llega a 100 está listo para cosechar
+                cooldownDuration: 150, // 150 ticks = 5 tramos (30 ticks por tramo)
+                waterConsumptionPerTick: 0.5, // Agua consumida por tick durante cooldown
+                isReady: true, // Inicia listo para cosechar
+                lastHarvestType: null // 'food' o 'medicine'
             },
             capsules: {
                 name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('d'), color: '#4488ff',
@@ -229,43 +235,88 @@ class ShipMapSystem {
 
             // Obtener tripulantes en esta zona
             const crewInZone = this.getCrewInZone(zoneKey);
-            let crewListHTML = '';
+            let crewActivityHTML = '';
             if (crewInZone.length > 0) {
-                const crewNames = crewInZone.map(c => {
+                crewActivityHTML = crewInZone.map(c => {
                     const firstName = c.name.split(' ')[0];
                     const icon = this.getCrewIcon(c);
-                    return `${icon} ${firstName}`;
-                }).join(', ');
-                crewListHTML = `<div class="room-status-crew">${crewNames}</div>`;
+                    const activity = c.currentActivity || 'Idle';
+                    return `${icon} ${firstName} - ${activity}`;
+                }).join('<br>');
+            } else {
+                crewActivityHTML = 'Sin tripulantes';
             }
 
-            // Botón único de reparación
-            let repairButton = '';
-            if (engineerAvailable && percentage < 100) {
-                if (zone.beingRepaired) {
-                    // Está reparando: mostrar ❌ para cancelar
-                    repairButton = `<button class="room-repair-btn repairing" onclick="shipMapSystem.startRepair('${zoneKey}')">❌</button>`;
-                } else {
-                    // No está reparando: mostrar ⚙️ XX%
-                    repairButton = `<button class="room-repair-btn" onclick="shipMapSystem.startRepair('${zoneKey}')">⚙️ ${percentage}%</button>`;
+            // INVERNADERO: diseño especial
+            if (zoneKey === 'greenhouse') {
+                const cooldownPercent = zone.cooldownProgress || 0;
+                const isReady = zone.isReady || cooldownPercent >= 100;
+
+                // Verificar si hay doctor o chef despierto
+                const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
+                const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
+
+                const foodBtnDisabled = isReady && chef ? '' : 'disabled';
+                const medicineBtnDisabled = isReady && doctor ? '' : 'disabled';
+
+                html += `
+                    <div class="room-card-compact ${zone.isBroken ? 'broken' : ''}" data-zone="${zoneKey}">
+                        <div class="room-card-header">
+                            <span>${zone.icon} ${zone.name}</span>
+                        </div>
+                        <div class="room-card-status">
+                            <div class="room-status-row">
+                                <button class="greenhouse-harvest-btn-inline" ${foodBtnDisabled} onclick="shipMapSystem.harvestGreenhouse('food')" title="Chef cosecha alimentos">🍕</button>
+                                <button class="greenhouse-harvest-btn-inline" ${medicineBtnDisabled} onclick="shipMapSystem.harvestGreenhouse('medicine')" title="Doctor cosecha medicina">❤️</button>
+                                <div class="room-status-bar-inline">
+                                    <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="room-percentage">${percentage}%</span>
+                            </div>
+                            <div class="greenhouse-cooldown-mini">
+                                <div class="greenhouse-cooldown-fill-mini" style="width: ${cooldownPercent}%"></div>
+                                <span class="greenhouse-cooldown-text">${Math.round(cooldownPercent)}% listo</span>
+                            </div>
+                        </div>
+                        <div class="room-card-crew">
+                            ${crewActivityHTML}
+                        </div>
+                        ${zone.isBroken ? '<div class="room-card-alert">⚠️ AVERIADA</div>' : ''}
+                        ${engineerAvailable && percentage < 100 ? (zone.beingRepaired ? '<div class="room-card-alert repairing" onclick="shipMapSystem.startRepair(\''+zoneKey+'\')">❌ Cancelar</div>' : '<div class="room-card-alert repair" onclick="shipMapSystem.startRepair(\''+zoneKey+'\')">⚙️ Reparar</div>') : ''}
+                    </div>
+                `;
+            } else {
+                // HABITACIONES NORMALES: diseño compacto
+                let buttonHTML = '';
+                if (engineerAvailable && percentage < 100) {
+                    if (zone.beingRepaired) {
+                        buttonHTML = `<button class="room-action-btn cancel" onclick="shipMapSystem.startRepair('${zoneKey}')">❌</button>`;
+                    } else {
+                        buttonHTML = `<button class="room-action-btn repair" onclick="shipMapSystem.startRepair('${zoneKey}')">⚙️</button>`;
+                    }
                 }
-            }
 
-            html += `
-                <div class="room-status-card ${zone.isBroken ? 'broken' : ''} ${zone.beingRepaired ? 'repairing' : ''}" data-zone="${zoneKey}">
-                    <div class="room-status-header">
-                        <span class="room-status-icon">${zone.icon}</span>
-                        <span class="room-status-name">${zone.name}</span>
-                        <span class="room-status-percentage">${percentage}%</span>
+                html += `
+                    <div class="room-card-compact ${zone.isBroken ? 'broken' : ''} ${zone.beingRepaired ? 'repairing' : ''}" data-zone="${zoneKey}">
+                        <div class="room-card-header">
+                            <span>${zone.icon} ${zone.name}</span>
+                        </div>
+                        <div class="room-card-status">
+                            <div class="room-status-row">
+                                ${buttonHTML}
+                                <div class="room-status-bar-inline">
+                                    <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="room-percentage">${percentage}%</span>
+                            </div>
+                        </div>
+                        <div class="room-card-crew">
+                            ${crewActivityHTML}
+                        </div>
+                        ${zone.isBroken ? '<div class="room-card-alert">⚠️ AVERIADA</div>' : ''}
                     </div>
-                    <div class="room-status-bar">
-                        <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
-                    </div>
-                    ${crewListHTML}
-                    ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
-                    ${repairButton}
-                </div>
-            `;
+                `;
+            }
         });
 
         html += '</div>';
@@ -1502,6 +1553,101 @@ class ShipMapSystem {
         });
     }
 
+    /**
+     * Cosechar recursos del invernadero
+     */
+    harvestGreenhouse(type) {
+        const greenhouse = this.zones.greenhouse;
+        if (!greenhouse || !greenhouse.isReady || greenhouse.cooldownProgress < 100) {
+            console.warn('🌱 Invernadero no está listo para cosechar');
+            return;
+        }
+
+        // Verificar que hay tripulante apropiado despierto
+        const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
+        const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
+
+        if (type === 'food' && !chef) {
+            console.warn('🌱 No hay chef despierto para cosechar alimentos');
+            return;
+        }
+
+        if (type === 'medicine' && !doctor) {
+            console.warn('🌱 No hay doctor despierto para cosechar medicina');
+            return;
+        }
+
+        // Obtener bonus del tripulante si tiene
+        let bonus = 0;
+        let baseCantidad = 0;
+
+        if (type === 'food') {
+            baseCantidad = 50;
+            if (chef && chef.configStats && chef.configStats.greenhouseBonus) {
+                bonus = chef.configStats.greenhouseBonus;
+            }
+        } else if (type === 'medicine') {
+            baseCantidad = 30;
+            if (doctor && doctor.configStats && doctor.configStats.greenhouseBonus) {
+                bonus = doctor.configStats.greenhouseBonus;
+            }
+        }
+
+        const cantidad = Math.round(baseCantidad * (1 + bonus));
+
+        // Añadir recursos
+        if (typeof resourcesManager !== 'undefined') {
+            if (type === 'food') {
+                resourcesManager.addResource('food', cantidad);
+                console.log(`🌱 Chef cosechó ${cantidad} de alimentos del invernadero`);
+            } else if (type === 'medicine') {
+                resourcesManager.addResource('medicine', cantidad);
+                console.log(`🌱 Doctor cosechó ${cantidad} de medicina del invernadero`);
+            }
+        }
+
+        // Reiniciar cooldown
+        greenhouse.cooldownProgress = 0;
+        greenhouse.isReady = false;
+        greenhouse.lastHarvestType = type;
+
+        // Actualizar UI
+        this.updateRoomsStatus();
+    }
+
+    /**
+     * Procesar cooldown del invernadero (llamado cada tick)
+     */
+    processGreenhouseCooldown() {
+        const greenhouse = this.zones.greenhouse;
+        if (!greenhouse) return;
+
+        // Si ya está listo, no hacer nada
+        if (greenhouse.isReady && greenhouse.cooldownProgress >= 100) return;
+
+        // Verificar si hay suficiente agua para el tick
+        const waterNeeded = greenhouse.waterConsumptionPerTick;
+        const hasWater = typeof resourcesManager !== 'undefined' && resourcesManager.resources.water >= waterNeeded;
+
+        if (hasWater) {
+            // Consumir agua
+            if (typeof resourcesManager !== 'undefined') {
+                resourcesManager.consumeResource('water', waterNeeded);
+            }
+
+            // Incrementar progreso del cooldown
+            const incrementPerTick = 100 / greenhouse.cooldownDuration;
+            greenhouse.cooldownProgress = Math.min(100, greenhouse.cooldownProgress + incrementPerTick);
+
+            // Si llegó a 100, marcar como listo
+            if (greenhouse.cooldownProgress >= 100) {
+                greenhouse.isReady = true;
+                console.log('🌱 Invernadero listo para cosechar');
+            }
+        }
+        // Si no hay agua, el cooldown no avanza (pero tampoco retrocede)
+    }
+
     startAutoUpdate() {
         // Actualizar posiciones cada 1.5 segundos (velocidad x2)
         setInterval(() => {
@@ -1514,9 +1660,10 @@ class ShipMapSystem {
             this.processBathroomQueue();
         }, 5000);
 
-        // REPARACIONES: Procesar cada tick del juego (ahora cada 1 segundo)
+        // REPARACIONES E INVERNADERO: Procesar cada tick del juego (ahora cada 1 segundo)
         setInterval(() => {
             this.processRepairTick();
+            this.processGreenhouseCooldown();
         }, 1000); // Cada 1 segundo = cada tick
 
         // También actualizar cada vez que cambie algo relevante
@@ -1529,6 +1676,7 @@ class ShipMapSystem {
 
         console.log('✅ Auto-actualización del mapa iniciada (cada 1.5 segundos - velocidad x2)');
         console.log('⚙️ Sistema de averías activado (degradación cada 5 segundos, reparación cada 1 segundo - velocidad x2)');
+        console.log('🌱 Sistema de invernadero activado (cooldown cada 1 segundo)');
     }
 }
 

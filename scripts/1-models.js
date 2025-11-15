@@ -424,13 +424,19 @@ class Crew {
     
     /* === LOG PERSONAL === */
     addToPersonalLog(entry) {
+        // Obtener fecha formateada del sistema de tiempo
+        const formattedDate = (typeof timeSystem !== 'undefined' && timeSystem.getFormattedDate)
+            ? timeSystem.getFormattedDate()
+            : 'Fecha desconocida';
+
         this.personalLog.push({
             year: currentYear,
+            date: formattedDate,
             entry: entry,
             mood: this.mood,
             activity: this.currentActivity
         });
-        
+
         if (this.personalLog.length > 50) {
             this.personalLog.shift();
         }

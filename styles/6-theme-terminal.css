@@ -2012,21 +2012,21 @@
 
 /* === PERFIL COMPACTO DE TRIPULANTE === */
 .crew-profile-compact {
-    padding: 12px;
+    padding: 0;
     overflow-y: auto;
     max-height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
 }
 
 .crew-compact-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
+    padding: 12px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
     font-family: var(--font-monaco);
 }
 
@@ -2041,9 +2041,9 @@
 }
 
 .crew-compact-info {
-    padding: 6px 12px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
+    padding: 8px 12px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
     font-family: var(--font-monaco);
     font-size: var(--font-size-xs);
     color: var(--color-terminal-green-dim);
@@ -2052,9 +2052,9 @@
 }
 
 .crew-compact-thought {
-    padding: 8px 12px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
+    padding: 10px 12px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
     overflow: hidden;
 }
 
@@ -2066,18 +2066,18 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 8px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
+    padding: 10px 12px;
+    background: var(--color-terminal-bg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
 }
 
 /* Log personal más compacto */
 .crew-profile-compact .crew-log-container {
     max-height: 250px;
     font-size: var(--font-size-xs);
-    padding: 6px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
+    padding: 10px 12px;
+    background: var(--color-terminal-bg);
+    border-bottom: none;
 }
 
 .crew-profile-compact .crew-log-entry {

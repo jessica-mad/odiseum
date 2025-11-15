@@ -9,44 +9,64 @@ class TimeSystem {
         this.trancheCount = 0;
         this.tickCount = 0;
     }
-    
+
     advanceTick() {
         this.tickCount++;
         this.currentYear += YEARS_PER_TICK;
     }
-    
+
     advanceTranche() {
         this.trancheCount++;
         this.tickCount = 0;
     }
-    
+
     getCurrentYear() {
         return this.currentYear;
     }
-    
+
     getCurrentTranche() {
         return this.trancheCount;
     }
-    
+
+    // Calcula la fecha real basada en el tiempo de viaje
+    getCurrentDate() {
+        const yearsElapsed = this.currentYear;
+        const daysElapsed = yearsElapsed * 365.25; // Incluir años bisiestos
+        const currentDate = new Date(MISSION_START_DATE);
+        currentDate.setDate(currentDate.getDate() + Math.floor(daysElapsed));
+        return currentDate;
+    }
+
+    // Formatea la fecha en formato legible
+    getFormattedDate() {
+        const date = this.getCurrentDate();
+        const day = date.getDate();
+        const month = date.getMonth() + 1; // 0-indexed
+        const year = date.getFullYear();
+        return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+    }
+
     updateCalendarUI() {
-        const display = `Año ${this.currentYear.toFixed(1)}`;
+        const yearsDisplay = `Año ${this.currentYear.toFixed(1)}`;
+        const dateDisplay = this.getFormattedDate();
+        const combinedDisplay = `${yearsDisplay} (${dateDisplay})`;
 
         // Actualizar calendario desktop
         const desktopCalendar = document.getElementById('calendar');
         if (desktopCalendar) {
-            desktopCalendar.textContent = display;
+            desktopCalendar.textContent = combinedDisplay;
         }
 
         // Actualizar calendario móvil (footer)
         const mobileCalendar = document.getElementById('mobile-calendar');
         if (mobileCalendar) {
-            mobileCalendar.textContent = display;
+            mobileCalendar.textContent = combinedDisplay;
         }
 
         // Actualizar año en top bar 2 móvil
         const mobileYearDisplay = document.getElementById('mobile-year-display');
         if (mobileYearDisplay) {
-            mobileYearDisplay.textContent = `AÑO ${this.currentYear.toFixed(1)}`;
+            mobileYearDisplay.textContent = `${yearsDisplay} (${dateDisplay})`;
         }
     }
 }
