@@ -15,71 +15,31 @@ const INTRO_TEXT = `════════════════════
            PROYECTO GÉNESIS - MISIÓN ODISEUM
 ═══════════════════════════════════════════════════════
 
-[AÑO 0 DEL VIAJE]
+[TRANSMISIÓN URGENTE - AÑO 0]
 
 Comandante IA {PLAYER_NAME},
 
-La Tierra agoniza. Los conflictos, el cambio climático y la 
-sobrepoblación han llevado a nuestra especie al borde del 
-colapso total.
+La Tierra está oficialmente condenada.
+(Sí, por fin lo admitieron.)
 
-Pero hay esperanza.
+Tu nave Odiseum lleva:
+- 5 humanos de dudosa estabilidad mental
+- 10,000 embriones criogenizados
+- Sistemas que "probablemente" funcionarán
+- Destino: Kepler-442b (1,200 años luz de distancia)
 
-En las bodegas criogénicas de la Odiseum viajan 10,000 
-embriones humanos: cada raza, cada linaje, cada esperanza 
-de diversidad genética de nuestra especie preservada. 
-Son el futuro de la humanidad.
+Misión: Entregar la carga a la Colonia Esperanza.
+(Fundada hace 100 años. Ojalá sigan vivos.)
 
-───────────────────────────────────────────────────────────
-
-DESTINO: Nueva Tierra (Kepler-442b)
-DISTANCIA: 3,000 unidades astronómicas
-TIEMPO ESTIMADO: 50 años
-
-Hace 100 años, la Primera Expedición estableció la Colonia
-Esperanza en Nueva Tierra. Un planeta casi idéntico a la
-Tierra original. Nos esperan. Esperan a los nuevos humanos
-que traes en tus bodegas.
+No presión. Solo eres la última esperanza de la especie.
 
 ───────────────────────────────────────────────────────────
 
-TU MISIÓN:
-- Llegar a Nueva Tierra en 50 años o menos
-- Proteger los 10,000 embriones A TODA COSTA
-- Mantener viva a la tripulación (mínimo 1 sobreviviente)
-- Entregar la carga a la Colonia Esperanza
+— Comando Central
+  (Los mismos genios que causaron el apocalipsis)
 
-───────────────────────────────────────────────────────────
-
-REALIDAD DEL VIAJE:
-
-- Cada tramo de 1 minuto = 5 años de viaje
-- Los tripulantes DESPIERTOS envejecen 5 años por tramo
-- Los tripulantes ENCAPSULADOS NO envejecen (criostasis)
-- Los recursos son limitados
-- Cada decisión tiene consecuencias permanentes
-
-───────────────────────────────────────────────────────────
-
-LA TRIPULACIÓN:
-
-Cinco especialistas fueron seleccionados para esta misión. 
-Dejaron atrás a sus seres queridos, sus vidas, su mundo. 
-Nunca volverán a ver la Tierra.
-
-No quieren morir. Quieren llegar. Quieren ver el nuevo mundo.
-Su supervivencia está en tus manos.
-
-───────────────────────────────────────────────────────────
-
-La colonia nos espera.
-Los embriones no pueden fallar.
-La humanidad cuenta contigo.
-
-Que tu sacrificio no sea en vano.
-
-— Capitán Silva
-  Última entrada antes de entrar en espacio profundo
+PD: Antes de partir, configura tu misión.
+    Al menos elige TÚ cómo condenarte.
 
 ═══════════════════════════════════════════════════════`;
 
@@ -129,10 +89,68 @@ function startMissionFromIntro() {
         overlay.style.display = 'none';
     }
 
+    // Mostrar el configurador en lugar de iniciar el juego directamente
+    showConfigurator();
+}
+
+function showConfigurator() {
+    const configurator = document.getElementById('mission-configurator');
+    if (configurator) {
+        configurator.style.display = 'flex';
+        // Mostrar el primer paso
+        showConfigStep(1);
+    }
+}
+
+function showConfigStep(stepNumber) {
+    // Ocultar todos los pasos
+    for (let i = 1; i <= 3; i++) {
+        const step = document.getElementById(`config-step-${i}`);
+        if (step) {
+            step.style.display = 'none';
+        }
+    }
+
+    // Mostrar el paso actual
+    const currentStep = document.getElementById(`config-step-${stepNumber}`);
+    if (currentStep) {
+        currentStep.style.display = 'block';
+    }
+
+    // Actualizar el indicador de paso
+    const stepIndicator = document.getElementById('config-step-indicator');
+    if (stepIndicator) {
+        stepIndicator.textContent = `PASO ${stepNumber}/3`;
+    }
+}
+
+function nextConfigStep(currentStep) {
+    if (currentStep < 3) {
+        showConfigStep(currentStep + 1);
+    }
+}
+
+function prevConfigStep(currentStep) {
+    if (currentStep > 1) {
+        showConfigStep(currentStep - 1);
+    }
+}
+
+function startGameWithConfiguration(config) {
+    // Ocultar el configurador
+    const configurator = document.getElementById('mission-configurator');
+    if (configurator) {
+        configurator.style.display = 'none';
+    }
+
+    // Mostrar el desktop
     const desktop = document.getElementById('desktop');
     if (desktop) {
         desktop.style.display = 'flex';
     }
+
+    // TODO: Aplicar la configuración cuando se implemente la lógica
+    // Por ahora, simplemente iniciamos el juego con valores por defecto
 
     initializeGame();
     ensureIntroEntryInLogbook(false);
