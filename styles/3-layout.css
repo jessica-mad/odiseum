@@ -48,17 +48,19 @@
 }
 
 .login-form input[type="text"] {
-    background: var(--color-terminal-bg-light);
-    border: 2px solid var(--color-terminal-green-dark);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--color-terminal-green-dark);
     color: var(--color-terminal-green);
-    padding: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
     font-family: var(--font-monaco);
+    transition: all 0.3s ease;
 }
 
 .login-form input[type="text"]:focus {
     outline: none;
-    border-color: var(--color-terminal-green);
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    border-bottom-color: var(--color-terminal-green);
+    box-shadow: 0 2px 8px rgba(0, 255, 65, 0.3);
 }
 
 .login-form button {

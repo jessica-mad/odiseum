@@ -25,7 +25,7 @@
             <p>Sistema de Inteligencia Artificial</p>
             <div class="login-form">
                 <label for="player-name-input">Identificación de IA:</label>
-                <input type="text" id="player-name-input" placeholder="Ingrese su nombre">
+                <input type="text" id="player-name-input" placeholder="Ingresa el nombre de la IA">
 
                 <div class="seed-separator">
                     <span class="separator-line"></span>
@@ -34,7 +34,7 @@
                 </div>
 
                 <label for="player-seed-input">Código de Misión (SEED):</label>
-                <input type="text" id="player-seed-input" placeholder="KEPLER-XXXXXX (opcional)">
+                <input type="text" id="player-seed-input" placeholder="Código de la misión (semilla opcional)">
                 <p class="seed-hint">Si tienes un código de misión anterior, ingrésalo aquí para repetir la configuración.</p>
 
                 <button onclick="namePlayer()">Comenzar</button>
@@ -134,36 +134,42 @@
                 </div>
 
                 <div class="config-summary">
-                    <div class="summary-section">
-                        <h4>👥 TRIPULACIÓN SELECCIONADA</h4>
-                        <div id="summary-crew" class="summary-content">
-                            <p class="placeholder-text">[ Resumen de tripulación - Próximo sprint ]</p>
+                    <!-- Columna 1: Tripulación y Recursos -->
+                    <div class="summary-column">
+                        <div class="summary-section">
+                            <h4>👥 TRIPULACIÓN SELECCIONADA</h4>
+                            <div id="summary-crew" class="summary-content">
+                                <p class="placeholder-text">[ Resumen de tripulación - Próximo sprint ]</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <h4>📦 RECURSOS ASIGNADOS</h4>
+                            <div id="summary-resources" class="summary-content">
+                                <p class="placeholder-text">[ Resumen de recursos - Próximo sprint ]</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="summary-section">
-                        <h4>📦 RECURSOS ASIGNADOS</h4>
-                        <div id="summary-resources" class="summary-content">
-                            <p class="placeholder-text">[ Resumen de recursos - Próximo sprint ]</p>
+                    <!-- Columna 2: Ruta, Seed y Botones -->
+                    <div class="summary-column">
+                        <div class="summary-section">
+                            <h4>🗺️ RUTA DE VIAJE</h4>
+                            <div id="summary-route" class="summary-content">
+                                <p>Destino: Kepler-442b (Nueva Tierra)</p>
+                                <p>Distancia: 3,000 UA</p>
+                                <p>Tiempo estimado: 50 años</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="summary-section">
-                        <h4>🗺️ RUTA DE VIAJE</h4>
-                        <div id="summary-route" class="summary-content">
-                            <p>Destino: Kepler-442b (Nueva Tierra)</p>
-                            <p>Distancia: 3,000 UA</p>
-                            <p>Tiempo estimado: 50 años</p>
+                        <div class="summary-section seed-section">
+                            <h4>🎲 SEED DE MISIÓN</h4>
+                            <div class="seed-display">
+                                <input type="text" id="mission-seed" class="seed-input" value="GENESIS-2024-XXXX" readonly>
+                                <button class="seed-copy-btn" title="Copiar seed">📋</button>
+                            </div>
+                            <p class="seed-note">Guarda este código para repetir esta configuración exacta.</p>
                         </div>
-                    </div>
-
-                    <div class="summary-section seed-section">
-                        <h4>🎲 SEED DE MISIÓN</h4>
-                        <div class="seed-display">
-                            <input type="text" id="mission-seed" class="seed-input" value="GENESIS-2024-XXXX" readonly>
-                            <button class="seed-copy-btn" title="Copiar seed">📋</button>
-                        </div>
-                        <p class="seed-note">Guarda este código para repetir esta configuración exacta.</p>
                     </div>
                 </div>
 

@@ -192,6 +192,11 @@ const missionConfigurator = {
             delete this.selectedCrew[roleKey];
             card.classList.remove('selected');
             this.currentBudget -= option.cost;
+
+            // Expandir todas las cards del mismo rol
+            const roleCards = document.querySelectorAll(`[data-role-key="${roleKey}"]`);
+            roleCards.forEach(c => c.classList.remove('collapsed'));
+
             this.updateBudgetDisplay();
             this.validateStep1();
             console.log('[selectCrewMember] selectedCrew DESPUÉS de deseleccionar:', JSON.stringify(this.selectedCrew, null, 2));
@@ -223,6 +228,16 @@ const missionConfigurator = {
         this.selectedCrew[roleKey] = option;
         card.classList.add('selected');
         this.currentBudget = newBudget;
+
+        // Colapsar las otras opciones del mismo rol
+        const roleCards = document.querySelectorAll(`[data-role-key="${roleKey}"]`);
+        roleCards.forEach(c => {
+            if (c !== card) {
+                c.classList.add('collapsed');
+            } else {
+                c.classList.remove('collapsed');
+            }
+        });
 
         console.log('[selectCrewMember] ALMACENADO:', roleKey, '→', option.name);
         console.log('[selectCrewMember] ALMACENADO stats:', option.stats);
@@ -282,7 +297,8 @@ const missionConfigurator = {
         const nextBtn = document.querySelector('#config-step-1 .config-btn-next');
         if (!nextBtn) return;
 
-        // Verificar que todos los roles estén seleccionados y budget <= 25
+        // Verificar que todos los roles estén seleccionados
+        // El budget puede ser cualquier valor <= 25 puntos
         const allRolesSelected = Object.keys(CREW_OPTIONS).every(
             roleKey => this.selectedCrew[roleKey]
         );
@@ -331,7 +347,7 @@ const missionConfigurator = {
                 <div class="resource-slider-title">
                     <span class="resource-name">${config.name}</span>
                     <button class="resource-info-btn" type="button">
-                        i
+                        ?
                         <span class="resource-info-tooltip">
                             ${config.renewable ? '♻️ Renovable' : '⚠️ No renovable'} - ${config.description}
                         </span>
@@ -571,14 +587,29 @@ const missionConfigurator = {
         if (crewSummary) {
             let html = '<div class="summary-crew-list">';
 
+            // Mapeo de roleKey del configurador a role interno de ROLE_CONFIG
+            const roleMapping = {
+                'comandante': 'captain',
+                'doctor': 'doctor',
+                'ingeniero': 'engineer',
+                'navegante': 'navigator',
+                'chef': 'cook'
+            };
+
             for (const [roleKey, option] of Object.entries(this.selectedCrew)) {
                 const roleData = CREW_OPTIONS[roleKey];
+                const internalRole = roleMapping[roleKey];
+                const roleConfig = ROLE_CONFIG[internalRole] || {};
+                const personEmoji = roleConfig.emoji || roleData.icon;
+
                 html += `
                     <div class="summary-crew-item">
-                        <span class="summary-crew-icon">${roleData.icon}</span>
-                        <span class="summary-crew-role">${roleData.role}:</span>
+                        <span class="summary-crew-icon">${personEmoji}</span>
                         <span class="summary-crew-name">${option.name}</span>
                         <span class="summary-crew-cost">(${option.cost} pts, ${option.age} años)</span>
+                    </div>
+                    <div class="summary-crew-benefits">
+                        ✓ ${option.benefits}
                     </div>
                 `;
             }
