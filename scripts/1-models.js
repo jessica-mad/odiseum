@@ -47,6 +47,11 @@ class Crew {
         // Sistema de pensamientos personalizados (de eventos)
         this.personalThought = null;
         this.personalThoughtExpiry = null;
+
+        // Stats de configuración personalizada (del configurador)
+        this.configStats = data.configStats || {};
+        this.configBenefits = data.configBenefits || null;
+        this.configDrawbacks = data.configDrawbacks || null;
     }
 
     getEffectiveSkillMultiplier() {
