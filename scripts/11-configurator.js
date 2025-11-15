@@ -129,9 +129,23 @@ const missionConfigurator = {
         card.dataset.optionId = option.id;
         card.dataset.cost = option.cost;
 
+        // Mapear roleKey del configurador a role interno
+        const roleMapping = {
+            'comandante': 'commander',
+            'doctor': 'doctor',
+            'ingeniero': 'engineer',
+            'navegante': 'scientist',
+            'chef': 'cook'
+        };
+
+        // Obtener info del rol desde ROLE_CONFIG
+        const internalRole = roleMapping[roleKey];
+        const roleInfo = ROLE_CONFIG[internalRole] || {};
+        const roleLabel = roleInfo.emoji && roleInfo.label ? `${roleInfo.emoji} ${roleInfo.label}` : '';
+
         card.innerHTML = `
             <div class="crew-card-header">
-                <span class="crew-card-name">${option.name}</span>
+                <span class="crew-card-name">${roleLabel} ${option.name}</span>
                 <span class="crew-card-cost">${option.cost} pts</span>
             </div>
             <div class="crew-card-info">
