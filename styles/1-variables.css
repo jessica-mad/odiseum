@@ -67,20 +67,30 @@
     --font-monaco: 'Monaco', 'Courier New', monospace;
     
     /* === TAMAÑOS DE FUENTE === */
-    /* Tamaños mínimos según manual de estilo */
-    --font-size-min-desktop: 14pt;  /* 18.67px */
-    --font-size-min-mobile: 15pt;   /* 20px */
+    /* Tamaños según manual de estilo en px */
 
-    /* Escala de tamaños (manteniendo compatibilidad) */
-    --font-size-xs: 9px;
-    --font-size-sm: 10px;
-    --font-size-base: 14pt;         /* Actualizado a mínimo desktop */
-    --font-size-md: 15pt;
-    --font-size-lg: 16pt;
-    --font-size-xl: 18pt;
-    --font-size-xxl: 20pt;
-    --font-size-title: 22pt;
-    --font-size-hero: 28pt;
+    /* Desktop */
+    --font-size-desktop-content: 14px;      /* Contenido general */
+    --font-size-desktop-h3: 18px;           /* h3 */
+    --font-size-desktop-h2: 20px;           /* h2 */
+    --font-size-desktop-h1: 22px;           /* h1 - máximo jerarquía */
+
+    /* Móvil */
+    --font-size-mobile-content: 15px;       /* Contenido general */
+    --font-size-mobile-h3: 17px;            /* h3 */
+    --font-size-mobile-h2: 18px;            /* h2 */
+    --font-size-mobile-h1: 20px;            /* h1 - máximo jerarquía */
+
+    /* Escala de tamaños (sistema antiguo - deprecado) */
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-xxl: 20px;
+    --font-size-title: 22px;
+    --font-size-hero: 28px;
     
     /* === TRANSICIONES === */
     --transition-fast: 0.15s ease;

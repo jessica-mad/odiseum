@@ -145,19 +145,21 @@ const missionConfigurator = {
 
         card.innerHTML = `
             <div class="crew-card-header">
-                <span class="crew-card-name">${roleLabel} ${option.name}</span>
+                <span class="crew-card-name">${option.name}</span>
                 <span class="crew-card-cost">${option.cost} pts</span>
             </div>
             <div class="crew-card-info">
                 <div class="crew-card-age">Edad: ${option.age} años</div>
             </div>
-            <div class="crew-card-benefits">
-                <div class="crew-card-label">✓ Beneficios:</div>
-                <div class="crew-card-text">${option.benefits}</div>
-            </div>
-            <div class="crew-card-drawbacks">
-                <div class="crew-card-label">✗ Desventajas:</div>
-                <div class="crew-card-text">${option.drawbacks}</div>
+            <div class="crew-card-perks">
+                <div class="crew-card-benefits">
+                    <div class="crew-card-label">✓ Beneficios:</div>
+                    <div class="crew-card-text">${option.benefits}</div>
+                </div>
+                <div class="crew-card-drawbacks">
+                    <div class="crew-card-label">✗ Desventajas:</div>
+                    <div class="crew-card-text">${option.drawbacks}</div>
+                </div>
             </div>
             <div class="crew-card-description">
                 "${option.description}"
@@ -322,12 +324,19 @@ const missionConfigurator = {
         const currentValue = this.selectedResources[key] || config.recommended;
         const weight = currentValue * config.weightPerUnit;
 
+        const fillPercentage = ((currentValue - config.min) / (config.max - config.min)) * 100;
+
         section.innerHTML = `
             <div class="resource-slider-header">
                 <div class="resource-slider-title">
-                    <span class="resource-icon">${config.icon}</span>
                     <span class="resource-name">${config.name}</span>
-                    ${config.critical ? '<span class="critical-badge">CRÍTICO</span>' : ''}
+                    <button class="resource-info-btn" type="button">
+                        i
+                        <span class="resource-info-tooltip">
+                            ${config.renewable ? '♻️ Renovable' : '⚠️ No renovable'} - ${config.description}
+                        </span>
+                    </button>
+                    ${config.critical ? '<span class="critical-badge">¡CRÍTICO!</span>' : ''}
                 </div>
                 <div class="resource-slider-values">
                     <span class="resource-value" id="resource-value-${key}">${currentValue}</span>
@@ -344,18 +353,12 @@ const missionConfigurator = {
                     value="${currentValue}"
                     step="10"
                     data-resource-key="${key}"
+                    style="--slider-fill: ${fillPercentage}%"
                 >
                 <div class="resource-slider-markers">
                     <span class="marker marker-min">${config.min}</span>
-                    <span class="marker marker-rec" style="left: ${((config.recommended - config.min) / (config.max - config.min)) * 100}%">
-                        ${config.recommended}
-                    </span>
                     <span class="marker marker-max">${config.max}</span>
                 </div>
-            </div>
-            <div class="resource-slider-info">
-                <span class="resource-renewable">${config.renewable ? '♻️ Renovable' : '⚠️ No renovable'}</span>
-                <span class="resource-description">${config.description}</span>
             </div>
         `;
 
@@ -377,6 +380,24 @@ const missionConfigurator = {
 
         const config = RESOURCE_LIMITS[key];
 
+        // Verificar si excedería el peso máximo
+        const newWeight = Object.entries(this.selectedResources).reduce((total, [k, v]) => {
+            const val = k === key ? value : v;
+            return total + (val * RESOURCE_LIMITS[k].weightPerUnit);
+        }, 0);
+
+        // Si excede el peso, no permitir el cambio
+        if (newWeight > MAX_CARGO_WEIGHT) {
+            console.log('[updateResourceValue] PESO EXCEDIDO, bloqueando slider');
+            // Restaurar valor anterior del slider
+            const slider = document.getElementById(`slider-${key}`);
+            if (slider) {
+                slider.value = this.selectedResources[key];
+            }
+            this.showWeightAlert(`Peso máximo alcanzado: ${MAX_CARGO_WEIGHT} kg`);
+            return;
+        }
+
         // Actualizar valor
         this.selectedResources[key] = value;
 
@@ -393,9 +414,28 @@ const missionConfigurator = {
         if (valueEl) valueEl.textContent = value;
         if (weightEl) weightEl.textContent = `${weight.toFixed(1)} kg`;
 
+        // Actualizar relleno visual del slider
+        const slider = document.getElementById(`slider-${key}`);
+        if (slider) {
+            const fillPercentage = ((value - config.min) / (config.max - config.min)) * 100;
+            slider.style.setProperty('--slider-fill', `${fillPercentage}%`);
+        }
+
         // Recalcular peso total
         this.updateWeightDisplay();
         this.validateStep2();
+    },
+
+    /* === MOSTRAR ALERTA DE PESO === */
+    showWeightAlert(message) {
+        const alert = document.createElement('div');
+        alert.className = 'config-alert';
+        alert.textContent = message;
+        document.body.appendChild(alert);
+
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
     },
 
     /* === ACTUALIZAR DISPLAY DE PESO === */
@@ -481,13 +521,17 @@ const missionConfigurator = {
         // Actualizar todos los sliders
         for (const [key, value] of Object.entries(preset.resources)) {
             const slider = document.getElementById(`slider-${key}`);
+            const config = RESOURCE_LIMITS[key];
+
             if (slider) {
                 slider.value = value;
+                // Actualizar relleno visual del slider
+                const fillPercentage = ((value - config.min) / (config.max - config.min)) * 100;
+                slider.style.setProperty('--slider-fill', `${fillPercentage}%`);
             }
 
             const valueEl = document.getElementById(`resource-value-${key}`);
             const weightEl = document.getElementById(`resource-weight-${key}`);
-            const config = RESOURCE_LIMITS[key];
             const weight = value * config.weightPerUnit;
 
             if (valueEl) valueEl.textContent = value;

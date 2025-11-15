@@ -78,32 +78,46 @@ button {
 
 ### 2.2 TAMAÑOS DE FUENTE MÍNIMOS
 
-**REGLA: Tamaños mínimos legibles**
+**REGLA: Tamaños mínimos legibles en px**
 
-- **Desktop:** `14pt` mínimo (≈ 18.67px)
-- **Móvil:** `15pt` mínimo (≈ 20px)
+**Desktop:**
+- **Titulares h1-h3:** hasta 22px (h1), 20px (h2), 18px (h3)
+- **Contenido general:** 14px mínimo
+
+**Móvil:**
+- **Titulares h1-h3:** hasta 20px (h1), 18px (h2), 17px (h3)
+- **Contenido general:** 15px mínimo
 
 ```css
 /* Desktop */
 @media (min-width: 769px) {
-    body {
-        font-size: 14pt; /* 18.67px */
-    }
+    body { font-size: 14px; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 18px; }
 }
 
 /* Móvil */
 @media (max-width: 768px) {
-    body {
-        font-size: 15pt; /* 20px */
-    }
+    body { font-size: 15px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 17px; }
 }
 ```
 
 **Variables CSS:**
 ```css
 :root {
-    --font-size-min-desktop: 14pt;
-    --font-size-min-mobile: 15pt;
+    --font-size-desktop-content: 14px;
+    --font-size-desktop-h1: 22px;
+    --font-size-desktop-h2: 20px;
+    --font-size-desktop-h3: 18px;
+
+    --font-size-mobile-content: 15px;
+    --font-size-mobile-h1: 20px;
+    --font-size-mobile-h2: 18px;
+    --font-size-mobile-h3: 17px;
 }
 ```
 
