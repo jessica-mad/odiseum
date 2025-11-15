@@ -511,7 +511,8 @@ class Crew {
             return card;
         }
 
-        card.onclick = () => openCrewManagementPopup(this.name);
+        // Abrir tab del tripulante en el terminal en lugar de popup
+        card.onclick = () => switchTerminalTab(`crew-${this.id}`);
 
         try {
             // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
@@ -849,7 +850,8 @@ class Crew {
             return;
         }
 
-        card.onclick = () => openCrewManagementPopup(this.name);
+        // Abrir tab del tripulante en el terminal en lugar de popup
+        card.onclick = () => switchTerminalTab(`crew-${this.id}`);
 
         // USAR EL MISMO DISEÑO QUE createMiniCard()
         // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
