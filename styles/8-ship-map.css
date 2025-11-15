@@ -162,8 +162,10 @@
 
 /* === WRAPPER CON ZOOM === */
 .ship-map-zoom-wrapper {
-    flex: 0 0 auto; /* No expandir */
-    height: 420px; /* Altura fija para el visor */
+
+    flex: 0 0 auto; /* No expandir, solo ocupar el espacio necesario */
+    height: 420px; /* Altura fija: 400px del mapa + padding */
+
     overflow: visible;
     display: flex;
     align-items: center;
@@ -187,27 +189,28 @@
 /* === CONTENEDOR DEL MAPA (36x13) === */
 .ship-map-square-container {
     position: relative;
-    width: 100%; /* 400px del wrapper */
-    height: 100%; /* 400px del wrapper */
-    overflow: hidden; /* Ocultar el resto del mapa */
+    width: 100%;
+    max-width: 400px; /* Limitar ancho máximo */
+    height: 400px; /* Altura fija para hacer cuadrado */
+    margin: 0 auto; /* Centrar */
+    overflow: hidden; /* Ocultar overflow para pan */
     cursor: grab;
     background: rgba(0, 0, 0, 0.5);
-    border: 2px solid var(--color-terminal-green);
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+    border: 1px solid rgba(0, 255, 65, 0.3);
 }
 
 .ship-map-square-container:active {
     cursor: grabbing;
 }
 
-/* === GRILLA DEL MAPA (36x13) === */
+/* === GRILLA DEL MAPA (36x13) - Ahora scrolleable/paneable === */
 .ship-map-grid {
     position: absolute;
     top: 0;
     left: 0;
-    /* Calcular dimensiones para mantener proporción 13x36 */
-    width: 144px; /* 400px * 13/36 */
-    height: 400px;
+    /* Proporción real del mapa escalada para ser visible */
+    width: 200px; /* 13 columnas */
+    height: 554px; /* 36 filas (200 * 36/13) */
     display: grid;
     grid-template-columns: repeat(13, 1fr);
     grid-template-rows: repeat(36, 1fr);
@@ -224,8 +227,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 144px; /* Mismo que grid */
-    height: 400px; /* Mismo que grid */
+    width: 200px; /* Mismo tamaño que grid */
+    height: 554px; /* Mismo tamaño que grid */
     padding: 4px; /* Mismo padding que grid */
     pointer-events: none;
     z-index: 10;
@@ -234,12 +237,12 @@
 /* === PANEL DE ESTADO DE SALAS === */
 .ship-map-rooms-status {
     width: 100%;
-    flex: 1; /* Ocupar espacio restante */
-    min-height: 180px; /* Altura mínima */
+    flex: 1; /* Ocupar el espacio restante */
+    min-height: 140px; /* Altura mínima */
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow-y: auto; /* Scroll vertical */
+    overflow-y: auto; /* Permitir scroll si es necesario */
     padding: 8px;
     background: rgba(0, 0, 0, 0.3);
     border-top: 2px solid var(--color-terminal-green);
@@ -259,8 +262,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 6px;
-    overflow-x: visible;
-    overflow-y: visible;
+    overflow-x: auto;
+    overflow-y: visible; /* Permitir que las cards se vean completas */
     padding-bottom: 4px;
 }
 
@@ -347,12 +350,12 @@
 
 .room-status-crew {
     margin-top: 4px;
-    padding: 4px 6px;
+    padding: 4px;
     background: rgba(0, 255, 65, 0.05);
     border: 1px solid rgba(0, 255, 65, 0.2);
     border-radius: 3px;
     font-size: 10px;
-    color: rgba(0, 255, 65, 0.85);
+    color: rgba(0, 255, 65, 0.8);
     text-align: center;
     max-height: 32px;
     overflow: hidden;
@@ -425,12 +428,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 10px;
     transition: all 0.2s ease;
+    min-width: 0;
     min-height: 0;
-    aspect-ratio: 1; /* Forzar celdas cuadradas */
-    width: 100%;
-    height: 100%;
 }
 
 .grid-cell:hover {

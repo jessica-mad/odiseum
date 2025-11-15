@@ -271,6 +271,29 @@ class ShipMapSystem {
         return html;
     }
 
+    /**
+     * Obtiene la lista de tripulantes que están en una zona específica
+     */
+    getCrewInZone(zoneKey) {
+        const crew = [];
+
+        crewMembers.forEach(c => {
+            if (!c.isAlive) return;
+
+            const pos = this.crewLocations[c.id];
+            if (!pos) return;
+
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType);
+
+            if (currentZone === zoneKey) {
+                crew.push(c);
+            }
+        });
+
+        return crew;
+    }
+
     setupZoomControls() {
         const zoomInBtn = document.getElementById('zoom-in-btn');
         const zoomOutBtn = document.getElementById('zoom-out-btn');
