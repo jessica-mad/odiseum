@@ -9,16 +9,28 @@ function switchTerminalTab(tabName) {
     const allContents = document.querySelectorAll('.terminal-tab-content');
     allContents.forEach(content => content.classList.remove('active'));
 
-    // Desactivar todos los botones de tabs
-    const allTabs = document.querySelectorAll('.terminal-tab');
+    // Desactivar todos los botones de tabs (desktop y móvil)
+    const allTabs = document.querySelectorAll('.terminal-tab, .mobile-terminal-tab');
     allTabs.forEach(tab => tab.classList.remove('active'));
 
-    // Activar el tab seleccionado
+    // Activar el tab seleccionado (desktop)
     const selectedContent = document.getElementById(`terminal-content-${tabName}`);
     const selectedTab = document.getElementById(`tab-${tabName}`);
 
+    // También activar para móvil
+    const selectedContentMobile = document.getElementById(`terminal-content-${tabName}-mobile`);
+
     if (selectedContent) selectedContent.classList.add('active');
+    if (selectedContentMobile) selectedContentMobile.classList.add('active');
     if (selectedTab) selectedTab.classList.add('active');
+
+    // Activar el botón móvil correspondiente
+    const mobileTabs = document.querySelectorAll('.mobile-terminal-tab');
+    mobileTabs.forEach(tab => {
+        if (tab.textContent.toLowerCase().includes(tabName === 'console' ? 'consola' : 'tripulación')) {
+            tab.classList.add('active');
+        }
+    });
 
     // Si es el tab de tripulación, actualizar las fichas
     if (tabName === 'crew') {
@@ -28,15 +40,25 @@ function switchTerminalTab(tabName) {
 
 /* === ACTUALIZAR FICHAS DE TRIPULANTES EN TERMINAL === */
 function updateTerminalCrewCards() {
+    // Desktop
     const container = document.getElementById('terminal-crew-cards');
-    if (!container || !Array.isArray(crewMembers)) return;
+    if (container && Array.isArray(crewMembers)) {
+        container.innerHTML = '';
+        crewMembers.forEach(crew => {
+            const card = createTerminalCrewCard(crew);
+            container.appendChild(card);
+        });
+    }
 
-    container.innerHTML = '';
-
-    crewMembers.forEach(crew => {
-        const card = createTerminalCrewCard(crew);
-        container.appendChild(card);
-    });
+    // Móvil
+    const mobileContainer = document.getElementById('mobile-crew-cards');
+    if (mobileContainer && Array.isArray(crewMembers)) {
+        mobileContainer.innerHTML = '';
+        crewMembers.forEach(crew => {
+            const card = createTerminalCrewCard(crew);
+            mobileContainer.appendChild(card);
+        });
+    }
 }
 
 /* === CREAR FICHA DE TRIPULANTE PARA TERMINAL === */

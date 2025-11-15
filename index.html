@@ -205,9 +205,29 @@
 
         <!-- Terminal/Content Area - Mobile -->
         <div class="mobile-content-area mobile-only" id="mobile-content-area" style="display: none;">
-            <div class="mobile-terminal" id="mobile-terminal">
-                <div class="terminal-line">&gt; Sistema iniciado...</div>
-                <div class="terminal-line">&gt; Esperando instrucciones...</div>
+            <!-- Tabs móvil -->
+            <div class="mobile-terminal-tabs">
+                <button class="mobile-terminal-tab active" onclick="switchTerminalTab('console')">
+                    CONSOLA
+                </button>
+                <button class="mobile-terminal-tab" onclick="switchTerminalTab('crew')">
+                    TRIPULACIÓN
+                </button>
+            </div>
+
+            <!-- Tab 1: Consola -->
+            <div class="terminal-tab-content active" id="terminal-content-console-mobile">
+                <div class="mobile-terminal" id="mobile-terminal">
+                    <div class="terminal-line">&gt; Sistema iniciado...</div>
+                    <div class="terminal-line">&gt; Esperando instrucciones...</div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Tripulación -->
+            <div class="terminal-tab-content" id="terminal-content-crew-mobile">
+                <div class="crew-cards-grid-mobile" id="mobile-crew-cards">
+                    <!-- Se genera dinámicamente con JS -->
+                </div>
             </div>
         </div>
 
