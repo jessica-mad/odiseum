@@ -194,3 +194,319 @@ const DEATH_PROBABILITIES = {
 
 /* === SISTEMA DE EVENTOS (REFERENCIA GLOBAL) === */
 let eventSystem = null;
+
+/* === CONFIGURACIÓN DE MISIÓN PRE-PARTIDA === */
+
+// Presupuesto total para selección de tripulación
+const CREW_BUDGET = 25;
+
+// Opciones de tripulación por rol (3 opciones por rol)
+const CREW_OPTIONS = {
+    comandante: {
+        role: 'Comandante',
+        icon: '🎖️',
+        options: [
+            {
+                id: 'comandante-veterano',
+                name: 'Chen',
+                cost: 7,
+                age: 45,
+                benefits: '+15% eficiencia a tripulación despierta',
+                drawbacks: 'Envejece más rápido por edad avanzada',
+                description: 'Liderazgo probado en 3 misiones. Lástima que el cuerpo no olvide.',
+                stats: { efficiencyBonus: 0.15, agingRate: 1.2 }
+            },
+            {
+                id: 'comandante-estandar',
+                name: 'Morgan',
+                cost: 5,
+                age: 35,
+                benefits: '+10% eficiencia a tripulación despierta',
+                drawbacks: 'Ninguna destacable',
+                description: 'Balance entre experiencia y vitalidad. No promete milagros.',
+                stats: { efficiencyBonus: 0.10, agingRate: 1.0 }
+            },
+            {
+                id: 'comandante-promovido',
+                name: 'Nova',
+                cost: 3,
+                age: 28,
+                benefits: '+5% eficiencia, +10% suerte en eventos críticos',
+                drawbacks: 'Menos autoridad que los veteranos',
+                description: 'Promovida por "conexiones políticas". Ojalá sepa lo que hace.',
+                stats: { efficiencyBonus: 0.05, luckBonus: 0.10, agingRate: 1.0 }
+            }
+        ]
+    },
+    doctor: {
+        role: 'Doctor/a',
+        icon: '⚕️',
+        options: [
+            {
+                id: 'doctor-botanico',
+                name: 'Rodriguez',
+                cost: 7,
+                age: 38,
+                benefits: 'Cura normal + 30% producción en invernadero + puede sintetizar medicina',
+                drawbacks: 'Ninguna',
+                description: 'Dos doctorados. Posible fraude académico o insomnio crónico.',
+                stats: { healingRate: 1.0, greenhouseBonus: 0.30, canSynthMedicine: true }
+            },
+            {
+                id: 'doctor-estandar',
+                name: 'Kim',
+                cost: 5,
+                age: 32,
+                benefits: 'Cura a velocidad normal (1.0 HP/tick)',
+                drawbacks: 'Ninguna',
+                description: 'Hace su trabajo sin florituras. Juramento Hipocrático incluido.',
+                stats: { healingRate: 1.0, greenhouseBonus: 0, canSynthMedicine: false }
+            },
+            {
+                id: 'doctor-precavida',
+                name: 'Santos',
+                cost: 3,
+                age: 29,
+                benefits: 'Cura 1.5x más rápido',
+                drawbacks: 'Gasta 50% más medicina',
+                description: 'Eficaz pero derrochadora. "Más vale prevenir que lamentar".',
+                stats: { healingRate: 1.5, medicineUsage: 1.5, greenhouseBonus: 0, canSynthMedicine: false }
+            }
+        ]
+    },
+    ingeniero: {
+        role: 'Ingeniero/a',
+        icon: '🔧',
+        options: [
+            {
+                id: 'ingeniero-veterano',
+                name: 'Torres',
+                cost: 7,
+                age: 42,
+                benefits: 'Repara 1.5x más rápido, reduce degradación 40%',
+                drawbacks: 'Edad avanzada',
+                description: 'Ha visto de todo. Literalmente. Las pesadillas lo confirman.',
+                stats: { repairRate: 1.5, degradationReduction: 0.40, agingRate: 1.1 }
+            },
+            {
+                id: 'ingeniero-estandar',
+                name: 'Patel',
+                cost: 5,
+                age: 34,
+                benefits: 'Repara normal, reduce degradación 20%',
+                drawbacks: 'Ninguna',
+                description: 'Competente apretando tuercas. Nada más, nada menos.',
+                stats: { repairRate: 1.0, degradationReduction: 0.20 }
+            },
+            {
+                id: 'ingeniero-prodigio',
+                name: 'Lee',
+                cost: 3,
+                age: 24,
+                benefits: 'Puede mejorar salas (+10% capacidad permanente)',
+                drawbacks: 'Repara más lento que los demás',
+                description: 'Genio joven que aún no ha matado a nadie. Todavía.',
+                stats: { repairRate: 0.8, canUpgradeRooms: true, upgradeBonus: 0.10 }
+            }
+        ]
+    },
+    navegante: {
+        role: 'Navegante',
+        icon: '🧭',
+        options: [
+            {
+                id: 'navegante-arriesgado',
+                name: 'Ramos',
+                cost: 7,
+                age: 36,
+                benefits: 'Ruta corta (150 días, ~10 tramos)',
+                drawbacks: 'Eventos 20% más difíciles, menos margen de error',
+                description: 'Rápido y peligroso. Como comida mal cocinada.',
+                stats: { totalTranches: 10, eventDifficulty: 1.2, fuelConsumption: 1.0 }
+            },
+            {
+                id: 'navegante-estandar',
+                name: 'Johnson',
+                cost: 5,
+                age: 33,
+                benefits: 'Ruta media (180 días, ~12 tramos)',
+                drawbacks: 'Ninguna',
+                description: 'No promete nada, no decepciona (mucho).',
+                stats: { totalTranches: 12, eventDifficulty: 1.0, fuelConsumption: 1.0 }
+            },
+            {
+                id: 'navegante-conservador',
+                name: 'Nakamura',
+                cost: 3,
+                age: 40,
+                benefits: 'Ruta larga (210 días, ~15 tramos)',
+                drawbacks: 'Consume más fuel, más tiempo encerrados',
+                description: 'Lento pero (probablemente) seguro. Énfasis en "probablemente".',
+                stats: { totalTranches: 15, eventDifficulty: 0.8, fuelConsumption: 1.2 }
+            }
+        ]
+    },
+    chef: {
+        role: 'Chef',
+        icon: '👨‍🍳',
+        options: [
+            {
+                id: 'chef-eficiente',
+                name: 'Dubois',
+                cost: 7,
+                age: 31,
+                benefits: 'Crew consume -10% food, plantas producen +20%',
+                drawbacks: 'Ninguna',
+                description: 'Gordon Ramsay espacial sin los insultos. Solo la calidad.',
+                stats: { foodConsumption: 0.90, greenhouseBonus: 0.20 }
+            },
+            {
+                id: 'chef-estandar',
+                name: 'Garcia',
+                cost: 5,
+                age: 28,
+                benefits: 'Producción normal de food',
+                drawbacks: 'Ninguna',
+                description: 'Hace comida comestible. A veces hasta sabe bien.',
+                stats: { foodConsumption: 1.0, greenhouseBonus: 0 }
+            },
+            {
+                id: 'chef-creativo',
+                name: 'Chen',
+                cost: 3,
+                age: 26,
+                benefits: 'Puede convertir Water → Food en emergencias (2:1)',
+                drawbacks: 'Menos eficiente en producción normal',
+                description: 'Inventa recetas raras. Agua con sabor a comida es su especialidad.',
+                stats: { foodConsumption: 1.1, canConvertWater: true, conversionRate: 0.5 }
+            }
+        ]
+    }
+};
+
+// Límites y características de recursos
+const RESOURCE_LIMITS = {
+    energy: {
+        name: 'Energía',
+        icon: '⚡',
+        weightPerUnit: 1,
+        min: 300,
+        max: 1000,
+        recommended: 700,
+        renewable: false,
+        description: 'Sistemas vitales. Sin esto, todo falla.'
+    },
+    food: {
+        name: 'Alimentos',
+        icon: '🍕',
+        weightPerUnit: 2,
+        min: 100,
+        max: 500,
+        recommended: 300,
+        renewable: true,
+        description: 'Comida procesada. El invernadero ayuda, pero no es magia.'
+    },
+    water: {
+        name: 'Agua',
+        icon: '💧',
+        weightPerUnit: 1,
+        min: 200,
+        max: 800,
+        recommended: 600,
+        renewable: true,
+        description: 'H₂O. Bebible y reciclable (no preguntes cómo).'
+    },
+    oxygen: {
+        name: 'Oxígeno',
+        icon: '🫁',
+        weightPerUnit: 0.5,
+        min: 400,
+        max: 1000,
+        recommended: 800,
+        renewable: true,
+        description: 'Para respirar. Bastante importante, dicen los expertos.'
+    },
+    medicine: {
+        name: 'Medicinas',
+        icon: '💊',
+        weightPerUnit: 0.5,
+        min: 50,
+        max: 300,
+        recommended: 100,
+        renewable: false,
+        description: 'Primeros auxilios y analgésicos. Ojalá no los necesites.'
+    },
+    data: {
+        name: 'Datos/Entret.',
+        icon: '💾',
+        weightPerUnit: 0.1,
+        min: 50,
+        max: 300,
+        recommended: 200,
+        renewable: false,
+        description: 'Películas, música, libros. Para no enloquecer (tanto).'
+    },
+    fuel: {
+        name: 'Combustible',
+        icon: '🛢️',
+        weightPerUnit: 1,
+        min: 500,
+        max: 1500,
+        recommended: 1000,
+        renewable: false,
+        critical: true,
+        description: 'Sin fuel, la nave es un ataúd flotante. No escatimes.'
+    }
+};
+
+// Presets de configuración rápida
+const RESOURCE_PRESETS = {
+    balanceado: {
+        name: 'Balanceado',
+        icon: '⚖️',
+        description: 'Equilibrio entre seguridad y eficiencia',
+        totalWeight: 3000,
+        resources: {
+            energy: 700,
+            food: 300,
+            water: 600,
+            oxygen: 800,
+            medicine: 100,
+            data: 200,
+            fuel: 1000
+        }
+    },
+    supervivencia: {
+        name: 'Supervivencia',
+        icon: '🛡️',
+        description: 'Prioriza recursos vitales sobre comodidades',
+        totalWeight: 2600,
+        resources: {
+            energy: 500,
+            food: 250,
+            water: 500,
+            oxygen: 700,
+            medicine: 80,
+            data: 150,
+            fuel: 900
+        }
+    },
+    velocista: {
+        name: 'Velocista',
+        icon: '⚡',
+        description: 'Optimizado para rutas rápidas',
+        totalWeight: 2400,
+        resources: {
+            energy: 600,
+            food: 200,
+            water: 450,
+            oxygen: 650,
+            medicine: 120,
+            data: 180,
+            fuel: 800
+        }
+    }
+};
+
+// Peso máximo de carga
+const MAX_CARGO_WEIGHT = 3000;

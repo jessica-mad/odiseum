@@ -2,6 +2,35 @@
 // MODELOS - ODISEUM V2.0
 // ============================================
 
+/* === CONFIGURACIÓN DE ROLES === */
+const ROLE_CONFIG = {
+    captain: {
+        emoji: '👨‍✈️',
+        label: 'CPT',
+        name: 'Capitán/a'
+    },
+    doctor: {
+        emoji: '👩‍⚕️',
+        label: 'MED',
+        name: 'Doctor/a'
+    },
+    engineer: {
+        emoji: '👨‍🔧',
+        label: 'ENG',
+        name: 'Ingeniero/a'
+    },
+    navigator: {
+        emoji: '👨‍🚀',
+        label: 'NAV',
+        name: 'Navegante'
+    },
+    cook: {
+        emoji: '👨‍🍳',
+        label: 'CHEF',
+        name: 'Chef'
+    }
+};
+
 /* === CLASE TRIPULANTE === */
 class Crew {
     constructor(data) {
@@ -47,6 +76,16 @@ class Crew {
         // Sistema de pensamientos personalizados (de eventos)
         this.personalThought = null;
         this.personalThoughtExpiry = null;
+
+        // Stats de configuración personalizada (del configurador)
+        this.configStats = data.configStats || {};
+        this.configBenefits = data.configBenefits || null;
+        this.configDrawbacks = data.configDrawbacks || null;
+
+        // Log para debugging
+        if (data.configStats && Object.keys(data.configStats).length > 0) {
+            console.log(`[Crew Constructor] ${this.name} - configStats recibidos:`, this.configStats);
+        }
     }
 
     getEffectiveSkillMultiplier() {
@@ -62,18 +101,25 @@ class Crew {
     /* === SISTEMA DE EDAD === */
     age(years) {
         if (this.state === 'Despierto' && this.isAlive) {
-            this.biologicalAge += years;
-            this.yearsAwake += years;
-            
+            // Aplicar modificador de envejecimiento si existe en configStats
+            let agingMultiplier = 1.0;
+            if (this.configStats && this.configStats.agingRate) {
+                agingMultiplier = this.configStats.agingRate;
+            }
+
+            const effectiveAging = years * agingMultiplier;
+            this.biologicalAge += effectiveAging;
+            this.yearsAwake += years; // Los años reales despierto no cambian
+
             // Registrar envejecimiento significativo
             if (years >= 1) {
                 logbook.addEntry(
-                    `${this.name} ha envejecido ${years.toFixed(1)} años. Edad biológica: ${this.biologicalAge.toFixed(1)} años`,
+                    `${this.name} ha envejecido ${effectiveAging.toFixed(1)} años. Edad biológica: ${this.biologicalAge.toFixed(1)} años`,
                     LOG_TYPES.AGE
                 );
-                this.addToPersonalLog(`Envejecí ${years.toFixed(1)} años. Me siento diferente...`);
+                this.addToPersonalLog(`Envejecí ${effectiveAging.toFixed(1)} años. Me siento diferente...`);
             }
-            
+
             // Muerte por vejez
             if (this.biologicalAge >= DEATH_BY_AGE_THRESHOLD && Math.random() < DEATH_BY_AGE_PROBABILITY) {
                 this.die('vejez natural');
@@ -213,7 +259,16 @@ class Crew {
             new CrewNotification(`${this.name} está exhausto`, NOTIFICATION_TYPES.WARNING);
         }
     }
-    
+
+    /* === OBTENER LABEL Y EMOJI DEL ROL === */
+    getRoleLabel() {
+        const roleInfo = ROLE_CONFIG[this.role];
+        if (roleInfo) {
+            return `${roleInfo.emoji} ${roleInfo.label}`;
+        }
+        return '👤'; // Fallback si no hay rol definido
+    }
+
     /* === SISTEMA DE AUTO-GESTIÓN === */
     tryAutoManage() {
         if (!this.isAlive || (this.state !== CREW_STATES.AWAKE && this.state !== CREW_STATES.RESTING)) return;
@@ -247,21 +302,27 @@ class Crew {
         // Auto-gestionar salud (medicina)
         // Si healthNeed < 100, intentar curar hasta que esté completamente sano
         if (this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // Bonus si la Dra. Chen está despierta
-            let drChenAwake = false;
+            // Buscar al doctor y verificar si está despierto
+            let doctor = null;
+            let doctorAwake = false;
             if (typeof crewMembers !== 'undefined' && crewMembers) {
-                const drChen = crewMembers.find(c => c.position === 'Médica' && c.name === 'Dra. Chen');
-                if (drChen && drChen.state === 'Despierto' && drChen.isAlive) {
-                    drChenAwake = true;
+                doctor = crewMembers.find(c => c.role === 'doctor');
+                if (doctor && doctor.state === 'Despierto' && doctor.isAlive) {
+                    doctorAwake = true;
                 }
             }
 
             // Recuperación base con multiplicador de eficiencia
             let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
 
-            // Bonus de +50% si la Dra. Chen está despierta
-            if (drChenAwake) {
-                baseRecovery *= 1.5;
+            // Bonus de +50% si el doctor está despierto (legacy default)
+            // O usar healingRate del configStats si existe
+            if (doctorAwake) {
+                if (doctor.configStats && doctor.configStats.healingRate) {
+                    baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * doctor.configStats.healingRate * efficiencyMultiplier;
+                } else {
+                    baseRecovery *= 1.5;
+                }
             }
 
             // Calcular cuánto realmente necesita para llegar a 100
@@ -269,15 +330,21 @@ class Crew {
             const actualRecovery = Math.min(needed, baseRecovery);
 
             // Consumir recursos proporcionalmente (regla de 3)
-            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+            let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+
+            // Aplicar modificador de consumo de medicina si el doctor lo tiene
+            if (doctorAwake && doctor.configStats && doctor.configStats.medicineUsage) {
+                resourcesNeeded = Math.ceil(resourcesNeeded * doctor.configStats.medicineUsage);
+            }
+
             const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
 
             if (resourcesToUse > 0) {
                 Medicine.consume(resourcesToUse);
                 this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
 
-                if (drChenAwake) {
-                    autoManageActions.push('fue atendido por la Dra. Chen');
+                if (doctorAwake) {
+                    autoManageActions.push(`fue atendido por ${doctor.name}`);
                 } else {
                     autoManageActions.push('tomó medicina');
                 }
@@ -394,7 +461,7 @@ class Crew {
             <td>${this.position}</td>
             <td><span id="age-display-${this.id}">${this.initialAge} → ${this.biologicalAge.toFixed(1)}</span></td>
             <td id="state-${this.id}">${this.state}</td>
-            <td><button onclick="openCrewManagementPopup('${this.name}')">Gestionar</button></td>
+            <td><button onclick="switchTerminalTab('crew-${this.id}')">Ver Ficha</button></td>
         `;
         crewList.appendChild(row);
     }
@@ -436,7 +503,7 @@ class Crew {
             card.onclick = null;
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-status">💀</span>
                 </div>
                 <div class="crew-card-state deceased">FALLECIDO</div>
@@ -444,7 +511,8 @@ class Crew {
             return card;
         }
 
-        card.onclick = () => openCrewManagementPopup(this.name);
+        // Abrir tab del tripulante en el terminal en lugar de popup
+        card.onclick = () => switchTerminalTab(`crew-${this.id}`);
 
         try {
             // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
@@ -463,7 +531,7 @@ class Crew {
 
                 card.innerHTML = `
                     <div class="crew-card-header">
-                        <span class="crew-card-name">${this.name}</span>
+                        <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                         <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                     </div>
                     ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
@@ -481,7 +549,7 @@ class Crew {
                 console.log(`🎨 Creando card ENCAPSULADO para ${this.name}`);
                 card.innerHTML = `
                     <div class="crew-card-header">
-                        <span class="crew-card-name">${this.name}</span>
+                        <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                         <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                     </div>
                     <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">
@@ -494,7 +562,7 @@ class Crew {
             // Crear una card de fallback básica
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
                 <div class="crew-card-state">${this.state}</div>
@@ -774,7 +842,7 @@ class Crew {
             card.onclick = null;
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-status">💀</span>
                 </div>
                 <div class="crew-card-state deceased">FALLECIDO</div>
@@ -782,7 +850,8 @@ class Crew {
             return;
         }
 
-        card.onclick = () => openCrewManagementPopup(this.name);
+        // Abrir tab del tripulante en el terminal en lugar de popup
+        card.onclick = () => switchTerminalTab(`crew-${this.id}`);
 
         // USAR EL MISMO DISEÑO QUE createMiniCard()
         // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
@@ -793,7 +862,7 @@ class Crew {
 
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
                 ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
@@ -808,7 +877,7 @@ class Crew {
             // ENCAPSULADOS: mostrar necesidades con barras
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
                 <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">

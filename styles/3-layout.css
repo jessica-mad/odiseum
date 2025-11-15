@@ -47,6 +47,66 @@
     font-size: var(--font-size-md);
 }
 
+.login-form input[type="text"] {
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green);
+    padding: var(--spacing-sm);
+    font-family: var(--font-monaco);
+}
+
+.login-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-terminal-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.login-form button {
+    background: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green);
+    padding: var(--spacing-md);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-top: var(--spacing-md);
+}
+
+.login-form button:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+}
+
+.seed-separator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin: var(--spacing-xl) 0;
+}
+
+.separator-line {
+    flex: 1;
+    height: 1px;
+    background: var(--color-terminal-green-dark);
+}
+
+.separator-text {
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dark);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.seed-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    font-style: italic;
+    text-align: left;
+    margin-top: -5px;
+    line-height: 1.4;
+}
+
 /* === ESCRITORIO PRINCIPAL === */
 .desktop {
     width: 100vw;

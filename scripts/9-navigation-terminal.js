@@ -60,13 +60,14 @@ class TerminalNotificationSystem {
         // Iterar sobre todos los tripulantes
         crewMembers.forEach(crew => {
             const name = crew.name;
+            const crewId = crew.id;
             // Crear un patrón regex que detecte el nombre completo
             // Usamos word boundaries para evitar coincidencias parciales
             const regex = new RegExp(`\\b${this.escapeRegex(name)}\\b`, 'g');
 
-            // Reemplazar el nombre con un link clickeable
+            // Reemplazar el nombre con un link clickeable que abre su tab en el terminal
             processedMessage = processedMessage.replace(regex,
-                `<span class="crew-link" onclick="openCrewManagementPopup('${this.escapeHtml(name)}')" style="color: var(--color-terminal-green); text-decoration: underline; cursor: pointer;">${name}</span>`
+                `<span class="crew-link" onclick="switchTerminalTab('crew-${crewId}')" style="color: var(--color-terminal-green); text-decoration: underline; cursor: pointer;">${name}</span>`
             );
         });
 

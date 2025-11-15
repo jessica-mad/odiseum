@@ -1137,6 +1137,167 @@
     50% { opacity: 0.4; }
 }
 
+/* === TABS DEL TERMINAL === */
+.terminal-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-tab {
+    background: transparent;
+    border: 1px solid var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dim);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.terminal-tab:hover {
+    background: rgba(0, 255, 65, 0.1);
+    border-color: var(--color-terminal-green);
+    color: var(--color-terminal-green);
+}
+
+.terminal-tab.active {
+    background: var(--color-terminal-green-dark);
+    border-color: var(--color-terminal-green);
+    color: var(--color-terminal-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+/* === CONTENIDO DE TABS === */
+.terminal-tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.terminal-tab-content.active {
+    display: block;
+}
+
+/* === FICHAS DE TRIPULANTES EN TERMINAL === */
+.crew-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    padding: 12px;
+}
+
+.terminal-crew-card {
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+    padding: 12px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.terminal-crew-card:hover {
+    border-color: var(--color-terminal-green);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    transform: translateY(-2px);
+}
+
+.terminal-crew-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+}
+
+.terminal-crew-name {
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    font-size: var(--font-size-sm);
+}
+
+.terminal-crew-status {
+    font-size: 14px;
+}
+
+.terminal-crew-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.terminal-crew-info-line {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-terminal-green-dim);
+}
+
+.terminal-crew-info-label {
+    color: var(--color-terminal-green-dim);
+}
+
+.terminal-crew-info-value {
+    color: var(--color-terminal-green);
+    font-weight: bold;
+}
+
+.terminal-crew-stats {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-terminal-green-dark);
+}
+
+.terminal-stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.terminal-stat-label {
+    min-width: 50px;
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+}
+
+.terminal-stat-track {
+    flex: 1;
+    height: 8px;
+    background: var(--color-terminal-bg);
+    border: 1px solid var(--color-terminal-green-dark);
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-stat-fill {
+    height: 100%;
+    background: var(--color-terminal-green);
+    transition: width var(--transition-normal);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.terminal-stat-fill.low {
+    background: var(--color-alert-red);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+.terminal-stat-fill.medium {
+    background: var(--color-alert-yellow);
+    box-shadow: 0 0 10px rgba(255, 200, 0, 0.5);
+}
+
+.terminal-stat-value {
+    min-width: 35px;
+    text-align: right;
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+}
+
 .terminal-cursor {
     display: inline-block;
     width: 8px;
@@ -1624,4 +1785,352 @@
     text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
     background: rgba(0, 255, 65, 0.1);
     padding: 0 2px;
+}
+
+/* === PERFIL COMPLETO DE TRIPULANTE EN TERMINAL === */
+.crew-profile-full {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.crew-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green-dark);
+    margin-bottom: 16px;
+}
+
+.crew-profile-header.awake {
+    border-color: var(--color-terminal-green);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.crew-profile-header.asleep {
+    border-color: var(--color-terminal-green-dim);
+    opacity: 0.8;
+}
+
+.crew-profile-header.dead {
+    border-color: var(--color-alert-red);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+}
+
+.crew-profile-avatar {
+    font-size: 48px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.crew-profile-title h2 {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-lg);
+    color: var(--color-terminal-green);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.crew-profile-subtitle {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green-dim);
+    margin-top: 4px;
+}
+
+.crew-profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.crew-profile-section {
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    padding: 12px;
+}
+
+.crew-profile-section-title {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+}
+
+.crew-profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.crew-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    padding: 6px 0;
+}
+
+.crew-info-item.full-width {
+    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.crew-info-label {
+    color: var(--color-terminal-green-dim);
+    min-width: 120px;
+}
+
+.crew-info-value {
+    color: var(--color-terminal-green);
+    font-weight: bold;
+}
+
+.crew-info-value.awake {
+    color: var(--color-terminal-green);
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+}
+
+.crew-info-value.asleep {
+    color: var(--color-terminal-green-dim);
+}
+
+.crew-info-value.dead {
+    color: var(--color-alert-red);
+}
+
+.crew-info-value.thought {
+    width: 100%;
+    font-style: italic;
+    color: var(--color-terminal-green-dim);
+}
+
+/* === NECESIDADES === */
+.crew-needs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.crew-need-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.crew-need-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+}
+
+.crew-need-icon {
+    font-size: 16px;
+}
+
+.crew-need-label {
+    flex: 1;
+    color: var(--color-terminal-green-dim);
+}
+
+.crew-need-value {
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    min-width: 40px;
+    text-align: right;
+}
+
+.crew-need-track {
+    height: 12px;
+    background: var(--color-terminal-bg);
+    border: 1px solid var(--color-terminal-green-dark);
+    position: relative;
+    overflow: hidden;
+}
+
+.crew-need-fill {
+    height: 100%;
+    background: var(--color-terminal-green);
+    transition: width var(--transition-normal);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.crew-need-fill.low {
+    background: var(--color-alert-red);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+.crew-need-fill.medium {
+    background: var(--color-alert-yellow);
+    box-shadow: 0 0 10px rgba(255, 200, 0, 0.5);
+}
+
+/* === LOG PERSONAL === */
+.crew-log-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+    background: var(--color-terminal-bg);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+.crew-log-entry {
+    display: flex;
+    gap: 12px;
+    padding: 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+}
+
+.crew-log-entry:last-child {
+    border-bottom: none;
+}
+
+.crew-log-year {
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    min-width: 60px;
+}
+
+.crew-log-text {
+    color: var(--color-terminal-green-dim);
+    flex: 1;
+}
+
+/* === PERFIL COMPACTO DE TRIPULANTE === */
+.crew-profile-compact {
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.crew-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+}
+
+.crew-compact-name {
+    font-size: var(--font-size-md);
+    color: var(--color-terminal-green);
+    font-weight: bold;
+}
+
+.crew-compact-status {
+    font-size: 20px;
+}
+
+.crew-compact-info {
+    padding: 6px 12px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+.crew-compact-thought {
+    padding: 8px 12px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    overflow: hidden;
+}
+
+.crew-compact-thought .thought-marquee {
+    font-size: var(--font-size-xs);
+}
+
+.crew-compact-needs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+/* Log personal más compacto */
+.crew-profile-compact .crew-log-container {
+    max-height: 250px;
+    font-size: var(--font-size-xs);
+    padding: 6px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+}
+
+.crew-profile-compact .crew-log-entry {
+    padding: 4px 6px;
+    gap: 8px;
+}
+
+/* === RESPONSIVE MÓVIL === */
+@media (max-width: 768px) {
+    .crew-profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .crew-profile-avatar {
+        font-size: 40px;
+    }
+
+    .crew-profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .crew-needs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .crew-info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .crew-info-label {
+        min-width: auto;
+    }
+
+    /* Perfil compacto en móvil */
+    .crew-profile-compact {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .crew-compact-info {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .crew-compact-needs {
+        padding: 6px;
+        gap: 4px;
+    }
+
+    .crew-profile-compact .crew-log-container {
+        max-height: 200px;
+    }
 }

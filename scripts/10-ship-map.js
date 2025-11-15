@@ -99,12 +99,13 @@ class ShipMapSystem {
         this.crewTargets = {};
         this.crewPaths = {};
         this.lastSubtleMove = {}; // Rastrear último movimiento sutil
-        this.crewIcons = {
-            'Capitán Silva': '👨‍✈️',
-            'Dra. Chen': '👩‍⚕️',
-            'Ing. Rodriguez': '👨‍🔧',
-            'Lt. Johnson': '👨‍🚀',
-            'Chef Patel': '👨‍🍳'
+        // Íconos por ROL (no por nombre)
+        this.crewIconsByRole = {
+            'captain': '👨‍✈️',
+            'doctor': '👩‍⚕️',
+            'engineer': '👨‍🔧',
+            'navigator': '👨‍🚀',
+            'cook': '👨‍🍳'
         };
 
         this.isVisible = false; // Mapa oculto por defecto
@@ -598,16 +599,18 @@ class ShipMapSystem {
             return '💀';
         }
 
-        if (this.crewIcons[crew.name]) {
-            return this.crewIcons[crew.name];
+        // Usar rol en lugar de nombre
+        if (this.crewIconsByRole[crew.role]) {
+            return this.crewIconsByRole[crew.role];
         }
 
+        // Fallback por si acaso
         switch (crew.role) {
-            case 'commander': return '👨‍✈️';
+            case 'captain': return '👨‍✈️';
             case 'doctor': return '👩‍⚕️';
             case 'engineer': return '👨‍🔧';
             case 'cook': return '👨‍🍳';
-            case 'scientist': return '👨‍🔬';
+            case 'navigator': return '👨‍🚀';
             default: return '👤';
         }
     }
@@ -621,9 +624,10 @@ class ShipMapSystem {
 
         if (crew.state === 'Despierto') {
             const activity = crew.currentActivity?.toLowerCase() || '';
+            const role = crew.role || '';
 
             // MÁXIMA PRIORIDAD: Si el ingeniero está reparando o viajando a reparar
-            if (crew.position && crew.position.includes('Ingenier')) {
+            if (role === 'engineer') {
                 // Buscar si hay alguna zona siendo reparada
                 for (const [zoneKey, zone] of Object.entries(this.zones)) {
                     if (zone.beingRepaired) {
@@ -648,48 +652,41 @@ class ShipMapSystem {
                 return 'kitchen';
             }
 
-            // Mapeo de posiciones a zonas de trabajo
-            const position = crew.position || '';
+            // Mapeo de ROLES a zonas de trabajo
 
             // Chef necesita ir al invernadero por provisiones de alimentos (cuando foodNeed > 80%)
-            if ((position.includes('Chef') || activity.includes('cocinando')) && crew.foodNeed > 80) {
+            if (role === 'cook' && crew.foodNeed > 80) {
                 return 'greenhouse';
             }
 
-            // Doctora necesita ir al invernadero por medicina (cuando healthNeed > 80%)
-            if ((position.includes('Doctor') || position.includes('Doctora')) && crew.healthNeed > 80) {
+            // Doctor necesita ir al invernadero por medicina (cuando healthNeed > 80%)
+            if (role === 'doctor' && crew.healthNeed > 80) {
                 return 'greenhouse';
             }
 
-            // Navegante -> Puente de Mando (bridge)
-            if (position.includes('Navegante')) {
+            // Navigator/Navegante -> Puente de Mando (bridge)
+            if (role === 'navigator') {
                 return 'bridge';
             }
 
-            // Doctora -> Enfermería (medbay)
-            if (position.includes('Doctor') || position.includes('Doctora')) {
+            // Captain -> Puente de Mando (bridge)
+            if (role === 'captain') {
+                return 'bridge';
+            }
+
+            // Doctor -> Enfermería (medbay)
+            if (role === 'doctor') {
                 return 'medbay';
             }
 
-            // Ingeniera -> Ingeniería (engineering) - SOLO si no está reparando
-            if (position.includes('Ingenier')) {
+            // Engineer -> Ingeniería (engineering) - SOLO si no está reparando
+            if (role === 'engineer') {
                 return 'engineering';
             }
 
-            // Botánica -> Invernadero (greenhouse)
-            if (position.includes('Botánic')) {
-                return 'greenhouse';
-            }
-
-            // Chef -> Cocina (kitchen)
-            if (position.includes('Chef')) {
+            // Cook -> Cocina (kitchen)
+            if (role === 'cook') {
                 return 'kitchen';
-            }
-
-            // Geóloga -> Alterna entre Bodega y Laboratorio
-            // (usamos bodega como laboratorio)
-            if (position.includes('Geólog')) {
-                return Math.random() < 0.7 ? 'cargo' : 'bridge';
             }
 
             // Por defecto, van a su zona correspondiente o al puente

@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="styles/7-components-terminal.css">
     <link rel="stylesheet" href="styles/8-ship-map.css">
     <link rel="stylesheet" href="styles/9-mobile-panels.css">
+    <link rel="stylesheet" href="styles/10-configurator.css">
 </head>
 <body>
     <!-- Pantalla de Inicio / Login -->
@@ -24,7 +25,18 @@
             <div class="login-form">
                 <label for="player-name-input">Identificación de IA:</label>
                 <input type="text" id="player-name-input" placeholder="Ingrese su nombre">
-                <button onclick="namePlayer()">Ese es mi nombre</button>
+
+                <div class="seed-separator">
+                    <span class="separator-line"></span>
+                    <span class="separator-text">MISIÓN EXISTENTE (OPCIONAL)</span>
+                    <span class="separator-line"></span>
+                </div>
+
+                <label for="player-seed-input">Código de Misión (SEED):</label>
+                <input type="text" id="player-seed-input" placeholder="KEPLER-XXXXXX (opcional)">
+                <p class="seed-hint">Si tienes un código de misión anterior, ingrésalo aquí para repetir la configuración.</p>
+
+                <button onclick="namePlayer()">Comenzar</button>
             </div>
         </div>
     </div>
@@ -35,7 +47,129 @@
             <div class="logbook-intro">
                 <h2>PROYECTO GÉNESIS</h2>
                 <pre id="intro-text-content"></pre>
-                <button class="intro-mission-btn" onclick="startMissionFromIntro()">INICIAR MISIÓN</button>
+                <button class="intro-mission-btn" onclick="startMissionFromIntro()">CONFIGURAR MISIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configurador de Misión -->
+    <div id="mission-configurator" class="mission-configurator" style="display: none;">
+        <div class="configurator-window">
+            <!-- Header -->
+            <div class="configurator-header">
+                <h2 class="configurator-title">CONFIGURACIÓN DE MISIÓN</h2>
+                <div class="configurator-step-indicator" id="config-step-indicator">PASO 1/3</div>
+            </div>
+
+            <!-- PASO 1: TRIPULACIÓN -->
+            <div id="config-step-1" class="config-step">
+                <div class="config-step-header">
+                    <h3>👥 SELECCIÓN DE TRIPULACIÓN</h3>
+                    <p class="config-step-description">Elige a los especialistas que viajarán despiertos. Cada uno consume puntos de presupuesto.</p>
+                </div>
+
+                <div class="config-budget-bar">
+                    <div class="budget-label">PRESUPUESTO DE TRIPULACIÓN</div>
+                    <div class="budget-display">
+                        <span id="crew-budget-used">0</span> / <span id="crew-budget-total">25</span> PUNTOS
+                    </div>
+                    <div class="budget-meter">
+                        <div id="crew-budget-fill" class="budget-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="config-crew-container" id="config-crew-container">
+                    <!-- Se llenará con JavaScript en el siguiente sprint -->
+                    <p class="placeholder-text">[ Selección de personajes - Próximo sprint ]</p>
+                </div>
+
+                <div class="config-step-nav">
+                    <button class="config-btn config-btn-next" onclick="nextConfigStep(1)">SIGUIENTE: RECURSOS →</button>
+                </div>
+            </div>
+
+            <!-- PASO 2: RECURSOS -->
+            <div id="config-step-2" class="config-step" style="display: none;">
+                <div class="config-step-header">
+                    <h3>📦 DISTRIBUCIÓN DE RECURSOS</h3>
+                    <p class="config-step-description">Configura la carga inicial de la nave. El peso total no puede exceder 3000 kg.</p>
+                </div>
+
+                <div class="config-budget-bar">
+                    <div class="budget-label">PESO DE CARGA</div>
+                    <div class="budget-display">
+                        <span id="cargo-weight-used">0</span> / <span id="cargo-weight-total">3000</span> KG
+                    </div>
+                    <div class="budget-meter">
+                        <div id="cargo-weight-fill" class="budget-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="config-presets">
+                    <div class="presets-label">PRESETS RÁPIDOS:</div>
+                    <div class="presets-buttons">
+                        <button class="preset-btn">⚖️ Balanceado</button>
+                        <button class="preset-btn">🛡️ Supervivencia</button>
+                        <button class="preset-btn">⚡ Velocista</button>
+                    </div>
+                </div>
+
+                <div class="config-resources-container" id="config-resources-container">
+                    <!-- Se llenará con sliders en el siguiente sprint -->
+                    <p class="placeholder-text">[ Sliders de recursos - Próximo sprint ]</p>
+                </div>
+
+                <div class="config-step-nav">
+                    <button class="config-btn config-btn-back" onclick="prevConfigStep(2)">← ATRÁS</button>
+                    <button class="config-btn config-btn-next" onclick="nextConfigStep(2)">SIGUIENTE: CONFIRMAR →</button>
+                </div>
+            </div>
+
+            <!-- PASO 3: CONFIRMACIÓN -->
+            <div id="config-step-3" class="config-step" style="display: none;">
+                <div class="config-step-header">
+                    <h3>✅ CONFIRMACIÓN DE MISIÓN</h3>
+                    <p class="config-step-description">Revisa tu configuración antes de partir. Esta decisión es irreversible.</p>
+                </div>
+
+                <div class="config-summary">
+                    <div class="summary-section">
+                        <h4>👥 TRIPULACIÓN SELECCIONADA</h4>
+                        <div id="summary-crew" class="summary-content">
+                            <p class="placeholder-text">[ Resumen de tripulación - Próximo sprint ]</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-section">
+                        <h4>📦 RECURSOS ASIGNADOS</h4>
+                        <div id="summary-resources" class="summary-content">
+                            <p class="placeholder-text">[ Resumen de recursos - Próximo sprint ]</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-section">
+                        <h4>🗺️ RUTA DE VIAJE</h4>
+                        <div id="summary-route" class="summary-content">
+                            <p>Destino: Kepler-442b (Nueva Tierra)</p>
+                            <p>Distancia: 3,000 UA</p>
+                            <p>Tiempo estimado: 50 años</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-section seed-section">
+                        <h4>🎲 SEED DE MISIÓN</h4>
+                        <div class="seed-display">
+                            <input type="text" id="mission-seed" class="seed-input" value="GENESIS-2024-XXXX" readonly>
+                            <button class="seed-copy-btn" title="Copiar seed">📋</button>
+                        </div>
+                        <p class="seed-note">Guarda este código para repetir esta configuración exacta.</p>
+                    </div>
+                </div>
+
+                <div class="config-step-nav">
+                    <button class="config-btn config-btn-back" onclick="prevConfigStep(3)">← ATRÁS</button>
+                    <button class="config-btn config-btn-start" onclick="missionConfigurator.confirmAndStart()">🚀 COMENZAR MISIÓN</button>
+                </div>
             </div>
         </div>
     </div>
@@ -71,10 +205,24 @@
 
         <!-- Terminal/Content Area - Mobile -->
         <div class="mobile-content-area mobile-only" id="mobile-content-area" style="display: none;">
-            <div class="mobile-terminal" id="mobile-terminal">
-                <div class="terminal-line">&gt; Sistema iniciado...</div>
-                <div class="terminal-line">&gt; Esperando instrucciones...</div>
+            <!-- Tabs móvil -->
+            <div class="mobile-terminal-tabs" id="mobile-tabs-container">
+                <button class="mobile-terminal-tab active" onclick="switchTerminalTab('console')">
+                    CONSOLA
+                </button>
+                <!-- Los tabs de tripulantes se generan dinámicamente -->
             </div>
+
+            <!-- Tab 1: Consola -->
+            <div class="terminal-tab-content active" id="terminal-content-console-mobile">
+                <div class="mobile-terminal" id="mobile-terminal">
+                    <div class="terminal-line">&gt; Sistema iniciado...</div>
+                    <div class="terminal-line">&gt; Esperando instrucciones...</div>
+                </div>
+            </div>
+
+            <!-- Los contenidos de fichas de tripulantes se generan dinámicamente -->
+            <div id="mobile-crew-tabs-content-container"></div>
         </div>
 
         <!-- Barra de Recursos Permanente - Desktop -->
@@ -282,16 +430,28 @@
                 </div>
             </div>
 
-            <!-- Terminal de Notificaciones -->
+            <!-- Terminal de Notificaciones con Tabs -->
             <div class="terminal-notification-area">
                 <div class="terminal-header">
-                    <span class="terminal-prompt">&gt; CONSOLA DE SISTEMA</span>
+                    <div class="terminal-tabs" id="terminal-tabs-container">
+                        <button class="terminal-tab active" onclick="switchTerminalTab('console')" id="tab-console">
+                            &gt; CONSOLA
+                        </button>
+                        <!-- Los tabs de tripulantes se generan dinámicamente -->
+                    </div>
                     <span class="terminal-time" id="terminal-time">00:00:00</span>
                 </div>
-                <div class="terminal-content" id="terminal-notifications">
-                    <div class="terminal-line">&gt; Sistema iniciado...</div>
-                    <div class="terminal-line">&gt; Esperando instrucciones...</div>
+
+                <!-- Tab 1: Consola de Sistema -->
+                <div class="terminal-tab-content active" id="terminal-content-console">
+                    <div class="terminal-content" id="terminal-notifications">
+                        <div class="terminal-line">&gt; Sistema iniciado...</div>
+                        <div class="terminal-line">&gt; Esperando instrucciones...</div>
+                    </div>
                 </div>
+
+                <!-- Los contenidos de fichas de tripulantes se generan dinámicamente -->
+                <div id="crew-tabs-content-container"></div>
             </div>
         </div>
 
@@ -618,5 +778,7 @@
     <script src="scripts/7-events-data.js"></script>
     <script src="scripts/10-ship-map.js"></script>
     <script src="scripts/6-main.js"></script>
+    <script src="scripts/11-configurator.js"></script>
+    <script src="scripts/terminal-tabs.js"></script>
 </body>
 </html>
