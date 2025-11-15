@@ -39,6 +39,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .configurator-title {
@@ -59,6 +60,40 @@
     border: 1px solid var(--color-terminal-green-dark);
     background: var(--color-terminal-bg);
     letter-spacing: 0.5px;
+}
+
+.seed-loaded-notice {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-terminal-bg-light);
+    border: 2px solid var(--color-terminal-green);
+    border-top: none;
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3);
+    z-index: 100;
+    transition: opacity var(--transition-normal);
+}
+
+.notice-icon {
+    font-size: var(--font-size-lg);
+}
+
+.notice-text {
+    font-weight: bold;
+}
+
+.notice-hint {
+    color: var(--color-terminal-green-dim);
+    font-style: italic;
+    margin-left: auto;
 }
 
 /* === PASOS DEL CONFIGURADOR === */

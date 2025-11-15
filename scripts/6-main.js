@@ -62,6 +62,18 @@ function namePlayer() {
         playerNameMobile.textContent = playerName;
     }
 
+    // Capturar seed si existe
+    const seedInput = document.getElementById('player-seed-input');
+    const seed = seedInput ? seedInput.value.trim().toUpperCase() : '';
+
+    // Guardar seed en variable global si existe
+    if (seed && seed.startsWith('KEPLER-')) {
+        window.loadedSeed = seed;
+        console.log('[Game] Seed detectado:', seed);
+    } else {
+        window.loadedSeed = null;
+    }
+
     document.getElementById('initial-screen').style.display = 'none';
 
     showIntroOverlay();
@@ -99,6 +111,11 @@ function showConfigurator() {
         configurator.style.display = 'flex';
         // Mostrar el primer paso
         showConfigStep(1);
+
+        // Inicializar el configurador si existe el objeto
+        if (typeof missionConfigurator !== 'undefined') {
+            missionConfigurator.init();
+        }
     }
 }
 

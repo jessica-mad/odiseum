@@ -22,6 +22,11 @@ const missionConfigurator = {
         this.currentBudget = 0;
         this.currentWeight = 0;
 
+        // Verificar si hay un seed cargado
+        if (window.loadedSeed) {
+            this.showSeedLoadedMessage(window.loadedSeed);
+        }
+
         // Generar UI de selección de crew (paso 1)
         this.generateCrewSelection();
 
@@ -35,6 +40,32 @@ const missionConfigurator = {
         this.setupSeedCopyButton();
 
         console.log('[Configurador] Inicialización completa');
+    },
+
+    /* === MOSTRAR MENSAJE DE SEED CARGADO === */
+    showSeedLoadedMessage(seed) {
+        console.log('[Configurador] NOTA: Seed detectado:', seed);
+        console.log('[Configurador] La carga de configuración desde seed será implementada en una futura versión.');
+        console.log('[Configurador] Por ahora, procede a configurar tu misión manualmente.');
+
+        // Mostrar mensaje visual
+        const configHeader = document.querySelector('.configurator-header');
+        if (configHeader) {
+            const message = document.createElement('div');
+            message.className = 'seed-loaded-notice';
+            message.innerHTML = `
+                <span class="notice-icon">ℹ️</span>
+                <span class="notice-text">Seed detectado: ${seed}</span>
+                <span class="notice-hint">(Configuración manual requerida por ahora)</span>
+            `;
+            configHeader.appendChild(message);
+
+            // Auto-ocultar después de 10 segundos
+            setTimeout(() => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+            }, 10000);
+        }
     },
 
     /* === RECURSOS POR DEFECTO === */
@@ -675,10 +706,3 @@ window.startGameWithConfiguration = function(config) {
 window.addEventListener('load', () => {
     console.log('[Configurador] Script cargado');
 });
-
-// Inicializar cuando se muestra el configurador
-const originalShowConfigurator = window.showConfigurator;
-window.showConfigurator = function() {
-    originalShowConfigurator();
-    missionConfigurator.init();
-};

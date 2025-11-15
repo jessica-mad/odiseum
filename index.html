@@ -25,7 +25,18 @@
             <div class="login-form">
                 <label for="player-name-input">Identificación de IA:</label>
                 <input type="text" id="player-name-input" placeholder="Ingrese su nombre">
-                <button onclick="namePlayer()">Ese es mi nombre</button>
+
+                <div class="seed-separator">
+                    <span class="separator-line"></span>
+                    <span class="separator-text">MISIÓN EXISTENTE (OPCIONAL)</span>
+                    <span class="separator-line"></span>
+                </div>
+
+                <label for="player-seed-input">Código de Misión (SEED):</label>
+                <input type="text" id="player-seed-input" placeholder="KEPLER-XXXXXX (opcional)">
+                <p class="seed-hint">Si tienes un código de misión anterior, ingrésalo aquí para repetir la configuración.</p>
+
+                <button onclick="namePlayer()">Comenzar</button>
             </div>
         </div>
     </div>
