@@ -189,7 +189,7 @@ const missionConfigurator = {
         // Validar presupuesto
         if (newBudget > CREW_BUDGET) {
             console.log('[selectCrewMember] PRESUPUESTO EXCEDIDO:', newBudget, '>', CREW_BUDGET);
-            this.showBudgetAlert('Presupuesto excedido. Debes estar exactamente en 25 puntos.');
+            this.showBudgetAlert(`Presupuesto excedido: ${newBudget}/${CREW_BUDGET} pts. Máximo permitido: 25 puntos.`);
             return;
         }
 
@@ -266,13 +266,13 @@ const missionConfigurator = {
         const nextBtn = document.querySelector('#config-step-1 .config-btn-next');
         if (!nextBtn) return;
 
-        // Verificar que todos los roles estén seleccionados y budget = 25
+        // Verificar que todos los roles estén seleccionados y budget <= 25
         const allRolesSelected = Object.keys(CREW_OPTIONS).every(
             roleKey => this.selectedCrew[roleKey]
         );
-        const budgetExact = this.currentBudget === CREW_BUDGET;
+        const budgetOk = this.currentBudget <= CREW_BUDGET;
 
-        if (allRolesSelected && budgetExact) {
+        if (allRolesSelected && budgetOk) {
             nextBtn.disabled = false;
             nextBtn.classList.remove('disabled');
         } else {
@@ -706,15 +706,15 @@ window.nextConfigStep = function(currentStep) {
         const allRolesSelected = Object.keys(CREW_OPTIONS).every(
             roleKey => missionConfigurator.selectedCrew[roleKey]
         );
-        const budgetExact = missionConfigurator.currentBudget === CREW_BUDGET;
+        const budgetOk = missionConfigurator.currentBudget <= CREW_BUDGET;
 
         if (!allRolesSelected) {
             missionConfigurator.showBudgetAlert('Debes seleccionar un tripulante para cada rol');
             return;
         }
 
-        if (!budgetExact) {
-            missionConfigurator.showBudgetAlert(`Presupuesto debe ser exactamente 25 pts (actual: ${missionConfigurator.currentBudget})`);
+        if (!budgetOk) {
+            missionConfigurator.showBudgetAlert(`Presupuesto excedido: ${missionConfigurator.currentBudget}/${CREW_BUDGET} pts`);
             return;
         }
     }
