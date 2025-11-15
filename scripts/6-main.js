@@ -166,10 +166,8 @@ function startGameWithConfiguration(config) {
         desktop.style.display = 'flex';
     }
 
-    // TODO: Aplicar la configuración cuando se implemente la lógica
-    // Por ahora, simplemente iniciamos el juego con valores por defecto
-
-    initializeGame();
+    // Aplicar la configuración al juego
+    initializeGame(config);
     ensureIntroEntryInLogbook(false);
     startFirstTranche();
 }
@@ -197,7 +195,41 @@ function ensureIntroEntryInLogbook(includeButton = false) {
 }
 
 /* === INICIALIZACIÓN DEL JUEGO === */
-function initializeGame() {
+function initializeGame(config) {
+    // Guardar configuración en variable global
+    window.missionConfig = config || null;
+
+    // Configurar duración de misión basada en el navegante
+    if (config && config.crew && config.crew.navegante) {
+        const navigatorOption = config.crew.navegante;
+        if (navigatorOption.stats && navigatorOption.stats.missionLength) {
+            // El navegante ajusta cuántos tranches tomará la misión
+            // Misión base: 12 tranches a 3000 UA
+            // Ajustar distancia proporcionalmente
+            const baseTranches = 12;
+            const configuredTranches = navigatorOption.stats.missionLength;
+            const missionLengthMultiplier = configuredTranches / baseTranches;
+
+            // Almacenar el multiplicador globalmente para que el sistema de eventos lo use
+            window.missionLengthMultiplier = missionLengthMultiplier;
+            window.configuredMissionTranches = configuredTranches;
+
+            // Almacenar modificador de dificultad de eventos si existe
+            if (navigatorOption.stats.eventDifficulty !== undefined) {
+                window.eventDifficultyModifier = navigatorOption.stats.eventDifficulty;
+            }
+
+            // Log de configuración
+            if (configuredTranches < baseTranches) {
+                logbook.addEntry(`${navigatorOption.name} (Navegante Arriesgado): Ruta rápida configurada (${configuredTranches} tranches estimados)`, LOG_TYPES.WARNING);
+            } else if (configuredTranches > baseTranches) {
+                logbook.addEntry(`${navigatorOption.name} (Navegante Conservador): Ruta segura configurada (${configuredTranches} tranches estimados)`, LOG_TYPES.INFO);
+            } else {
+                logbook.addEntry(`${navigatorOption.name} (Navegante Estándar): Ruta estándar configurada (${configuredTranches} tranches estimados)`, LOG_TYPES.INFO);
+            }
+        }
+    }
+
     // Inicializar bitácora
     logbook = new Logbook();
 
@@ -209,20 +241,34 @@ function initializeGame() {
         shipIntegritySystem.reset();
     }
 
-    // Crear recursos
-    Energy = new Resource('Energía', 1000, 1000, 'energy-meter', 'energy-amount', 'resource-strip-energy');
-    Food = new Resource('Alimentos', 500, 500, 'food-meter', 'food-amount', 'resource-strip-food');
-    Water = new Resource('Agua', 300, 300, 'water-meter', 'water-amount', 'resource-strip-water');
-    Oxygen = new Resource('Oxígeno', 400, 400, 'oxygen-meter', 'oxygen-amount', 'resource-strip-oxygen');
-    Medicine = new Resource('Medicinas', 200, 200, 'medicine-meter', 'medicine-amount', 'resource-strip-medicine');
-    Data = new Resource('Datos/Entret.', 150, 150, 'data-meter', 'data-amount', 'resource-strip-data');
-    Fuel = new Resource('Combustible', 1000, 1000, 'fuel-meter', 'fuel-amount', 'resource-strip-fuel');
+    // Valores por defecto de recursos (si no hay config)
+    const defaultResources = {
+        energy: 1000,
+        food: 500,
+        water: 300,
+        oxygen: 400,
+        medicine: 200,
+        data: 150,
+        fuel: 1000
+    };
+
+    // Usar recursos de config si existen, sino usar defaults
+    const resources = config && config.resources ? config.resources : defaultResources;
+
+    // Crear recursos con valores personalizados o por defecto
+    Energy = new Resource('Energía', resources.energy, resources.energy, 'energy-meter', 'energy-amount', 'resource-strip-energy');
+    Food = new Resource('Alimentos', resources.food, resources.food, 'food-meter', 'food-amount', 'resource-strip-food');
+    Water = new Resource('Agua', resources.water, resources.water, 'water-meter', 'water-amount', 'resource-strip-water');
+    Oxygen = new Resource('Oxígeno', resources.oxygen, resources.oxygen, 'oxygen-meter', 'oxygen-amount', 'resource-strip-oxygen');
+    Medicine = new Resource('Medicinas', resources.medicine, resources.medicine, 'medicine-meter', 'medicine-amount', 'resource-strip-medicine');
+    Data = new Resource('Datos/Entret.', resources.data, resources.data, 'data-meter', 'data-amount', 'resource-strip-data');
+    Fuel = new Resource('Combustible', resources.fuel, resources.fuel, 'fuel-meter', 'fuel-amount', 'resource-strip-fuel');
 
     // Inicializar sistema de eventos
     eventSystem = new EventSystem();
 
-    // Crear tripulación desde datos
-    crewMembers = createCrewFromData();
+    // Crear tripulación desde datos (con config si existe)
+    crewMembers = createCrewFromData(config);
 
     if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
         awakeBenefitSystem.refreshState(crewMembers);

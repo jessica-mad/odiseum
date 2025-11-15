@@ -62,18 +62,25 @@ class Crew {
     /* === SISTEMA DE EDAD === */
     age(years) {
         if (this.state === 'Despierto' && this.isAlive) {
-            this.biologicalAge += years;
-            this.yearsAwake += years;
-            
+            // Aplicar modificador de envejecimiento si existe en configStats
+            let agingMultiplier = 1.0;
+            if (this.configStats && this.configStats.agingRate) {
+                agingMultiplier = this.configStats.agingRate;
+            }
+
+            const effectiveAging = years * agingMultiplier;
+            this.biologicalAge += effectiveAging;
+            this.yearsAwake += years; // Los años reales despierto no cambian
+
             // Registrar envejecimiento significativo
             if (years >= 1) {
                 logbook.addEntry(
-                    `${this.name} ha envejecido ${years.toFixed(1)} años. Edad biológica: ${this.biologicalAge.toFixed(1)} años`,
+                    `${this.name} ha envejecido ${effectiveAging.toFixed(1)} años. Edad biológica: ${this.biologicalAge.toFixed(1)} años`,
                     LOG_TYPES.AGE
                 );
-                this.addToPersonalLog(`Envejecí ${years.toFixed(1)} años. Me siento diferente...`);
+                this.addToPersonalLog(`Envejecí ${effectiveAging.toFixed(1)} años. Me siento diferente...`);
             }
-            
+
             // Muerte por vejez
             if (this.biologicalAge >= DEATH_BY_AGE_THRESHOLD && Math.random() < DEATH_BY_AGE_PROBABILITY) {
                 this.die('vejez natural');
@@ -247,21 +254,27 @@ class Crew {
         // Auto-gestionar salud (medicina)
         // Si healthNeed < 100, intentar curar hasta que esté completamente sano
         if (this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // Bonus si la Dra. Chen está despierta
-            let drChenAwake = false;
+            // Buscar al doctor y verificar si está despierto
+            let doctor = null;
+            let doctorAwake = false;
             if (typeof crewMembers !== 'undefined' && crewMembers) {
-                const drChen = crewMembers.find(c => c.position === 'Médica' && c.name === 'Dra. Chen');
-                if (drChen && drChen.state === 'Despierto' && drChen.isAlive) {
-                    drChenAwake = true;
+                doctor = crewMembers.find(c => c.role === 'doctor');
+                if (doctor && doctor.state === 'Despierto' && doctor.isAlive) {
+                    doctorAwake = true;
                 }
             }
 
             // Recuperación base con multiplicador de eficiencia
             let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
 
-            // Bonus de +50% si la Dra. Chen está despierta
-            if (drChenAwake) {
-                baseRecovery *= 1.5;
+            // Bonus de +50% si el doctor está despierto (legacy default)
+            // O usar healingSpeed del configStats si existe
+            if (doctorAwake) {
+                if (doctor.configStats && doctor.configStats.healingSpeed) {
+                    baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * doctor.configStats.healingSpeed * efficiencyMultiplier;
+                } else {
+                    baseRecovery *= 1.5;
+                }
             }
 
             // Calcular cuánto realmente necesita para llegar a 100
@@ -269,15 +282,21 @@ class Crew {
             const actualRecovery = Math.min(needed, baseRecovery);
 
             // Consumir recursos proporcionalmente (regla de 3)
-            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+            let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+
+            // Aplicar modificador de consumo de medicina si el doctor lo tiene
+            if (doctorAwake && doctor.configStats && doctor.configStats.medicineConsumption) {
+                resourcesNeeded = Math.ceil(resourcesNeeded * doctor.configStats.medicineConsumption);
+            }
+
             const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
 
             if (resourcesToUse > 0) {
                 Medicine.consume(resourcesToUse);
                 this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
 
-                if (drChenAwake) {
-                    autoManageActions.push('fue atendido por la Dra. Chen');
+                if (doctorAwake) {
+                    autoManageActions.push(`fue atendido por ${doctor.name}`);
                 } else {
                     autoManageActions.push('tomó medicina');
                 }

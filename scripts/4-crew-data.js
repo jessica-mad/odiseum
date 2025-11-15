@@ -106,6 +106,64 @@ const CREW_DATA = [
 ];
 
 /* === FUNCIÓN HELPER PARA CREAR TRIPULACIÓN === */
-function createCrewFromData() {
-    return CREW_DATA.map(data => new Crew(data));
+function createCrewFromData(config) {
+    // Si no hay config, usar tripulación por defecto
+    if (!config || !config.crew) {
+        return CREW_DATA.map(data => new Crew(data));
+    }
+
+    // Mapeo de roles del configurador a roles internos
+    const roleMapping = {
+        'comandante': { role: 'commander', position: 'Comandante', img: 'avatar1.jpg', baseId: 1 },
+        'doctor': { role: 'doctor', position: 'Médica', img: 'avatar2.jpg', baseId: 2 },
+        'ingeniero': { role: 'engineer', position: 'Ingeniero', img: 'avatar3.jpg', baseId: 3 },
+        'navegante': { role: 'scientist', position: 'Navegante', img: 'avatar4.jpg', baseId: 4 },
+        'chef': { role: 'cook', position: 'Cocinero/Botánico', img: 'avatar5.jpg', baseId: 5 }
+    };
+
+    // Crear tripulación desde configuración
+    const customCrew = [];
+    let idCounter = 1;
+
+    for (const [roleKey, roleInfo] of Object.entries(roleMapping)) {
+        const selectedOption = config.crew[roleKey];
+
+        if (selectedOption) {
+            // Crear datos de tripulante basados en la opción seleccionada
+            const crewData = {
+                id: idCounter++,
+                name: selectedOption.name,
+                position: roleInfo.position,
+                age: selectedOption.age,
+                img: roleInfo.img,
+                role: roleInfo.role,
+                state: 'Despierto', // Todos empiezan despiertos
+                personality: {
+                    traits: [],
+                    background: selectedOption.description,
+                    motivation: selectedOption.benefits
+                },
+                leftBehind: {
+                    family: 'Clasificado',
+                    lastWords: 'Registros no disponibles',
+                    dream: 'Llegar a destino'
+                },
+                fearOfDeath: 'Media',
+                // Guardar stats especiales del configurador
+                configStats: selectedOption.stats || {},
+                configBenefits: selectedOption.benefits,
+                configDrawbacks: selectedOption.drawbacks
+            };
+
+            customCrew.push(new Crew(crewData));
+        }
+    }
+
+    // Si no se crearon todos los tripulantes, usar los por defecto faltantes
+    if (customCrew.length < 5) {
+        console.warn('[createCrewFromData] No se encontraron todos los tripulantes en config, usando defaults');
+        return CREW_DATA.map(data => new Crew(data));
+    }
+
+    return customCrew;
 }

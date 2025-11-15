@@ -66,6 +66,12 @@ class AwakeBenefitSystem {
         this.awakeCrewCount = 0;
         this.nextMedicalIndex = 0;
         this.currentPatientName = null;
+        // Almacenar referencias a tripulantes para acceder a configStats
+        this.captain = null;
+        this.doctor = null;
+        this.engineer = null;
+        this.navigator = null;
+        this.chef = null;
     }
 
     refreshState(crewMembers) {
@@ -74,19 +80,27 @@ class AwakeBenefitSystem {
         const awakeCrew = crewMembers.filter(crew => crew.isAlive && crew.state === 'Despierto');
 
         this.awakeCrewCount = awakeCrew.length;
-        this.isCaptainAwake = awakeCrew.some(crew => crew.role === 'commander');
-        this.isDoctorAwake = awakeCrew.some(crew => crew.role === 'doctor');
-        this.isEngineerAwake = awakeCrew.some(crew => crew.role === 'engineer');
-        this.isNavigatorAwake = awakeCrew.some(crew => crew.role === 'scientist' || /johnson/i.test(crew.name));
-        this.isChefAwake = awakeCrew.some(crew => crew.role === 'cook');
+
+        // Guardar referencias a los tripulantes (despiertos o no)
+        this.captain = crewMembers.find(crew => crew.role === 'commander') || null;
+        this.doctor = crewMembers.find(crew => crew.role === 'doctor') || null;
+        this.engineer = crewMembers.find(crew => crew.role === 'engineer') || null;
+        this.navigator = crewMembers.find(crew => crew.role === 'scientist') || null;
+        this.chef = crewMembers.find(crew => crew.role === 'cook') || null;
+
+        // Verificar quiénes están despiertos
+        this.isCaptainAwake = this.captain && this.captain.isAlive && this.captain.state === 'Despierto';
+        this.isDoctorAwake = this.doctor && this.doctor.isAlive && this.doctor.state === 'Despierto';
+        this.isEngineerAwake = this.engineer && this.engineer.isAlive && this.engineer.state === 'Despierto';
+        this.isNavigatorAwake = this.navigator && this.navigator.isAlive && this.navigator.state === 'Despierto';
+        this.isChefAwake = this.chef && this.chef.isAlive && this.chef.state === 'Despierto';
 
         if (!this.isDoctorAwake) {
             this.nextMedicalIndex = 0;
             this.currentPatientName = null;
-            const doctor = crewMembers.find(crew => crew.role === 'doctor');
-            if (doctor) {
-                doctor.currentActivity = doctor.state === 'Despierto' ? 'en guardia' : doctor.currentActivity;
-                doctor.updateMiniCard();
+            if (this.doctor) {
+                this.doctor.currentActivity = this.doctor.state === 'Despierto' ? 'en guardia' : this.doctor.currentActivity;
+                this.doctor.updateMiniCard();
             }
         }
     }
@@ -102,10 +116,9 @@ class AwakeBenefitSystem {
         if (patients.length === 0) {
             this.nextMedicalIndex = 0;
             this.currentPatientName = null;
-            const doctor = crewMembers.find(crew => crew.role === 'doctor');
-            if (doctor) {
-                doctor.currentActivity = 'en guardia';
-                doctor.updateMiniCard();
+            if (this.doctor) {
+                this.doctor.currentActivity = 'en guardia';
+                this.doctor.updateMiniCard();
             }
             return;
         }
@@ -115,18 +128,21 @@ class AwakeBenefitSystem {
             return current.healthNeed < sickest.healthNeed ? current : sickest;
         });
 
-        const healRate = this.isCaptainAwake ? 1.2 : 1.0;
-        const patient = sickestPatient;
+        // Obtener velocidad de curación del doctor (desde configStats si existe)
+        let healRate = this.isCaptainAwake ? 1.2 : 1.0;
+        if (this.doctor && this.doctor.configStats && this.doctor.configStats.healingSpeed) {
+            healRate = this.doctor.configStats.healingSpeed;
+        }
 
+        const patient = sickestPatient;
         patient.healthNeed = Math.min(100, patient.healthNeed + healRate);
         patient.updateConsoleCrewState();
         patient.updateMiniCard();
 
         this.currentPatientName = patient.name;
-        const doctor = crewMembers.find(crew => crew.role === 'doctor');
-        if (doctor) {
-            doctor.currentActivity = `Atendiendo a ${patient.name}`;
-            doctor.updateMiniCard();
+        if (this.doctor) {
+            this.doctor.currentActivity = `Atendiendo a ${patient.name}`;
+            this.doctor.updateMiniCard();
         }
 
         if (typeof gameLoop !== 'undefined' && gameLoop) {
@@ -144,7 +160,12 @@ class AwakeBenefitSystem {
             this.isCaptainAwake &&
             crew.role !== 'commander'
         ) {
-            multiplier *= 1.1;
+            // Usar efficiencyBonus del capitán si existe en configStats
+            let efficiencyBonus = 0.10; // Default 10%
+            if (this.captain && this.captain.configStats && this.captain.configStats.efficiencyBonus) {
+                efficiencyBonus = this.captain.configStats.efficiencyBonus;
+            }
+            multiplier *= (1 + efficiencyBonus);
         }
 
         return multiplier;
@@ -157,7 +178,14 @@ class AwakeBenefitSystem {
 
     getEngineerDamageReduction() {
         if (!this.isEngineerAwake) return 0;
-        return this.isCaptainAwake ? 0.25 : 0.2;
+
+        // Usar degradationReduction del ingeniero si existe en configStats
+        let reduction = this.isCaptainAwake ? 0.25 : 0.20; // Default
+        if (this.engineer && this.engineer.configStats && this.engineer.configStats.degradationReduction) {
+            reduction = this.engineer.configStats.degradationReduction;
+        }
+
+        return reduction;
     }
 
     modifyFoodConsumption(amount) {
@@ -165,7 +193,13 @@ class AwakeBenefitSystem {
             return amount;
         }
 
-        const reduction = this.isCaptainAwake ? 0.07 : 0.05;
+        // Usar foodConsumption del chef si existe en configStats
+        let reduction = this.isCaptainAwake ? 0.07 : 0.05; // Default
+        if (this.chef && this.chef.configStats && typeof this.chef.configStats.foodConsumption !== 'undefined') {
+            // foodConsumption viene como -0.10 (negativo significa reducción)
+            reduction = Math.abs(this.chef.configStats.foodConsumption);
+        }
+
         return Math.max(0, amount * (1 - reduction));
     }
 
@@ -173,12 +207,20 @@ class AwakeBenefitSystem {
         if (!crew || crew.state !== 'Despierto') return '';
 
         switch (crew.role) {
-            case 'commander':
-                return 'Liderazgo activo: +10% eficiencia para la tripulación despierta.';
+            case 'commander': {
+                let efficiencyBonus = 10; // Default 10%
+                if (this.captain && this.captain.configStats && this.captain.configStats.efficiencyBonus) {
+                    efficiencyBonus = Math.round(this.captain.configStats.efficiencyBonus * 100);
+                }
+                return `Liderazgo activo: +${efficiencyBonus}% eficiencia para la tripulación despierta.`;
+            }
             case 'doctor': {
-                const rate = this.isCaptainAwake ? 'x1.2' : 'x1.0';
+                let healRate = this.isCaptainAwake ? 1.2 : 1.0;
+                if (this.doctor && this.doctor.configStats && this.doctor.configStats.healingSpeed) {
+                    healRate = this.doctor.configStats.healingSpeed;
+                }
                 const target = this.currentPatientName || 'en espera de pacientes';
-                return `Atención médica ${rate} • ${target}`;
+                return `Atención médica x${healRate.toFixed(1)} • ${target}`;
             }
             case 'engineer': {
                 const reduction = Math.round(this.getEngineerDamageReduction() * 100);
@@ -190,7 +232,11 @@ class AwakeBenefitSystem {
                 return `Trayectoria optimizada: +${boost}% a la velocidad de crucero.`;
             }
             case 'cook': {
-                const savings = Math.round((this.isCaptainAwake ? 0.07 : 0.05) * 100);
+                let reduction = this.isCaptainAwake ? 0.07 : 0.05;
+                if (this.chef && this.chef.configStats && typeof this.chef.configStats.foodConsumption !== 'undefined') {
+                    reduction = Math.abs(this.chef.configStats.foodConsumption);
+                }
+                const savings = Math.round(reduction * 100);
                 return `Raciones eficientes: ahorro del ${savings}% en comida despierta.`;
             }
             default:
@@ -1530,10 +1576,202 @@ class VictorySystem {
     }
 }
 
+/* === SISTEMA DE HABILIDADES ESPECIALES === */
+class SpecialAbilitiesSystem {
+    constructor() {
+        this.cooldowns = {};
+    }
+
+    // Verificar si un tripulante tiene una habilidad específica
+    hasAbility(crewMember, abilityName) {
+        if (!crewMember || !crewMember.isAlive || crewMember.state !== 'Despierto') {
+            return false;
+        }
+        return crewMember.configStats && crewMember.configStats[abilityName] === true;
+    }
+
+    // Obtener tripulante con habilidad específica
+    getCrewWithAbility(abilityName) {
+        if (typeof crewMembers === 'undefined' || !crewMembers) return null;
+        return crewMembers.find(crew => this.hasAbility(crew, abilityName));
+    }
+
+    // Doctor Botánico: Síntesis de medicina (10 Data + 20 Water → 15 Medicine)
+    medicineSynthesis() {
+        const doctor = this.getCrewWithAbility('medicineSynthesis');
+        if (!doctor) {
+            new Notification('No hay doctor con habilidad de síntesis disponible', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        const dataCost = 10;
+        const waterCost = 20;
+        const medicineGain = 15;
+
+        if (Data.quantity < dataCost) {
+            new Notification('Datos insuficientes para síntesis (necesita 10)', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        if (Water.quantity < waterCost) {
+            new Notification('Agua insuficiente para síntesis (necesita 20)', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        // Consumir recursos
+        Data.consume(dataCost);
+        Water.consume(waterCost);
+
+        // Producir medicina
+        Medicine.quantity = Math.min(Medicine.limiteStock, Medicine.quantity + medicineGain);
+
+        // Actualizar UI
+        Data.updateResourceUI();
+        Water.updateResourceUI();
+        Medicine.updateResourceUI();
+
+        // Notificaciones
+        new Notification(`${doctor.name} sintetizó ${medicineGain} unidades de medicina`, NOTIFICATION_TYPES.SUCCESS);
+        logbook.addEntry(`${doctor.name} utilizó conocimientos botánicos para sintetizar ${medicineGain} medicina (costo: ${dataCost} datos, ${waterCost} agua)`, LOG_TYPES.SUCCESS);
+
+        return true;
+    }
+
+    // Ingeniero Prodigio: Mejora de sala (50 Energy + 20 Data → +10% capacidad de un recurso)
+    roomUpgrade(resourceName) {
+        const engineer = this.getCrewWithAbility('roomUpgrade');
+        if (!engineer) {
+            new Notification('No hay ingeniero con habilidad de mejora disponible', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        const energyCost = 50;
+        const dataCost = 20;
+        const capacityIncrease = 0.10; // 10%
+
+        if (Energy.quantity < energyCost) {
+            new Notification('Energía insuficiente para mejora (necesita 50)', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        if (Data.quantity < dataCost) {
+            new Notification('Datos insuficientes para mejora (necesita 20)', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        // Mapeo de nombres de recursos
+        const resourceMap = {
+            'Energy': Energy,
+            'Food': Food,
+            'Water': Water,
+            'Oxygen': Oxygen,
+            'Medicine': Medicine,
+            'Data': Data,
+            'Fuel': Fuel
+        };
+
+        const targetResource = resourceMap[resourceName];
+        if (!targetResource) {
+            new Notification('Recurso no válido', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        // Consumir recursos
+        Energy.consume(energyCost);
+        Data.consume(dataCost);
+
+        // Aumentar capacidad del recurso
+        const increase = Math.round(targetResource.limiteStock * capacityIncrease);
+        targetResource.limiteStock += increase;
+
+        // Actualizar UI
+        Energy.updateResourceUI();
+        Data.updateResourceUI();
+        targetResource.updateResourceUI();
+
+        // Notificaciones
+        new Notification(`${engineer.name} mejoró la capacidad de ${targetResource.resourceName} (+${increase})`, NOTIFICATION_TYPES.SUCCESS);
+        logbook.addEntry(`${engineer.name} mejoró el almacenamiento de ${targetResource.resourceName}, aumentando capacidad en ${increase} unidades`, LOG_TYPES.SUCCESS);
+
+        return true;
+    }
+
+    // Chef Creativo: Conversión de agua a comida (30 Water → 10 Food)
+    waterToFood() {
+        const chef = this.getCrewWithAbility('waterToFood');
+        if (!chef) {
+            new Notification('No hay chef con habilidad de conversión disponible', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        const waterCost = 30;
+        const foodGain = 10;
+
+        if (Water.quantity < waterCost) {
+            new Notification('Agua insuficiente para conversión (necesita 30)', NOTIFICATION_TYPES.ALERT);
+            return false;
+        }
+
+        // Consumir agua
+        Water.consume(waterCost);
+
+        // Producir comida
+        Food.quantity = Math.min(Food.limiteStock, Food.quantity + foodGain);
+
+        // Actualizar UI
+        Water.updateResourceUI();
+        Food.updateResourceUI();
+
+        // Notificaciones
+        new Notification(`${chef.name} convirtió ${waterCost} agua en ${foodGain} comida`, NOTIFICATION_TYPES.SUCCESS);
+        logbook.addEntry(`${chef.name} usó recetas creativas para producir ${foodGain} comida usando ${waterCost} agua`, LOG_TYPES.SUCCESS);
+
+        return true;
+    }
+
+    // Obtener lista de habilidades disponibles
+    getAvailableAbilities() {
+        const abilities = [];
+
+        if (this.getCrewWithAbility('medicineSynthesis')) {
+            abilities.push({
+                id: 'medicineSynthesis',
+                name: 'Síntesis de Medicina',
+                description: '10 Datos + 20 Agua → 15 Medicina',
+                icon: '💊',
+                crew: this.getCrewWithAbility('medicineSynthesis').name
+            });
+        }
+
+        if (this.getCrewWithAbility('roomUpgrade')) {
+            abilities.push({
+                id: 'roomUpgrade',
+                name: 'Mejora de Almacenamiento',
+                description: '50 Energía + 20 Datos → +10% capacidad',
+                icon: '🔧',
+                crew: this.getCrewWithAbility('roomUpgrade').name
+            });
+        }
+
+        if (this.getCrewWithAbility('waterToFood')) {
+            abilities.push({
+                id: 'waterToFood',
+                name: 'Receta de Emergencia',
+                description: '30 Agua → 10 Comida',
+                icon: '🍲',
+                crew: this.getCrewWithAbility('waterToFood').name
+            });
+        }
+
+        return abilities;
+    }
+}
+
 // Instancias globales de los sistemas
 let timeSystem = new TimeSystem();
 let awakeBenefitSystem = new AwakeBenefitSystem();
 let shipIntegritySystem = new ShipIntegritySystem();
+let specialAbilities = new SpecialAbilitiesSystem();
 let gameLoop = new GameLoop();
 let messageSystem = new MessageSystem();
 let sortingSystem = new SortingSystem();
