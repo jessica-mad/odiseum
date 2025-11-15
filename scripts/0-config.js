@@ -3,8 +3,8 @@
 // ============================================
 
 /* === CONSTANTES TEMPORALES === */
-const TRANCHE_DURATION_MS = 60000; // 1 minuto por tramo
-const SIMULATION_TICK_RATE = 2000; // 2 segundos por tick
+const TRANCHE_DURATION_MS = 30000; // 30 segundos por tramo (velocidad x2)
+const SIMULATION_TICK_RATE = 1000; // 1 segundo por tick (velocidad x2)
 const TICKS_PER_TRANCHE = 30; // 30 ticks por tramo
 const YEARS_PER_TRANCHE = 5; // 5 años narrativos por tramo
 const YEARS_PER_TICK = YEARS_PER_TRANCHE / TICKS_PER_TRANCHE; // ~0.167 años por tick

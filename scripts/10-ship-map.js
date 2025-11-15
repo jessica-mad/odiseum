@@ -5,79 +5,91 @@
 /* === SISTEMA DE MAPA DE LA NAVE === */
 class ShipMapSystem {
     constructor() {
-        // Grilla 25x25 con forma específica de nave
-        // C=Control/Puente, E=Enfermería, G=Ingeniería, K=Cocina, N=Invernadero, D=Cápsulas, B=Bodega, P=Pasillo, .=Vacío
+        // Grilla 36x13 con forma específica de nave
+        // c=Control/Puente, e=Enfermería, g=Ingeniería, k=Cocina, n=Invernadero, d=Cápsulas, b=Bodega, p=Pasillo, w=Baño, -=Paredes, .=Vacío
         this.grid = [
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 1
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 2
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 3
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 4
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', 'C', 'C', 'C', 'C', 'C', 'C', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 5
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 6
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 7
-            ['.', '.', '.', '.', '.', '.', '.', '.', 'E', 'E', 'E', 'P', 'P', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 8
-            ['.', '.', '.', '.', '.', '.', '.', 'E', 'E', 'E', 'E', 'P', 'P', 'G', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 9
-            ['.', '.', '.', '.', '.', '.', 'E', 'E', 'E', '.', '.', 'P', 'P', '.', '.', 'G', 'G', 'G', '.', '.', '.', '.', '.', '.', '.'],  // Fila 10
-            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'K', 'K', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 11
-            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'K', 'K', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 12
-            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', 'P', 'P', 'P', 'P', 'P', 'P', 'K', 'K', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 13
-            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'N', 'N', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 14
-            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'N', 'N', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 15
-            ['.', '.', '.', '.', '.', '.', '.', 'D', 'D', '.', '.', 'P', 'P', '.', '.', 'N', 'N', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 16
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 17
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 18
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 19
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'P', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 20
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'B', 'B', 'B', 'B', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 21
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'B', 'B', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 22
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W', 'W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 23
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 24
-            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.']   // Fila 25
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],  // Fila 0
+            ['.', '.', '.', '.', '.', '-', '-', '-', '.', '.', '.', '.', '.'],  // Fila 1
+            ['.', '.', '.', '.', '-', '-', 'w', '-', '-', '.', '.', '.', '.'],  // Fila 2
+            ['.', '.', '.', '.', '-', 'c', 'c', 'c', '-', '.', '.', '.', '.'],  // Fila 3
+            ['.', '.', '.', '.', '-', 'c', 'c', 'c', '-', '.', '.', '.', '.'],  // Fila 4
+            ['.', '.', '.', '-', 'c', 'c', 'c', 'c', 'c', '-', '.', '.', '.'],  // Fila 5
+            ['.', '.', '.', '-', 'c', 'c', 'c', 'c', 'c', '-', '.', '.', '.'],  // Fila 6
+            ['.', '.', '.', '-', '-', '-', 'p', '-', '-', '-', '.', '.', '.'],  // Fila 7
+            ['.', '.', '-', 'd', 'p', '-', 'p', '-', 'e', 'e', '-', '.', '.'],  // Fila 8
+            ['.', '.', '-', '-', 'p', '-', 'p', '-', 'e', 'e', '-', '.', '.'],  // Fila 9
+            ['.', '.', '-', 'd', 'p', '-', 'p', 'p', 'e', '-', '-', '.', '.'],  // Fila 10
+            ['.', '.', '-', '-', 'p', '-', 'p', 'p', 'n', 'n', '-', '.', '.'],  // Fila 11
+            ['.', '.', '-', 'd', 'p', '-', 'p', 'p', 'n', 'n', '-', '.', '.'],  // Fila 12
+            ['.', '.', '-', '-', 'p', 'p', 'p', 'p', 'n', 'n', '-', '.', '.'],  // Fila 13
+            ['.', '.', '-', 'd', 'p', '-', 'p', 'p', 'k', '-', '-', '.', '.'],  // Fila 14
+            ['.', '.', '-', '-', 'p', '-', 'p', 'p', 'k', 'k', '-', '.', '.'],  // Fila 15
+            ['.', '.', '-', 'w', 'p', '-', 'p', '-', 'k', 'k', '-', '.', '.'],  // Fila 16
+            ['.', '.', '.', '-', 'p', '-', 'p', '-', 'k', '-', '.', '.', '.'],  // Fila 17
+            ['.', '.', '.', '.', '-', '-', 'p', '-', '-', '.', '.', '.', '.'],  // Fila 18
+            ['.', '.', '.', '.', '.', '-', 'p', '-', '.', '.', '.', '.', '.'],  // Fila 19
+            ['.', '.', '.', '.', '.', '-', 'p', '-', '.', '.', '.', '.', '.'],  // Fila 20
+            ['.', '.', '.', '.', '-', '-', 'p', '-', '-', '.', '.', '.', '.'],  // Fila 21
+            ['.', '.', '.', '-', '.', '-', 'p', '-', '.', '-', '.', '.', '.'],  // Fila 22
+            ['.', '.', '-', '.', '.', '-', 'p', '-', '.', '.', '-', '.', '.'],  // Fila 23
+            ['.', '-', '.', '.', '.', '-', 'p', '-', '.', '.', '.', '-', '.'],  // Fila 24
+            ['.', '-', '.', '.', '-', 'g', 'g', 'g', '-', '.', '.', '-', '.'],  // Fila 25
+            ['.', '-', '.', '.', '-', 'g', 'g', 'g', '-', '.', '.', '-', '.'],  // Fila 26
+            ['.', '-', '.', '.', '-', 'g', 'g', 'g', '-', '.', '.', '-', '.'],  // Fila 27
+            ['.', '-', '.', '-', '.', '-', 'g', '-', '.', '-', '.', '-', '.'],  // Fila 28
+            ['.', '-', '-', '.', '.', '-', 'p', '-', '.', '.', '-', '-', '.'],  // Fila 29
+            ['.', '-', '.', '.', '.', '-', 'p', '-', '.', '.', '.', '-', '.'],  // Fila 30
+            ['.', '.', '.', '.', '-', 'b', 'b', 'b', '-', '.', '.', '.', '.'],  // Fila 31
+            ['.', '.', '.', '.', '-', 'b', 'b', 'b', '-', '.', '.', '.', '.'],  // Fila 32
+            ['.', '.', '.', '.', '.', '-', 'b', '-', '.', '.', '.', '.', '.'],  // Fila 33
+            ['.', '.', '.', '.', '.', '.', '-', '.', '.', '.', '.', '.', '.'],  // Fila 34
+            ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.']   // Fila 35
         ];
 
-        this.rows = 25;
-        this.cols = 25;
+        this.rows = 36;
+        this.cols = 13;
 
         // Zonas y sus tiles principales (con sistema de averías mejorado)
+        // Tasas aumentadas x2 para coincidir con velocidad x2 del juego
         this.zones = {
             bridge: {
-                name: 'Control', icon: '🎮', tiles: this.findTiles('C'), color: '#00ff41',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.5, isBroken: false,
+                name: 'Control', icon: '🎮', tiles: this.findTiles('c'), color: '#00ff41',
+                integrity: 100, maxIntegrity: 100, degradationRate: 3.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             medbay: {
-                name: 'Enfermería', icon: '🏥', tiles: this.findTiles('E'), color: '#ff4444',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.2, isBroken: false,
+                name: 'Enfermería', icon: '🏥', tiles: this.findTiles('e'), color: '#ff4444',
+                integrity: 100, maxIntegrity: 100, degradationRate: 2.4, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             engineering: {
-                name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('G'), color: '#ffaa00',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
+                name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('g'), color: '#ffaa00',
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             kitchen: {
-                name: 'Cocina', icon: '🍳', tiles: this.findTiles('K'), color: '#ff8844',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.8, isBroken: false,
+                name: 'Cocina', icon: '🍳', tiles: this.findTiles('k'), color: '#ff8844',
+                integrity: 100, maxIntegrity: 100, degradationRate: 3.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             greenhouse: {
-                name: 'Invernadero', icon: '🌱', tiles: this.findTiles('N'), color: '#44ff44',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.0, isBroken: false,
+                name: 'Invernadero', icon: '🌱', tiles: this.findTiles('n'), color: '#44ff44',
+                integrity: 100, maxIntegrity: 100, degradationRate: 2.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             capsules: {
-                name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('D'), color: '#4488ff',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false,
+                name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('d'), color: '#4488ff',
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             cargo: {
-                name: 'Bodega', icon: '📦', tiles: this.findTiles('B'), color: '#888888',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false,
+                name: 'Bodega', icon: '📦', tiles: this.findTiles('b'), color: '#888888',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             bathroom: {
-                name: 'Baño', icon: '🚽', tiles: this.findTiles('W'), color: '#44aaff',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false,
+                name: 'Baño', icon: '🚽', tiles: this.findTiles('w'), color: '#44aaff',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
             }
@@ -99,6 +111,16 @@ class ShipMapSystem {
         this.zoomLevel = 1; // 1 = 100%, 0.5 = 50%, 2 = 200%
         this.minZoom = 0.5;
         this.maxZoom = 3;
+
+        // Card flotante
+        this.activeCrewCard = null; // ID del tripulante con card activa
+
+        // Sistema de pan/drag
+        this.panX = 0;
+        this.panY = 0;
+        this.isDragging = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
     }
 
     findTiles(type) {
@@ -132,6 +154,15 @@ class ShipMapSystem {
     }
 
     initialize() {
+        // DEBUG: Verificar que las zonas tienen tiles
+        console.log('🗺️ Inicializando mapa de la nave...');
+        Object.entries(this.zones).forEach(([zoneKey, zone]) => {
+            console.log(`  ${zone.icon} ${zone.name}: ${zone.tiles.length} tiles`);
+            if (zone.tiles.length === 0) {
+                console.error(`  ❌ ZONA ${zone.name} NO TIENE TILES`);
+            }
+        });
+
         this.createMapUI();
         this.updateCrewLocations();
         this.startAutoUpdate();
@@ -175,6 +206,9 @@ class ShipMapSystem {
 
         // Setup zoom controls
         this.setupZoomControls();
+
+        // Setup pan/drag controls
+        this.setupPanControls();
     }
 
     generateRoomsStatusHTML() {
@@ -191,6 +225,18 @@ class ShipMapSystem {
             let statusClass = 'good';
             if (percentage < 20) statusClass = 'critical';
             else if (percentage < 50) statusClass = 'warning';
+
+            // Obtener tripulantes en esta zona
+            const crewInZone = this.getCrewInZone(zoneKey);
+            let crewListHTML = '';
+            if (crewInZone.length > 0) {
+                const crewNames = crewInZone.map(c => {
+                    const firstName = c.name.split(' ')[0];
+                    const icon = this.getCrewIcon(c);
+                    return `${icon} ${firstName}`;
+                }).join(', ');
+                crewListHTML = `<div class="room-status-crew">${crewNames}</div>`;
+            }
 
             // Botón único de reparación
             let repairButton = '';
@@ -214,6 +260,7 @@ class ShipMapSystem {
                     <div class="room-status-bar">
                         <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
                     </div>
+                    ${crewListHTML}
                     ${zone.isBroken ? '<div class="room-status-broken">⚠️ AVERIADA</div>' : ''}
                     ${repairButton}
                 </div>
@@ -222,6 +269,29 @@ class ShipMapSystem {
 
         html += '</div>';
         return html;
+    }
+
+    /**
+     * Obtiene la lista de tripulantes que están en una zona específica
+     */
+    getCrewInZone(zoneKey) {
+        const crew = [];
+
+        crewMembers.forEach(c => {
+            if (!c.isAlive) return;
+
+            const pos = this.crewLocations[c.id];
+            if (!pos) return;
+
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType);
+
+            if (currentZone === zoneKey) {
+                crew.push(c);
+            }
+        });
+
+        return crew;
     }
 
     setupZoomControls() {
@@ -317,6 +387,73 @@ class ShipMapSystem {
         }
     }
 
+    setupPanControls() {
+        const container = document.querySelector('.ship-map-square-container');
+        if (!container) {
+            console.warn('⚠️ No se encontró .ship-map-square-container para pan');
+            return;
+        }
+
+        // Mouse events
+        container.addEventListener('mousedown', (e) => {
+            this.isDragging = true;
+            this.dragStartX = e.clientX - this.panX;
+            this.dragStartY = e.clientY - this.panY;
+            container.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!this.isDragging) return;
+
+            this.panX = e.clientX - this.dragStartX;
+            this.panY = e.clientY - this.dragStartY;
+            this.applyPan();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (this.isDragging) {
+                this.isDragging = false;
+                container.style.cursor = 'grab';
+            }
+        });
+
+        // Touch events for mobile
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                this.isDragging = true;
+                this.dragStartX = e.touches[0].clientX - this.panX;
+                this.dragStartY = e.touches[0].clientY - this.panY;
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!this.isDragging || e.touches.length !== 1) return;
+
+            this.panX = e.touches[0].clientX - this.dragStartX;
+            this.panY = e.touches[0].clientY - this.dragStartY;
+            this.applyPan();
+        });
+
+        document.addEventListener('touchend', () => {
+            this.isDragging = false;
+        });
+
+        console.log('✅ Controles de pan/drag configurados');
+    }
+
+    applyPan() {
+        const grid = document.getElementById('ship-map-grid');
+        const overlay = document.getElementById('ship-map-crew-overlay');
+
+        if (grid) {
+            grid.style.transform = `translate(${this.panX}px, ${this.panY}px)`;
+        }
+
+        if (overlay) {
+            overlay.style.transform = `translate(${this.panX}px, ${this.panY}px)`;
+        }
+    }
+
     generateGridHTML() {
         let html = '';
 
@@ -342,15 +479,16 @@ class ShipMapSystem {
 
     getCellClass(type) {
         const classes = {
-            'C': 'cell-bridge',       // Control
-            'E': 'cell-medbay',       // Enfermería
-            'G': 'cell-engineering',  // Ingeniería
-            'K': 'cell-kitchen',      // Cocina
-            'N': 'cell-greenhouse',   // Invernadero
-            'D': 'cell-capsules',     // Cápsulas
-            'B': 'cell-cargo',        // Bodega
-            'W': 'cell-bathroom',     // Baño
-            'P': 'cell-corridor',     // Pasillo
+            'c': 'cell-bridge',       // Control
+            'e': 'cell-medbay',       // Enfermería
+            'g': 'cell-engineering',  // Ingeniería
+            'k': 'cell-kitchen',      // Cocina
+            'n': 'cell-greenhouse',   // Invernadero
+            'd': 'cell-capsules',     // Cápsulas
+            'b': 'cell-cargo',        // Bodega
+            'w': 'cell-bathroom',     // Baño
+            'p': 'cell-corridor',     // Pasillo
+            '-': 'cell-wall',         // Paredes
             '.': 'cell-empty'
         };
         return classes[type] || 'cell-empty';
@@ -358,25 +496,24 @@ class ShipMapSystem {
 
     getCellLabel(type, row, col) {
         const labels = {
-            'C': '🎮',  // Control
-            'E': '🏥',  // Enfermería
-            'G': '⚙️',  // Ingeniería
-            'K': '🍳',  // Cocina
-            'N': '🌱',  // Invernadero
-            'D': '🛏️',  // Cápsulas
-            'B': '📦',  // Bodega
-            'W': '🚽'   // Baño
+            'c': '🎮',  // Control
+            'e': '🏥',  // Enfermería
+            'g': '⚙️',  // Ingeniería
+            'k': '🍳',  // Cocina
+            'n': '🌱',  // Invernadero
+            'd': '🛏️',  // Cápsulas
+            'b': '📦',  // Bodega
+            'w': '🚽'   // Baño
         };
 
-        // Mostrar solo en el centro de cada zona (aproximado)
-        if (type === 'C' && row === 3 && col === 11) return labels[type];   // Control
-        if (type === 'E' && row === 8 && col === 8) return labels[type];    // Enfermería
-        if (type === 'G' && row === 8 && col === 14) return labels[type];   // Ingeniería
-        if (type === 'K' && row === 11 && col === 15) return labels[type];  // Cocina
-        if (type === 'N' && row === 14 && col === 15) return labels[type];  // Invernadero
-        if (type === 'D' && row === 12 && col === 7) return labels[type];   // Cápsulas
-        if (type === 'B' && row === 20 && col === 11) return labels[type];  // Bodega
-        if (type === 'W' && row === 22 && col === 11) return labels[type];  // Baño
+        // Mostrar solo en el centro de cada zona (aproximado para nuevo mapa 36x13)
+        if (type === 'c' && row === 5 && col === 6) return labels[type];   // Control
+        if (type === 'e' && row === 9 && col === 9) return labels[type];    // Enfermería
+        if (type === 'g' && row === 26 && col === 6) return labels[type];   // Ingeniería
+        if (type === 'k' && row === 15 && col === 8) return labels[type];  // Cocina
+        if (type === 'n' && row === 12 && col === 9) return labels[type];  // Invernadero
+        if (type === 'b' && row === 32 && col === 6) return labels[type];  // Bodega
+        // No mostramos labels en cápsulas individuales ni en baños (son muy pequeños)
 
         return '';
     }
@@ -386,15 +523,15 @@ class ShipMapSystem {
      */
     getZoneNameFromCell(cellType) {
         const zoneNames = {
-            'C': 'Control',
-            'E': 'Enfermería',
-            'G': 'Ingeniería',
-            'K': 'Cocina',
-            'N': 'Invernadero',
-            'D': 'Cápsulas Sueño',
-            'B': 'Bodega',
-            'W': 'Baño',
-            'P': 'Pasillo'
+            'c': 'Control',
+            'e': 'Enfermería',
+            'g': 'Ingeniería',
+            'k': 'Cocina',
+            'n': 'Invernadero',
+            'd': 'Cápsulas Sueño',
+            'b': 'Bodega',
+            'w': 'Baño',
+            'p': 'Pasillo'
         };
         return zoneNames[cellType] || null;
     }
@@ -414,7 +551,7 @@ class ShipMapSystem {
         if (!cellType || cellType === '.') return null;
 
         // Si está en un pasillo y tiene un camino activo, está moviéndose
-        if (cellType === 'P' && this.crewPaths[crewId]) {
+        if (cellType === 'p' && this.crewPaths[crewId]) {
             return {
                 name: 'Desplazándose...',
                 type: 'moving'
@@ -537,8 +674,15 @@ class ShipMapSystem {
      * Obtiene una celda aleatoria libre en una zona (sin colisiones)
      */
     getRandomTileInZone(zone, excludeCrewId = null) {
-        if (!this.zones[zone] || !this.zones[zone].tiles.length) {
-            return { row: 6, col: 9 };
+        if (!this.zones[zone]) {
+            console.error(`⚠️ Zona ${zone} no existe`);
+            return { row: 13, col: 6 }; // Fallback a pasillo central
+        }
+
+        if (!this.zones[zone].tiles || !this.zones[zone].tiles.length) {
+            console.error(`⚠️ Zona ${zone} no tiene tiles. Total zonas:`, Object.keys(this.zones));
+            console.error(`Tiles de la zona ${zone}:`, this.zones[zone].tiles);
+            return { row: 13, col: 6 }; // Fallback a pasillo central
         }
 
         const tiles = this.zones[zone].tiles;
@@ -589,7 +733,8 @@ class ShipMapSystem {
                 if (visited.has(key)) continue;
 
                 const cellType = this.grid[neighbor.row][neighbor.col];
-                if (cellType === '.') continue;
+                // No se puede transitar por vacío (.) ni paredes (-)
+                if (cellType === '.' || cellType === '-') continue;
 
                 visited.add(key);
                 queue.push([...path, neighbor]);
@@ -600,25 +745,39 @@ class ShipMapSystem {
     }
 
     updateCrewLocations() {
-        if (!Array.isArray(crewMembers)) return;
+        if (!Array.isArray(crewMembers)) {
+            console.warn('⚠️ crewMembers no es un array');
+            return;
+        }
 
         const gridContainer = document.getElementById('ship-map-grid');
-        if (!gridContainer) return;
+        if (!gridContainer) {
+            console.warn('⚠️ No se encontró ship-map-grid');
+            return;
+        }
+
+        console.log(`👥 Actualizando ubicación de ${crewMembers.length} tripulantes`);
 
         crewMembers.forEach(crew => {
             const targetZone = this.getTargetZoneForCrew(crew);
-            if (!targetZone) return;
+            if (!targetZone) {
+                console.warn(`⚠️ ${crew.name} no tiene zona objetivo`);
+                return;
+            }
 
             const currentPos = this.crewLocations[crew.id];
             const currentTarget = this.crewTargets[crew.id];
 
             if (currentTarget !== targetZone) {
+                console.log(`🎯 ${crew.name} va a ${targetZone} (antes: ${currentTarget || 'ninguno'})`);
                 this.crewTargets[crew.id] = targetZone;
                 const targetPos = this.getRandomTileInZone(targetZone, crew.id);
+                console.log(`  📍 Posición asignada: [${targetPos.row}, ${targetPos.col}]`);
 
                 if (!currentPos) {
                     this.crewLocations[crew.id] = targetPos;
                     this.createOrUpdateCrewMarker(crew, targetPos);
+                    console.log(`  ✅ ${crew.name} posicionado en [${targetPos.row}, ${targetPos.col}]`);
                 } else {
                     const path = this.findPath(currentPos, targetPos);
                     if (path.length > 1) {
@@ -694,6 +853,7 @@ class ShipMapSystem {
         if (!overlay) return;
 
         let marker = document.getElementById(`crew-marker-${crew.id}`);
+        let isNewMarker = false;
 
         if (!marker) {
             marker = document.createElement('div');
@@ -701,6 +861,7 @@ class ShipMapSystem {
             marker.id = `crew-marker-${crew.id}`;
             marker.dataset.crewId = crew.id;
             overlay.appendChild(marker);
+            isNewMarker = true;
         }
 
         marker.className = 'crew-marker-overlay';
@@ -740,13 +901,139 @@ class ShipMapSystem {
             <div class="crew-name-grid">${crew.name.split(' ')[0]}</div>
         `;
 
-        marker.onclick = () => {
-            if (typeof openCrewManagementPopup === 'function') {
-                openCrewManagementPopup(crew.name);
-            }
-        };
+        // Establecer event listener solo una vez para nuevos marcadores
+        if (isNewMarker) {
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevenir propagación del evento
+                console.log(`🖱️ Clic en tripulante: ${crew.name}`);
+                this.showFloatingCrewCard(crew.id);
+            });
+        }
 
         marker.title = `${crew.name} - ${crew.position}`;
+
+        // Si hay una card activa para este tripulante, actualizarla
+        if (this.activeCrewCard === crew.id) {
+            this.updateFloatingCrewCardPosition(crew.id);
+        }
+    }
+
+    /**
+     * Muestra una card flotante siguiendo al tripulante
+     */
+    showFloatingCrewCard(crewId) {
+        const crew = crewMembers.find(c => c.id === crewId);
+        if (!crew) return;
+
+        // Si ya hay una card, cerrarla
+        this.closeFloatingCrewCard();
+
+        // Crear contenedor de la card
+        const cardContainer = document.createElement('div');
+        cardContainer.id = 'floating-crew-card';
+        cardContainer.className = 'floating-crew-card';
+
+        // Generar contenido similar a la card del panel
+        let cardContent = '';
+
+        if (!crew.isAlive) {
+            cardContent = `
+                <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${crew.name}</span>
+                    <span class="crew-card-status">💀</span>
+                </div>
+                <div class="crew-card-state deceased">FALLECIDO</div>
+            `;
+        } else if (crew.state === 'Despierto') {
+            const benefit = crew.getAwakeBenefitDescription?.() || '';
+            const location = crew.getCurrentLocation?.() || 'Nave';
+            const thought = crew.getCurrentThought?.() || '';
+
+            cardContent = `
+                <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${crew.name}</span>
+                    <span class="crew-card-age">${crew.biologicalAge.toFixed(0)} años</span>
+                </div>
+                ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
+                <div class="crew-card-location">
+                    📍 ${location}
+                </div>
+                <div class="crew-card-thought">
+                    <div class="thought-marquee">${thought}</div>
+                </div>
+            `;
+        } else {
+            // Encapsulado
+            cardContent = `
+                <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
+                <div class="crew-card-header">
+                    <span class="crew-card-name">${crew.name}</span>
+                    <span class="crew-card-age">${crew.biologicalAge.toFixed(0)} años</span>
+                </div>
+                <div class="crew-card-needs-advanced">
+                    ${crew.generateAdvancedNeedBars?.() || '<div class="crew-card-state">Encapsulado</div>'}
+                </div>
+            `;
+        }
+
+        cardContainer.innerHTML = cardContent;
+
+        // Agregar al mapa
+        const mapContainer = document.getElementById('ship-map-container');
+        if (mapContainer) {
+            mapContainer.appendChild(cardContainer);
+            this.activeCrewCard = crewId;
+            this.updateFloatingCrewCardPosition(crewId);
+        }
+    }
+
+    /**
+     * Actualiza la posición de la card flotante para seguir al tripulante
+     */
+    updateFloatingCrewCardPosition(crewId) {
+        const cardContainer = document.getElementById('floating-crew-card');
+        if (!cardContainer || this.activeCrewCard !== crewId) return;
+
+        const pos = this.crewLocations[crewId];
+        if (!pos) return;
+
+        const marker = document.getElementById(`crew-marker-${crewId}`);
+        if (!marker) return;
+
+        // Calcular posición basada en el marcador del tripulante
+        const topPercent = (pos.row / this.rows) * 100;
+        const leftPercent = (pos.col / this.cols) * 100;
+
+        // Posicionar la card al lado del tripulante (derecha o izquierda según espacio)
+        const gridElement = document.getElementById('ship-map-grid');
+        if (gridElement) {
+            const gridRect = gridElement.getBoundingClientRect();
+            const markerLeft = (leftPercent / 100) * gridRect.width;
+
+            // Si está en la mitad derecha, mostrar card a la izquierda
+            if (leftPercent > 50) {
+                cardContainer.style.left = 'auto';
+                cardContainer.style.right = `${100 - leftPercent + 2}%`;
+            } else {
+                cardContainer.style.left = `${leftPercent + 10}%`;
+                cardContainer.style.right = 'auto';
+            }
+
+            cardContainer.style.top = `${topPercent}%`;
+        }
+    }
+
+    /**
+     * Cierra la card flotante activa
+     */
+    closeFloatingCrewCard() {
+        const cardContainer = document.getElementById('floating-crew-card');
+        if (cardContainer) {
+            cardContainer.remove();
+        }
+        this.activeCrewCard = null;
     }
 
     /**
@@ -762,7 +1049,7 @@ class ShipMapSystem {
             const pos = this.crewLocations[crew.id];
             if (!pos) return false;
             const cellType = this.grid[pos.row]?.[pos.col];
-            return cellType === 'W';
+            return cellType === 'w';
         });
 
         // Registrar tiempo de llegada para nuevos tripulantes
@@ -852,6 +1139,12 @@ class ShipMapSystem {
      * Sistema de averías - Degrada las zonas basándose en el uso
      */
     degradeZones() {
+        // Solo degradar si hay un tramo activo
+        if (typeof gameLoop === 'undefined' || !gameLoop || gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            console.log('⏸️ Degradación pausada: no hay tramo activo');
+            return;
+        }
+
         // Verificar estado del ingeniero
         const engineer = crewMembers.find(c =>
             c.position && c.position.includes('Ingenier') && c.isAlive
@@ -918,14 +1211,14 @@ class ShipMapSystem {
      */
     getCellTypeToZoneName(cellType) {
         const mapping = {
-            'C': 'bridge',
-            'E': 'medbay',
-            'G': 'engineering',
-            'K': 'kitchen',
-            'N': 'greenhouse',
-            'D': 'capsules',
-            'B': 'cargo',
-            'W': 'bathroom'
+            'c': 'bridge',
+            'e': 'medbay',
+            'g': 'engineering',
+            'k': 'kitchen',
+            'n': 'greenhouse',
+            'd': 'capsules',
+            'b': 'cargo',
+            'w': 'bathroom'
         };
         return mapping[cellType];
     }
@@ -1171,18 +1464,18 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // Actualizar posiciones cada 3 segundos (más frecuente para detectar necesidades)
+        // Actualizar posiciones cada 1.5 segundos (velocidad x2)
         setInterval(() => {
             this.updateCrewLocations();
-        }, 3000);
+        }, 1500);
 
-        // Degradar zonas y gestionar baño cada 10 segundos
+        // Degradar zonas y gestionar baño cada 5 segundos (velocidad x2)
         setInterval(() => {
             this.degradeZones();
             this.processBathroomQueue();
-        }, 10000);
+        }, 5000);
 
-        // REPARACIONES: Procesar cada tick del juego (más rápido)
+        // REPARACIONES: Procesar cada tick del juego (ahora cada 1 segundo)
         setInterval(() => {
             this.processRepairTick();
         }, 1000); // Cada 1 segundo = cada tick
@@ -1195,8 +1488,8 @@ class ShipMapSystem {
             });
         }
 
-        console.log('✅ Auto-actualización del mapa iniciada (cada 3 segundos)');
-        console.log('⚙️ Sistema de averías activado (degradación cada 10 segundos, reparación cada 1 segundo)');
+        console.log('✅ Auto-actualización del mapa iniciada (cada 1.5 segundos - velocidad x2)');
+        console.log('⚙️ Sistema de averías activado (degradación cada 5 segundos, reparación cada 1 segundo - velocidad x2)');
     }
 }
 

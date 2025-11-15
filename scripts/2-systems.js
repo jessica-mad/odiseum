@@ -298,7 +298,7 @@ class GameLoop {
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
 
-        // Iniciar bucle de simulación (cada 2 segundos)
+        // Iniciar bucle de simulación (cada 1 segundo - velocidad x2)
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
 
         // Iniciar actualización del temporizador visual (cada 1 segundo)
@@ -822,15 +822,15 @@ class EventSystem {
             gameLoop.pause();
         }
 
-        // Reproducir sonido de alarma 2 segundos antes del popup
+        // Reproducir sonido de alarma 1 segundo antes del popup (velocidad x2)
         if (typeof playEventAlarmSound === 'function') {
             playEventAlarmSound();
         }
 
-        // Esperar 2 segundos antes de mostrar el popup
+        // Esperar 1 segundo antes de mostrar el popup (velocidad x2)
         setTimeout(() => {
             this.showEventPopup(event);
-        }, 2000);
+        }, 1000);
     }
 
     showEventPopup(event) {
@@ -1100,7 +1100,7 @@ class EventSystem {
         // Guardar pensamiento personalizado del evento
         if (changes.personalThought) {
             crew.personalThought = changes.personalThought;
-            crew.personalThoughtExpiry = Date.now() + (120000); // Dura 2 minutos
+            crew.personalThoughtExpiry = Date.now() + (60000); // Dura 1 minuto (velocidad x2)
         }
 
         if (changes.relationships && typeof changes.relationships === 'object') {

@@ -162,22 +162,21 @@
 
 /* === WRAPPER CON ZOOM === */
 .ship-map-zoom-wrapper {
-    flex: 1;
-    overflow: auto;
+    flex: 0 0 auto; /* No expandir, solo ocupar el espacio necesario */
+    height: 420px; /* Altura fija: 400px del mapa + padding */
+    overflow: visible;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     position: relative;
-    min-width: 0;
-    min-height: 0;
-    padding-top: 8px;
+    padding: 8px;
 }
 
 /* === WRAPPER DEL MAPA === */
 .ship-map-wrapper {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -185,38 +184,50 @@
     will-change: transform;
 }
 
-/* === CONTENEDOR CUADRADO (grid + overlay) === */
+/* === CONTENEDOR DEL MAPA (36x13) === */
 .ship-map-square-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 1; /* FORZAR CUADRADO */
-    max-width: min(100%, calc(100vh - 200px)); /* Limitar al espacio vertical disponible */
-    max-height: calc(100vh - 200px);
+    max-width: 400px; /* Limitar ancho máximo */
+    height: 400px; /* Altura fija para hacer cuadrado */
+    margin: 0 auto; /* Centrar */
+    overflow: hidden; /* Ocultar overflow para pan */
+    cursor: grab;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 65, 0.3);
 }
 
-/* === GRILLA DEL MAPA (25x25) === */
+.ship-map-square-container:active {
+    cursor: grabbing;
+}
+
+/* === GRILLA DEL MAPA (36x13) - Ahora scrolleable/paneable === */
 .ship-map-grid {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    /* Proporción real del mapa escalada para ser visible */
+    width: 200px; /* 13 columnas */
+    height: 554px; /* 36 filas (200 * 36/13) */
     display: grid;
-    grid-template-columns: repeat(25, 1fr);
-    grid-template-rows: repeat(25, 1fr);
+    grid-template-columns: repeat(13, 1fr);
+    grid-template-rows: repeat(36, 1fr);
     gap: 0.5px;
     padding: 4px;
     background: var(--color-terminal-bg);
-    overflow: hidden;
+    transition: none; /* Remover transición para pan suave */
+    will-change: transform;
+    user-select: none;
 }
 
 /* === OVERLAY DE TRIPULANTES === */
 .ship-map-crew-overlay {
     position: absolute;
-    top: 4px;  /* Mismo padding que grid */
-    left: 4px; /* Mismo padding que grid */
-    right: 4px;
-    bottom: 4px;
+    top: 0;
+    left: 0;
+    width: 200px; /* Mismo tamaño que grid */
+    height: 554px; /* Mismo tamaño que grid */
+    padding: 4px; /* Mismo padding que grid */
     pointer-events: none;
     z-index: 10;
 }
@@ -224,15 +235,15 @@
 /* === PANEL DE ESTADO DE SALAS === */
 .ship-map-rooms-status {
     width: 100%;
-    height: 140px;
+    flex: 1; /* Ocupar el espacio restante */
+    min-height: 140px; /* Altura mínima */
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow-y: hidden;
+    overflow-y: auto; /* Permitir scroll si es necesario */
     padding: 8px;
     background: rgba(0, 0, 0, 0.3);
     border-top: 2px solid var(--color-terminal-green);
-    flex-shrink: 0;
 }
 
 .rooms-status-title {
@@ -250,7 +261,7 @@
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 6px;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible; /* Permitir que las cards se vean completas */
     padding-bottom: 4px;
 }
 
@@ -335,6 +346,21 @@
     font-size: 10px;
 }
 
+.room-status-crew {
+    margin-top: 4px;
+    padding: 4px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 3px;
+    font-size: 10px;
+    color: rgba(0, 255, 65, 0.8);
+    text-align: center;
+    max-height: 32px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .room-status-broken {
     margin-top: 4px;
     padding: 4px;
@@ -400,12 +426,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 10px;
     transition: all 0.2s ease;
+    min-width: 0;
     min-height: 0;
-    aspect-ratio: 1; /* Forzar celdas cuadradas */
-    width: 100%;
-    height: 100%;
 }
 
 .grid-cell:hover {
@@ -497,6 +521,16 @@
         rgba(68, 255, 68, 0.12) 100%);
     border-color: rgba(68, 255, 68, 0.5);
     box-shadow: inset 0 0 8px rgba(68, 255, 68, 0.18);
+}
+
+/* Paredes */
+.cell-wall {
+    background: linear-gradient(135deg,
+        rgba(100, 100, 100, 0.4) 0%,
+        rgba(60, 60, 60, 0.5) 50%,
+        rgba(100, 100, 100, 0.4) 100%);
+    border-color: rgba(120, 120, 120, 0.6);
+    box-shadow: inset 0 0 8px rgba(80, 80, 80, 0.3);
 }
 
 /* Labels de celdas */
@@ -963,5 +997,163 @@
 
     .cell-label {
         font-size: 14px;
+    }
+}
+
+/* === CARD FLOTANTE DE TRIPULANTE EN MAPA === */
+.floating-crew-card {
+    position: absolute;
+    z-index: 1000;
+    background: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green);
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 200px;
+    max-width: 250px;
+    box-shadow:
+        0 0 20px rgba(0, 255, 65, 0.4),
+        inset 0 0 10px rgba(0, 255, 65, 0.1);
+    font-family: var(--font-monaco);
+    pointer-events: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInCard 0.3s ease-out;
+}
+
+@keyframes fadeInCard {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Botón de cerrar */
+.floating-card-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid #ff4444;
+    border-radius: 50%;
+    color: #ff4444;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.floating-card-close:hover {
+    background: #ff4444;
+    color: var(--color-terminal-bg);
+    transform: scale(1.1);
+}
+
+/* Usar los mismos estilos que las cards del panel */
+.floating-crew-card .crew-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+}
+
+.floating-crew-card .crew-card-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+.floating-crew-card .crew-card-age {
+    font-size: 11px;
+    color: rgba(0, 255, 65, 0.7);
+}
+
+.floating-crew-card .crew-card-status {
+    font-size: 16px;
+}
+
+.floating-crew-card .crew-card-benefit-mini {
+    font-size: 10px;
+    padding: 4px 6px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    color: var(--color-terminal-green);
+}
+
+.floating-crew-card .crew-card-location {
+    font-size: 11px;
+    color: rgba(0, 255, 65, 0.8);
+    margin-bottom: 6px;
+    padding: 4px;
+    background: rgba(0, 255, 65, 0.05);
+    border-radius: 3px;
+}
+
+.floating-crew-card .crew-card-thought {
+    font-size: 10px;
+    color: rgba(0, 255, 65, 0.6);
+    font-style: italic;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    max-height: 40px;
+    overflow: hidden;
+}
+
+.floating-crew-card .thought-marquee {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.floating-crew-card .crew-card-state {
+    font-size: 11px;
+    padding: 6px;
+    text-align: center;
+    border-radius: 4px;
+    background: rgba(68, 136, 255, 0.2);
+    border: 1px solid rgba(68, 136, 255, 0.5);
+    color: #4488ff;
+}
+
+.floating-crew-card .crew-card-state.deceased {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.floating-crew-card .crew-card-needs-advanced {
+    font-size: 10px;
+}
+
+/* En móvil, hacer la card más grande y centrada */
+@media (max-width: 768px) {
+    .floating-crew-card {
+        position: fixed;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%);
+        max-width: 90vw;
+        z-index: 10000;
+    }
+
+    .floating-card-close {
+        width: 36px;
+        height: 36px;
+        font-size: 28px;
+        line-height: 32px;
     }
 }
