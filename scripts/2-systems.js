@@ -1312,7 +1312,27 @@ class EventSystem {
 
     getCrewByName(name) {
         if (!Array.isArray(crewMembers)) return null;
-        return crewMembers.find(crew => crew.name === name) || null;
+
+        // Primero intentar buscar por nombre exacto
+        let crew = crewMembers.find(c => c.name === name);
+        if (crew) return crew;
+
+        // Si no encuentra, mapear nombres antiguos a roles
+        const nameToRole = {
+            'Capitán Silva': 'commander',
+            'Dra. Chen': 'doctor',
+            'Ing. Rodriguez': 'engineer',
+            'Lt. Johnson': 'scientist',
+            'Chef Patel': 'cook'
+        };
+
+        const role = nameToRole[name];
+        if (role) {
+            crew = crewMembers.find(c => c.role === role);
+            if (crew) return crew;
+        }
+
+        return null;
     }
 
     getResourceByKey(key) {
