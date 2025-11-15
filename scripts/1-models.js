@@ -2,6 +2,35 @@
 // MODELOS - ODISEUM V2.0
 // ============================================
 
+/* === CONFIGURACIÓN DE ROLES === */
+const ROLE_CONFIG = {
+    commander: {
+        emoji: '👨‍✈️',
+        label: 'CMD',
+        name: 'Comandante'
+    },
+    doctor: {
+        emoji: '👩‍⚕️',
+        label: 'MED',
+        name: 'Doctor/a'
+    },
+    engineer: {
+        emoji: '👨‍🔧',
+        label: 'ENG',
+        name: 'Ingeniero/a'
+    },
+    scientist: {
+        emoji: '👨‍🚀',
+        label: 'SCI',
+        name: 'Científico/a'
+    },
+    cook: {
+        emoji: '👨‍🍳',
+        label: 'CHEF',
+        name: 'Chef'
+    }
+};
+
 /* === CLASE TRIPULANTE === */
 class Crew {
     constructor(data) {
@@ -230,7 +259,16 @@ class Crew {
             new CrewNotification(`${this.name} está exhausto`, NOTIFICATION_TYPES.WARNING);
         }
     }
-    
+
+    /* === OBTENER LABEL Y EMOJI DEL ROL === */
+    getRoleLabel() {
+        const roleInfo = ROLE_CONFIG[this.role];
+        if (roleInfo) {
+            return `${roleInfo.emoji} ${roleInfo.label}`;
+        }
+        return '👤'; // Fallback si no hay rol definido
+    }
+
     /* === SISTEMA DE AUTO-GESTIÓN === */
     tryAutoManage() {
         if (!this.isAlive || (this.state !== CREW_STATES.AWAKE && this.state !== CREW_STATES.RESTING)) return;
@@ -465,7 +503,7 @@ class Crew {
             card.onclick = null;
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-status">💀</span>
                 </div>
                 <div class="crew-card-state deceased">FALLECIDO</div>
@@ -492,7 +530,7 @@ class Crew {
 
                 card.innerHTML = `
                     <div class="crew-card-header">
-                        <span class="crew-card-name">${this.name}</span>
+                        <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                         <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                     </div>
                     ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
@@ -510,7 +548,7 @@ class Crew {
                 console.log(`🎨 Creando card ENCAPSULADO para ${this.name}`);
                 card.innerHTML = `
                     <div class="crew-card-header">
-                        <span class="crew-card-name">${this.name}</span>
+                        <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                         <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                     </div>
                     <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">
@@ -523,7 +561,7 @@ class Crew {
             // Crear una card de fallback básica
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
                 <div class="crew-card-state">${this.state}</div>
@@ -803,7 +841,7 @@ class Crew {
             card.onclick = null;
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-status">💀</span>
                 </div>
                 <div class="crew-card-state deceased">FALLECIDO</div>
@@ -822,7 +860,7 @@ class Crew {
 
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
                 ${benefit ? `<div class="crew-card-benefit-mini">⚡ ${benefit}</div>` : ''}
@@ -837,7 +875,7 @@ class Crew {
             // ENCAPSULADOS: mostrar necesidades con barras
             card.innerHTML = `
                 <div class="crew-card-header">
-                    <span class="crew-card-name">${this.name}</span>
+                    <span class="crew-card-name">${this.getRoleLabel()} ${this.name}</span>
                     <span class="crew-card-age">${this.biologicalAge.toFixed(0)} años</span>
                 </div>
                 <div class="crew-card-needs-advanced" id="mini-needs-${this.id}">

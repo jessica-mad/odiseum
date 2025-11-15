@@ -1313,11 +1313,15 @@ class EventSystem {
     getCrewByName(name) {
         if (!Array.isArray(crewMembers)) return null;
 
-        // Primero intentar buscar por nombre exacto
+        // PRIORIDAD 1: Buscar por nombre exacto
+        // Esto permite eventos personalizados para tripulantes específicos del configurador
+        // Ejemplo: Si hay un evento para "Morgan" (comandante específico), lo encontrará directamente
         let crew = crewMembers.find(c => c.name === name);
         if (crew) return crew;
 
-        // Si no encuentra, mapear nombres antiguos a roles
+        // PRIORIDAD 2: Mapear nombres antiguos (eventos genéricos) a roles
+        // Esto hace que eventos legacy como "Capitán Silva" funcionen con cualquier comandante
+        // Ejemplo: "Capitán Silva" → busca role='commander' → encuentra a Morgan/cualquier comandante
         const nameToRole = {
             'Capitán Silva': 'commander',
             'Dra. Chen': 'doctor',
@@ -1332,6 +1336,7 @@ class EventSystem {
             if (crew) return crew;
         }
 
+        // No se encontró ni por nombre exacto ni por rol
         return null;
     }
 
