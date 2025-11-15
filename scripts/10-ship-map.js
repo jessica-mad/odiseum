@@ -50,45 +50,46 @@ class ShipMapSystem {
         this.cols = 13;
 
         // Zonas y sus tiles principales (con sistema de averías mejorado)
+        // Tasas aumentadas x2 para coincidir con velocidad x2 del juego
         this.zones = {
             bridge: {
                 name: 'Control', icon: '🎮', tiles: this.findTiles('c'), color: '#00ff41',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.5, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 3.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             medbay: {
                 name: 'Enfermería', icon: '🏥', tiles: this.findTiles('e'), color: '#ff4444',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.2, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 2.4, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             engineering: {
                 name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('g'), color: '#ffaa00',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             kitchen: {
                 name: 'Cocina', icon: '🍳', tiles: this.findTiles('k'), color: '#ff8844',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.8, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 3.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             greenhouse: {
                 name: 'Invernadero', icon: '🌱', tiles: this.findTiles('n'), color: '#44ff44',
-                integrity: 100, maxIntegrity: 100, degradationRate: 1.0, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 2.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             capsules: {
                 name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('d'), color: '#4488ff',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.5, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 1.0, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             cargo: {
                 name: 'Bodega', icon: '📦', tiles: this.findTiles('b'), color: '#888888',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.4, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
             bathroom: {
                 name: 'Baño', icon: '🚽', tiles: this.findTiles('w'), color: '#44aaff',
-                integrity: 100, maxIntegrity: 100, degradationRate: 0.3, isBroken: false,
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
             }
@@ -1025,6 +1026,12 @@ class ShipMapSystem {
      * Sistema de averías - Degrada las zonas basándose en el uso
      */
     degradeZones() {
+        // Solo degradar si hay un tramo activo
+        if (typeof gameLoop === 'undefined' || !gameLoop || gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            console.log('⏸️ Degradación pausada: no hay tramo activo');
+            return;
+        }
+
         // Verificar estado del ingeniero
         const engineer = crewMembers.find(c =>
             c.position && c.position.includes('Ingenier') && c.isAlive
