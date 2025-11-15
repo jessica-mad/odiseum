@@ -1344,18 +1344,18 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // Actualizar posiciones cada 3 segundos (más frecuente para detectar necesidades)
+        // Actualizar posiciones cada 1.5 segundos (velocidad x2)
         setInterval(() => {
             this.updateCrewLocations();
-        }, 3000);
+        }, 1500);
 
-        // Degradar zonas y gestionar baño cada 10 segundos
+        // Degradar zonas y gestionar baño cada 5 segundos (velocidad x2)
         setInterval(() => {
             this.degradeZones();
             this.processBathroomQueue();
-        }, 10000);
+        }, 5000);
 
-        // REPARACIONES: Procesar cada tick del juego (más rápido)
+        // REPARACIONES: Procesar cada tick del juego (ahora cada 1 segundo)
         setInterval(() => {
             this.processRepairTick();
         }, 1000); // Cada 1 segundo = cada tick
@@ -1368,8 +1368,8 @@ class ShipMapSystem {
             });
         }
 
-        console.log('✅ Auto-actualización del mapa iniciada (cada 3 segundos)');
-        console.log('⚙️ Sistema de averías activado (degradación cada 10 segundos, reparación cada 1 segundo)');
+        console.log('✅ Auto-actualización del mapa iniciada (cada 1.5 segundos - velocidad x2)');
+        console.log('⚙️ Sistema de averías activado (degradación cada 5 segundos, reparación cada 1 segundo - velocidad x2)');
     }
 }
 
