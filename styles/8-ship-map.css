@@ -223,10 +223,11 @@
 /* === OVERLAY DE TRIPULANTES === */
 .ship-map-crew-overlay {
     position: absolute;
-    top: 4px;  /* Mismo padding que grid */
-    left: 4px; /* Mismo padding que grid */
-    right: 4px;
-    bottom: 4px;
+    top: 0;
+    left: 0;
+    width: 200px; /* Mismo tamaño que grid */
+    height: 554px; /* Mismo tamaño que grid */
+    padding: 4px; /* Mismo padding que grid */
     pointer-events: none;
     z-index: 10;
 }
