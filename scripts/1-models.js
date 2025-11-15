@@ -4,10 +4,10 @@
 
 /* === CONFIGURACIÓN DE ROLES === */
 const ROLE_CONFIG = {
-    commander: {
+    captain: {
         emoji: '👨‍✈️',
-        label: 'CMD',
-        name: 'Comandante'
+        label: 'CPT',
+        name: 'Capitán/a'
     },
     doctor: {
         emoji: '👩‍⚕️',
@@ -19,10 +19,10 @@ const ROLE_CONFIG = {
         label: 'ENG',
         name: 'Ingeniero/a'
     },
-    scientist: {
+    navigator: {
         emoji: '👨‍🚀',
-        label: 'SCI',
-        name: 'Científico/a'
+        label: 'NAV',
+        name: 'Navegante'
     },
     cook: {
         emoji: '👨‍🍳',

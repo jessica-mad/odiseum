@@ -101,10 +101,10 @@ class ShipMapSystem {
         this.lastSubtleMove = {}; // Rastrear último movimiento sutil
         // Íconos por ROL (no por nombre)
         this.crewIconsByRole = {
-            'commander': '👨‍✈️',
+            'captain': '👨‍✈️',
             'doctor': '👩‍⚕️',
             'engineer': '👨‍🔧',
-            'scientist': '👨‍🚀',
+            'navigator': '👨‍🚀',
             'cook': '👨‍🍳'
         };
 
@@ -606,11 +606,11 @@ class ShipMapSystem {
 
         // Fallback por si acaso
         switch (crew.role) {
-            case 'commander': return '👨‍✈️';
+            case 'captain': return '👨‍✈️';
             case 'doctor': return '👩‍⚕️';
             case 'engineer': return '👨‍🔧';
             case 'cook': return '👨‍🍳';
-            case 'scientist': return '👨‍🔬';
+            case 'navigator': return '👨‍🚀';
             default: return '👤';
         }
     }
@@ -664,13 +664,13 @@ class ShipMapSystem {
                 return 'greenhouse';
             }
 
-            // Scientist/Navegante -> Puente de Mando (bridge)
-            if (role === 'scientist') {
+            // Navigator/Navegante -> Puente de Mando (bridge)
+            if (role === 'navigator') {
                 return 'bridge';
             }
 
-            // Commander -> Puente de Mando (bridge)
-            if (role === 'commander') {
+            // Captain -> Puente de Mando (bridge)
+            if (role === 'captain') {
                 return 'bridge';
             }
 

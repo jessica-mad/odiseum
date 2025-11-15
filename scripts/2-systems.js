@@ -1320,13 +1320,13 @@ class EventSystem {
         if (crew) return crew;
 
         // PRIORIDAD 2: Mapear nombres antiguos (eventos genéricos) a roles
-        // Esto hace que eventos legacy como "Capitán Silva" funcionen con cualquier comandante
-        // Ejemplo: "Capitán Silva" → busca role='commander' → encuentra a Morgan/cualquier comandante
+        // Esto hace que eventos legacy como "Capitán Silva" funcionen con cualquier capitán
+        // Ejemplo: "Capitán Silva" → busca role='captain' → encuentra a Morgan/cualquier capitán
         const nameToRole = {
-            'Capitán Silva': 'commander',
+            'Capitán Silva': 'captain',
             'Dra. Chen': 'doctor',
             'Ing. Rodriguez': 'engineer',
-            'Lt. Johnson': 'scientist',
+            'Lt. Johnson': 'navigator',
             'Chef Patel': 'cook'
         };
 

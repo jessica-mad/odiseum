@@ -9,7 +9,7 @@ const CREW_DATA = [
         position: 'Comandante',
         age: 45,
         img: 'avatar1.jpg',
-        role: 'commander',
+        role: 'captain',
         state: 'Despierto',
         personality: {
             traits: ['leadership', 'responsible', 'strict', 'protective'],
@@ -69,7 +69,7 @@ const CREW_DATA = [
         position: 'Navegante',
         age: 29,
         img: 'avatar4.jpg',
-        role: 'scientist',
+        role: 'navigator',
         state: 'Despierto',
         personality: {
             traits: ['optimistic', 'social', 'adventurous', 'impulsive'],
@@ -121,10 +121,10 @@ function createCrewFromData(config) {
 
     // Mapeo de roles del configurador a roles internos
     const roleMapping = {
-        'comandante': { role: 'commander', position: 'Comandante', img: 'avatar1.jpg', baseId: 1 },
+        'comandante': { role: 'captain', position: 'Comandante', img: 'avatar1.jpg', baseId: 1 },
         'doctor': { role: 'doctor', position: 'Médica', img: 'avatar2.jpg', baseId: 2 },
         'ingeniero': { role: 'engineer', position: 'Ingeniero', img: 'avatar3.jpg', baseId: 3 },
-        'navegante': { role: 'scientist', position: 'Navegante', img: 'avatar4.jpg', baseId: 4 },
+        'navegante': { role: 'navigator', position: 'Navegante', img: 'avatar4.jpg', baseId: 4 },
         'chef': { role: 'cook', position: 'Cocinero/Botánico', img: 'avatar5.jpg', baseId: 5 }
     };
 

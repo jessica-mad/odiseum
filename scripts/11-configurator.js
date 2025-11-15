@@ -131,10 +131,10 @@ const missionConfigurator = {
 
         // Mapear roleKey del configurador a role interno
         const roleMapping = {
-            'comandante': 'commander',
+            'comandante': 'captain',
             'doctor': 'doctor',
             'ingeniero': 'engineer',
-            'navegante': 'scientist',
+            'navegante': 'navigator',
             'chef': 'cook'
         };
 
