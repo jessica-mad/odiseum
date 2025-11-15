@@ -162,22 +162,21 @@
 
 /* === WRAPPER CON ZOOM === */
 .ship-map-zoom-wrapper {
-    flex: 1;
-    overflow: auto;
+    flex: 0 0 auto; /* No expandir */
+    height: 420px; /* Altura fija para el visor */
+    overflow: visible;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     position: relative;
-    min-width: 0;
-    min-height: 0;
-    padding-top: 8px;
+    padding: 8px;
 }
 
 /* === WRAPPER DEL MAPA === */
 .ship-map-wrapper {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 400px; /* Ancho fijo cuadrado */
+    height: 400px; /* Alto fijo cuadrado */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,10 +187,17 @@
 /* === CONTENEDOR DEL MAPA (36x13) === */
 .ship-map-square-container {
     position: relative;
-    width: 100%;
-    aspect-ratio: 13 / 36; /* Proporción 13 columnas × 36 filas */
-    max-width: min(100%, calc((100vh - 200px) * 13 / 36)); /* Limitar al espacio vertical disponible */
-    max-height: calc(100vh - 200px);
+    width: 100%; /* 400px del wrapper */
+    height: 100%; /* 400px del wrapper */
+    overflow: hidden; /* Ocultar el resto del mapa */
+    cursor: grab;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--color-terminal-green);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+.ship-map-square-container:active {
+    cursor: grabbing;
 }
 
 /* === GRILLA DEL MAPA (36x13) === */
@@ -199,24 +205,28 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    /* Calcular dimensiones para mantener proporción 13x36 */
+    width: 144px; /* 400px * 13/36 */
+    height: 400px;
     display: grid;
     grid-template-columns: repeat(13, 1fr);
     grid-template-rows: repeat(36, 1fr);
     gap: 0.5px;
     padding: 4px;
     background: var(--color-terminal-bg);
-    overflow: hidden;
+    transition: none; /* Sin transición para pan suave */
+    will-change: transform;
+    user-select: none;
 }
 
 /* === OVERLAY DE TRIPULANTES === */
 .ship-map-crew-overlay {
     position: absolute;
-    top: 4px;  /* Mismo padding que grid */
-    left: 4px; /* Mismo padding que grid */
-    right: 4px;
-    bottom: 4px;
+    top: 0;
+    left: 0;
+    width: 144px; /* Mismo que grid */
+    height: 400px; /* Mismo que grid */
+    padding: 4px; /* Mismo padding que grid */
     pointer-events: none;
     z-index: 10;
 }
@@ -224,15 +234,15 @@
 /* === PANEL DE ESTADO DE SALAS === */
 .ship-map-rooms-status {
     width: 100%;
-    height: 140px;
+    flex: 1; /* Ocupar espacio restante */
+    min-height: 180px; /* Altura mínima */
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow-y: hidden;
+    overflow-y: auto; /* Scroll vertical */
     padding: 8px;
     background: rgba(0, 0, 0, 0.3);
     border-top: 2px solid var(--color-terminal-green);
-    flex-shrink: 0;
 }
 
 .rooms-status-title {
@@ -249,8 +259,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-x: visible;
+    overflow-y: visible;
     padding-bottom: 4px;
 }
 
@@ -333,6 +343,21 @@
     text-align: right;
     color: var(--color-terminal-green);
     font-size: 10px;
+}
+
+.room-status-crew {
+    margin-top: 4px;
+    padding: 4px 6px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 3px;
+    font-size: 10px;
+    color: rgba(0, 255, 65, 0.85);
+    text-align: center;
+    max-height: 32px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .room-status-broken {
