@@ -206,13 +206,11 @@
         <!-- Terminal/Content Area - Mobile -->
         <div class="mobile-content-area mobile-only" id="mobile-content-area" style="display: none;">
             <!-- Tabs móvil -->
-            <div class="mobile-terminal-tabs">
+            <div class="mobile-terminal-tabs" id="mobile-tabs-container">
                 <button class="mobile-terminal-tab active" onclick="switchTerminalTab('console')">
                     CONSOLA
                 </button>
-                <button class="mobile-terminal-tab" onclick="switchTerminalTab('crew')">
-                    TRIPULACIÓN
-                </button>
+                <!-- Los tabs de tripulantes se generan dinámicamente -->
             </div>
 
             <!-- Tab 1: Consola -->
@@ -223,12 +221,8 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Tripulación -->
-            <div class="terminal-tab-content" id="terminal-content-crew-mobile">
-                <div class="crew-cards-grid-mobile" id="mobile-crew-cards">
-                    <!-- Se genera dinámicamente con JS -->
-                </div>
-            </div>
+            <!-- Los contenidos de fichas de tripulantes se generan dinámicamente -->
+            <div id="mobile-crew-tabs-content-container"></div>
         </div>
 
         <!-- Barra de Recursos Permanente - Desktop -->
@@ -439,13 +433,11 @@
             <!-- Terminal de Notificaciones con Tabs -->
             <div class="terminal-notification-area">
                 <div class="terminal-header">
-                    <div class="terminal-tabs">
+                    <div class="terminal-tabs" id="terminal-tabs-container">
                         <button class="terminal-tab active" onclick="switchTerminalTab('console')" id="tab-console">
                             &gt; CONSOLA
                         </button>
-                        <button class="terminal-tab" onclick="switchTerminalTab('crew')" id="tab-crew">
-                            &gt; TRIPULACIÓN
-                        </button>
+                        <!-- Los tabs de tripulantes se generan dinámicamente -->
                     </div>
                     <span class="terminal-time" id="terminal-time">00:00:00</span>
                 </div>
@@ -458,12 +450,8 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: Fichas de Tripulación -->
-                <div class="terminal-tab-content" id="terminal-content-crew">
-                    <div class="crew-cards-grid" id="terminal-crew-cards">
-                        <!-- Se genera dinámicamente con JS -->
-                    </div>
-                </div>
+                <!-- Los contenidos de fichas de tripulantes se generan dinámicamente -->
+                <div id="crew-tabs-content-container"></div>
             </div>
         </div>
 
