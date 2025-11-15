@@ -154,6 +154,11 @@ function prevConfigStep(currentStep) {
 }
 
 function startGameWithConfiguration(config) {
+    console.log('=== [MAIN] startGameWithConfiguration RECIBIDO ===');
+    console.log('[MAIN] Config recibido:', config);
+    console.log('[MAIN] Config.crew:', config?.crew);
+    console.log('[MAIN] Config.resources:', config?.resources);
+
     // Ocultar el configurador
     const configurator = document.getElementById('mission-configurator');
     if (configurator) {
@@ -167,6 +172,7 @@ function startGameWithConfiguration(config) {
     }
 
     // Aplicar la configuración al juego
+    console.log('[MAIN] Llamando a initializeGame con config...');
     initializeGame(config);
     ensureIntroEntryInLogbook(false);
     startFirstTranche();
@@ -196,10 +202,15 @@ function ensureIntroEntryInLogbook(includeButton = false) {
 
 /* === INICIALIZACIÓN DEL JUEGO === */
 function initializeGame(config) {
+    console.log('=== [INITIALIZE GAME] INICIANDO ===');
+
     // Guardar configuración en variable global
     window.missionConfig = config || null;
 
-    console.log('[initializeGame] Configuración recibida:', config);
+    console.log('[initializeGame] Config recibida:', config);
+    console.log('[initializeGame] Config es objeto?', typeof config === 'object');
+    console.log('[initializeGame] Config.crew existe?', !!config?.crew);
+    console.log('[initializeGame] Config.resources existe?', !!config?.resources);
 
     // Inicializar bitácora PRIMERO (antes de cualquier log)
     logbook = new Logbook();
@@ -257,7 +268,8 @@ function initializeGame(config) {
     // Usar recursos de config si existen, sino usar defaults
     const resources = config && config.resources ? config.resources : defaultResources;
 
-    console.log('[initializeGame] Recursos a usar:', resources);
+    console.log('[initializeGame] Usando recursos de config?', config && config.resources ? 'SÍ' : 'NO (defaults)');
+    console.log('[initializeGame] Recursos seleccionados:', resources);
 
     // Crear recursos con valores personalizados o por defecto
     Energy = new Resource('Energía', resources.energy, resources.energy, 'energy-meter', 'energy-amount', 'resource-strip-energy');
@@ -268,13 +280,20 @@ function initializeGame(config) {
     Data = new Resource('Datos/Entret.', resources.data, resources.data, 'data-meter', 'data-amount', 'resource-strip-data');
     Fuel = new Resource('Combustible', resources.fuel, resources.fuel, 'fuel-meter', 'fuel-amount', 'resource-strip-fuel');
 
+    console.log('[initializeGame] Recursos creados - Energy:', Energy.quantity, 'Food:', Food.quantity, 'Water:', Water.quantity);
+
     // Inicializar sistema de eventos
     eventSystem = new EventSystem();
 
     // Crear tripulación desde datos (con config si existe)
-    console.log('[initializeGame] Creando tripulación con config:', config);
+    console.log('=== [CREW] CREANDO TRIPULACIÓN ===');
+    console.log('[initializeGame] Pasando config a createCrewFromData:', config);
+    console.log('[initializeGame] Config.crew:', config?.crew);
     crewMembers = createCrewFromData(config);
-    console.log('[initializeGame] Tripulación creada:', crewMembers.map(c => c.name));
+    console.log('[initializeGame] Tripulación creada - Total:', crewMembers.length);
+    crewMembers.forEach((c, i) => {
+        console.log(`[initializeGame] Crew[${i}]:`, c.name, 'Edad:', c.initialAge, 'Role:', c.role, 'ConfigStats:', c.configStats);
+    });
 
     if (typeof awakeBenefitSystem !== 'undefined' && awakeBenefitSystem) {
         awakeBenefitSystem.refreshState(crewMembers);

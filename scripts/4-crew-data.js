@@ -107,10 +107,17 @@ const CREW_DATA = [
 
 /* === FUNCIÓN HELPER PARA CREAR TRIPULACIÓN === */
 function createCrewFromData(config) {
+    console.log('=== [createCrewFromData] INICIANDO ===');
+    console.log('[createCrewFromData] Config recibido:', config);
+    console.log('[createCrewFromData] Config.crew:', config?.crew);
+
     // Si no hay config, usar tripulación por defecto
     if (!config || !config.crew) {
+        console.log('[createCrewFromData] NO HAY CONFIG - Usando tripulación por defecto');
         return CREW_DATA.map(data => new Crew(data));
     }
+
+    console.log('[createCrewFromData] SÍ HAY CONFIG - Creando tripulación personalizada');
 
     // Mapeo de roles del configurador a roles internos
     const roleMapping = {
@@ -126,9 +133,13 @@ function createCrewFromData(config) {
     let idCounter = 1;
 
     for (const [roleKey, roleInfo] of Object.entries(roleMapping)) {
+        console.log(`[createCrewFromData] Procesando rol: ${roleKey}`);
         const selectedOption = config.crew[roleKey];
 
         if (selectedOption) {
+            console.log(`[createCrewFromData] ${roleKey} encontrado:`, selectedOption.name);
+            console.log(`[createCrewFromData] ${roleKey} stats:`, selectedOption.stats);
+
             // Crear datos de tripulante basados en la opción seleccionada
             const crewData = {
                 id: idCounter++,
@@ -155,15 +166,26 @@ function createCrewFromData(config) {
                 configDrawbacks: selectedOption.drawbacks
             };
 
-            customCrew.push(new Crew(crewData));
+            console.log(`[createCrewFromData] crewData creado para ${selectedOption.name}:`, crewData);
+            console.log(`[createCrewFromData] crewData.configStats:`, crewData.configStats);
+
+            const crewMember = new Crew(crewData);
+            console.log(`[createCrewFromData] Crew object creado - Name:`, crewMember.name, 'configStats:', crewMember.configStats);
+
+            customCrew.push(crewMember);
+        } else {
+            console.error(`[createCrewFromData] ERROR: ${roleKey} NO ENCONTRADO en config.crew!`);
         }
     }
 
+    console.log('[createCrewFromData] Total tripulantes creados:', customCrew.length);
+
     // Si no se crearon todos los tripulantes, usar los por defecto faltantes
     if (customCrew.length < 5) {
-        console.warn('[createCrewFromData] No se encontraron todos los tripulantes en config, usando defaults');
+        console.warn('[createCrewFromData] Solo se crearon', customCrew.length, 'tripulantes. Usando defaults');
         return CREW_DATA.map(data => new Crew(data));
     }
 
+    console.log('[createCrewFromData] Tripulación personalizada completa:', customCrew.map(c => c.name));
     return customCrew;
 }

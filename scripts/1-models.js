@@ -52,6 +52,11 @@ class Crew {
         this.configStats = data.configStats || {};
         this.configBenefits = data.configBenefits || null;
         this.configDrawbacks = data.configDrawbacks || null;
+
+        // Log para debugging
+        if (data.configStats && Object.keys(data.configStats).length > 0) {
+            console.log(`[Crew Constructor] ${this.name} - configStats recibidos:`, this.configStats);
+        }
     }
 
     getEffectiveSkillMultiplier() {

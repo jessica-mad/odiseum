@@ -613,7 +613,7 @@ const missionConfigurator = {
 
     /* === CONFIRMAR Y COMENZAR === */
     confirmAndStart() {
-        console.log('[Configurador] Confirmando configuración...');
+        console.log('=== [CONFIGURADOR] CONFIRMANDO ===');
 
         // Crear objeto de configuración final
         const gameConfiguration = {
@@ -626,13 +626,26 @@ const missionConfigurator = {
         // Guardar en variable global
         window.gameConfiguration = gameConfiguration;
 
-        console.log('[Configurador] Configuración guardada:', gameConfiguration);
+        console.log('[Configurador] selectedCrew:', this.selectedCrew);
+        console.log('[Configurador] selectedResources:', this.selectedResources);
+        console.log('[Configurador] gameConfiguration completo:', JSON.stringify(gameConfiguration, null, 2));
+
+        // Verificar que todos los roles estén presentes
+        const roles = ['comandante', 'doctor', 'ingeniero', 'navegante', 'chef'];
+        roles.forEach(role => {
+            if (gameConfiguration.crew[role]) {
+                console.log(`[Configurador] ${role}:`, gameConfiguration.crew[role].name, 'Stats:', gameConfiguration.crew[role].stats);
+            } else {
+                console.error(`[Configurador] ERROR: Falta ${role} en config!`);
+            }
+        });
 
         // Llamar a la función de inicio del juego
         if (typeof startGameWithConfiguration === 'function') {
+            console.log('[Configurador] Llamando a startGameWithConfiguration...');
             startGameWithConfiguration(gameConfiguration);
         } else {
-            console.error('[Configurador] Función startGameWithConfiguration no encontrada');
+            console.error('[Configurador] ERROR: Función startGameWithConfiguration no encontrada');
         }
     }
 };
