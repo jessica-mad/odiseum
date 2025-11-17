@@ -33,6 +33,12 @@
     --color-alert-yellow-glow: rgba(255, 255, 0, 0.5);
     --color-alert-green: #00ff41;
     
+    /* === COLORES DE ESTADOS DE SELECCIÓN === */
+    --color-selected-outline: #00ff41;      /* Verde brillante para elementos seleccionados */
+    --color-deselected-bg: #0a1a0a;         /* Verde muy oscuro casi negro para fondo */
+    --color-deselected-text: #2d4d2d;       /* Verde oscuro para texto */
+    --color-deselected-border: #1a2a1a;     /* Verde oscuro para bordes */
+
     /* === COLORES DE BORDE === */
     --border-color: var(--color-black);
     --border-width: 2px;
@@ -61,15 +67,30 @@
     --font-monaco: 'Monaco', 'Courier New', monospace;
     
     /* === TAMAÑOS DE FUENTE === */
-    --font-size-xs: 9px;
-    --font-size-sm: 10px;
-    --font-size-base: 11px;
-    --font-size-md: 12px;
-    --font-size-lg: 13px;
-    --font-size-xl: 14px;
-    --font-size-xxl: 16px;
-    --font-size-title: 18px;
-    --font-size-hero: 24px;
+    /* Tamaños según manual de estilo en px */
+
+    /* Desktop */
+    --font-size-desktop-content: 14px;      /* Contenido general */
+    --font-size-desktop-h3: 18px;           /* h3 */
+    --font-size-desktop-h2: 20px;           /* h2 */
+    --font-size-desktop-h1: 22px;           /* h1 - máximo jerarquía */
+
+    /* Móvil */
+    --font-size-mobile-content: 15px;       /* Contenido general */
+    --font-size-mobile-h3: 17px;            /* h3 */
+    --font-size-mobile-h2: 18px;            /* h2 */
+    --font-size-mobile-h1: 20px;            /* h1 - máximo jerarquía */
+
+    /* Escala de tamaños (sistema antiguo - deprecado) */
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-xxl: 20px;
+    --font-size-title: 22px;
+    --font-size-hero: 28px;
     
     /* === TRANSICIONES === */
     --transition-fast: 0.15s ease;

@@ -1,6 +1,7 @@
 /* ============================================
    CONFIGURADOR DE MISIÓN - ODISEUM V2.0
    Tema Terminal: Negro + Verde
+   REDISEÑO SEGÚN MANUAL DE ESTILO
    ============================================ */
 
 /* === OVERLAY FULLSCREEN === */
@@ -8,7 +9,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.95);
-    display: none; /* Oculto por defecto */
+    display: none;
     align-items: center;
     justify-content: center;
     padding: var(--spacing-xl);
@@ -44,7 +45,7 @@
 
 .configurator-title {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-title);
+    font-size: var(--font-size-desktop-h1);
     color: var(--color-terminal-green);
     margin: 0;
     text-transform: uppercase;
@@ -52,14 +53,13 @@
     text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
 }
 
+/* INDICADOR DE PASOS - SIN CAJA */
 .configurator-step-indicator {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-desktop-content);
     color: var(--color-terminal-green-dim);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--color-terminal-green-dark);
-    background: var(--color-terminal-bg);
     letter-spacing: 0.5px;
+    /* SIN background, SIN border - solo texto */
 }
 
 .seed-loaded-notice {
@@ -98,9 +98,9 @@
 
 /* === PASOS DEL CONFIGURADOR === */
 .config-step {
-    display: none; /* Solo uno visible a la vez */
+    display: none;
     flex-direction: column;
-    padding: var(--spacing-xl);
+    padding: 0;
     overflow-y: auto;
     max-height: calc(90vh - 150px);
 }
@@ -124,14 +124,15 @@
 
 /* === HEADER DE CADA PASO === */
 .config-step-header {
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-xl);
     padding-bottom: var(--spacing-lg);
     border-bottom: 2px solid var(--color-terminal-green-dark);
 }
 
 .config-step-header h3 {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-desktop-h2);
     color: var(--color-terminal-green);
     margin: 0 0 var(--spacing-sm) 0;
     text-transform: uppercase;
@@ -146,12 +147,16 @@
     line-height: 1.6;
 }
 
-/* === BARRAS DE PRESUPUESTO/PESO === */
+/* === BARRAS DE PRESUPUESTO/PESO - STICKY === */
 .config-budget-bar {
-    background: var(--color-terminal-bg-light);
-    border: 2px solid var(--color-terminal-green-dark);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-xl);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-terminal-bg);
+    border-bottom: 2px solid var(--color-terminal-green);
+    padding: var(--spacing-md) var(--spacing-xl);
+    margin-bottom: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .budget-label {
@@ -177,7 +182,7 @@
     position: relative;
     width: 100%;
     height: 24px;
-    background: var(--color-terminal-bg);
+    background: var(--color-terminal-bg-light);
     border: 2px solid var(--color-terminal-green-dark);
     overflow: hidden;
 }
@@ -199,10 +204,8 @@
 .config-crew-container,
 .config-resources-container {
     min-height: 200px;
-    margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-lg);
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
+    margin-bottom: 0;
+    padding: var(--spacing-xl);
 }
 
 .placeholder-text {
@@ -216,7 +219,8 @@
 
 /* === PRESETS DE RECURSOS === */
 .config-presets {
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    padding: 0 var(--spacing-xl);
 }
 
 .presets-label {
@@ -241,8 +245,9 @@
     background: var(--color-terminal-bg);
     color: var(--color-terminal-green);
     border: 2px solid var(--color-terminal-green-dark);
+    border-radius: 10px;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.25s ease;
     text-transform: uppercase;
 }
 
@@ -250,6 +255,7 @@
     background: var(--color-terminal-green-dark);
     border-color: var(--color-terminal-green);
     box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    transform: translateY(-2px);
 }
 
 .preset-btn:active {
@@ -257,29 +263,35 @@
     color: var(--color-terminal-bg);
 }
 
-/* === RESUMEN (PASO 3) === */
+/* === RESUMEN (PASO 3) - 2 COLUMNAS EN DESKTOP === */
 .config-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    padding: 0 var(--spacing-xl);
+}
+
+.summary-column {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
 }
 
 .summary-section {
-    background: var(--color-terminal-bg-light);
-    border: 2px solid var(--color-terminal-green-dark);
-    padding: var(--spacing-md);
+    /* SIN background, SIN border principal */
+    padding: 0;
+    border-top: 2px solid var(--color-terminal-green-dark);
+    padding-top: var(--spacing-md);
 }
 
 .summary-section h4 {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-desktop-h3);
     color: var(--color-terminal-green);
     margin: 0 0 var(--spacing-md) 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--color-terminal-green-dark);
-    padding-bottom: var(--spacing-sm);
 }
 
 .summary-content {
@@ -295,8 +307,7 @@
 
 /* === SEED DE MISIÓN === */
 .seed-section {
-    border-color: var(--color-terminal-green);
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+    border-top-color: var(--color-terminal-green);
 }
 
 .seed-display {
@@ -324,9 +335,10 @@
     font-size: var(--font-size-lg);
     background: var(--color-terminal-bg);
     border: 2px solid var(--color-terminal-green);
+    border-radius: 10px;
     color: var(--color-terminal-green);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.25s ease;
 }
 
 .seed-copy-btn:hover {
@@ -343,14 +355,18 @@
     font-style: italic;
 }
 
-/* === NAVEGACIÓN DE PASOS === */
+/* === NAVEGACIÓN DE PASOS - STICKY === */
 .config-step-nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
     display: flex;
     gap: var(--spacing-md);
     justify-content: space-between;
-    padding-top: var(--spacing-lg);
-    border-top: 2px solid var(--color-terminal-green-dark);
-    margin-top: auto;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-top: 2px solid var(--color-terminal-green);
+    background: var(--color-terminal-bg);
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .config-btn {
@@ -360,9 +376,10 @@
     font-size: var(--font-size-sm);
     text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.25s ease;
     letter-spacing: 0.5px;
     border: none;
+    border-radius: 10px;
 }
 
 /* Botón secundario (atrás) */
@@ -375,6 +392,7 @@
 .config-btn-back:hover {
     background: var(--color-terminal-green-dark);
     box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    transform: translateY(-2px);
 }
 
 /* Botón primario (siguiente) */
@@ -389,6 +407,7 @@
     background: var(--color-terminal-green);
     color: var(--color-terminal-bg);
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    transform: translateY(-2px);
 }
 
 /* Botón de comenzar misión (destacado) */
@@ -440,104 +459,24 @@
     }
 }
 
-/* === RESPONSIVE - MÓVIL === */
-@media (max-width: 768px) {
-    .mission-configurator {
-        padding: var(--spacing-sm);
-    }
+/* ============================================
+   PASO 1: TRIPULACIÓN - REDISEÑO
+   ============================================ */
 
-    .configurator-window {
-        max-width: 95vw;
-        max-height: 95vh;
-    }
-
-    .configurator-header {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-        padding: var(--spacing-md);
-        align-items: flex-start;
-    }
-
-    .configurator-title {
-        font-size: var(--font-size-md);
-    }
-
-    .configurator-step-indicator {
-        font-size: var(--font-size-sm);
-        padding: var(--spacing-xs) var(--spacing-sm);
-    }
-
-    .config-step {
-        padding: var(--spacing-md);
-        max-height: calc(95vh - 120px);
-    }
-
-    .config-step-header h3 {
-        font-size: var(--font-size-md);
-    }
-
-    .config-step-description {
-        font-size: var(--font-size-xs);
-    }
-
-    .budget-display {
-        font-size: var(--font-size-md);
-    }
-
-    .budget-meter {
-        height: 20px;
-    }
-
-    .presets-buttons {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-sm);
-    }
-
-    .preset-btn {
-        padding: var(--spacing-sm);
-        font-size: var(--font-size-xs);
-    }
-
-    .config-step-nav {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-    }
-
-    .config-btn {
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: var(--font-size-xs);
-    }
-
-    .config-btn-start {
-        font-size: var(--font-size-md);
-        padding: var(--spacing-md);
-    }
-
-    .seed-display {
-        flex-direction: column;
-    }
-
-    .seed-input {
-        font-size: var(--font-size-sm);
-    }
-
-    .summary-content {
-        font-size: var(--font-size-xs);
-    }
-}
-
-/* === SELECCIÓN DE CREW (PASO 1) === */
 .crew-role-section {
     margin-bottom: var(--spacing-xl);
+    padding: 0 var(--spacing-xl);
+    /* SIN cajas */
 }
 
+/* HEADER DEL ROL - SIN CAJA, SOLO BORDER */
 .crew-role-header {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--color-terminal-bg);
-    border: 2px solid var(--color-terminal-green-dark);
+    padding: var(--spacing-sm) 0;
+    /* SIN background, SIN border tipo caja */
+    border-bottom: 2px solid var(--color-terminal-green-dark);
     margin-bottom: var(--spacing-md);
 }
 
@@ -547,37 +486,43 @@
 
 .crew-role-title {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-desktop-h3);
     color: var(--color-terminal-green);
     letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .crew-options-grid {
     display: grid;
-    /* En escritorio: exactamente 3 columnas por rol */
     grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-md);
 }
 
+/* CARDS DE PERSONAJES - CLICABLES (pueden tener caja) */
 .crew-option-card {
-    background: var(--color-terminal-bg);
+    background: var(--color-terminal-bg-light);
     border: 2px solid var(--color-terminal-green-dark);
+    border-radius: 0;
     padding: var(--spacing-md);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.25s ease;
     position: relative;
+    opacity: 0.6; /* Por defecto deseleccionados = opacados */
 }
 
 .crew-option-card:hover {
     border-color: var(--color-terminal-green);
     box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
     transform: translateY(-2px);
+    opacity: 0.8;
 }
 
+/* ESTADO SELECCIONADO - BRILLA */
 .crew-option-card.selected {
     border-color: var(--color-terminal-green);
     background: var(--color-terminal-bg-light);
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    opacity: 1; /* Seleccionado = visible al 100% */
 }
 
 .crew-option-card.selected::before {
@@ -588,12 +533,30 @@
     color: var(--color-terminal-green);
     font-size: var(--font-size-xl);
     font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+}
+
+/* ESTADO COLAPSADO - Solo nombre y puntos */
+.crew-option-card.collapsed {
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.crew-option-card.collapsed .crew-card-info,
+.crew-option-card.collapsed .crew-card-perks,
+.crew-option-card.collapsed .crew-card-description {
+    display: none;
+}
+
+.crew-option-card.collapsed .crew-card-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
 .crew-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: var(--spacing-sm);
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid var(--color-terminal-green-dark);
@@ -601,18 +564,17 @@
 
 .crew-card-name {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
     color: var(--color-terminal-green);
     font-weight: bold;
 }
 
+/* COSTO SIN CAJA - SOLO TEXTO */
 .crew-card-cost {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-sm);
     color: var(--color-terminal-green-dim);
-    background: var(--color-terminal-bg-light);
-    padding: 2px 6px;
-    border: 1px solid var(--color-terminal-green-dark);
+    /* SIN background, SIN border */
 }
 
 .crew-card-info {
@@ -625,9 +587,17 @@
     color: var(--color-terminal-green-dim);
 }
 
+/* BENEFICIOS Y DESVENTAJAS - DOS COLUMNAS EN HORIZONTAL */
+.crew-card-perks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
 .crew-card-benefits,
 .crew-card-drawbacks {
-    margin-bottom: var(--spacing-sm);
+    /* SIN margin-bottom separado */
 }
 
 .crew-card-label {
@@ -640,14 +610,14 @@
 
 .crew-card-text {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-terminal-green-dim);
     line-height: 1.4;
 }
 
 .crew-card-description {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-terminal-green-dark);
     font-style: italic;
     padding-top: var(--spacing-sm);
@@ -656,17 +626,20 @@
 }
 
 .config-alert {
-    position: absolute;
-    bottom: -30px;
-    left: 0;
-    right: 0;
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
     background: var(--color-alert-red);
-    color: var(--color-terminal-bg);
-    padding: var(--spacing-sm);
+    color: var(--color-white);
+    padding: var(--spacing-md) var(--spacing-xl);
     font-family: var(--font-monaco);
     font-size: var(--font-size-sm);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(255, 0, 85, 0.6);
     text-align: center;
     animation: fadeIn var(--transition-fast);
+    z-index: 10001;
 }
 
 .budget-fill.budget-perfect {
@@ -684,61 +657,106 @@
     box-shadow: 0 0 20px rgba(255, 0, 85, 0.8);
 }
 
-/* === SLIDERS DE RECURSOS (PASO 2) === */
+/* ============================================
+   PASO 2: RECURSOS - REDISEÑO COMPACTO
+   ============================================ */
+
+/* RECURSO [?]: min ------o______ max */
 .resource-slider-section {
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-md);
-    background: var(--color-terminal-bg);
-    border: 2px solid var(--color-terminal-green-dark);
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-xl);
+    /* SIN cajas */
+    border-bottom: 1px solid var(--color-terminal-green-dark);
 }
 
 .resource-slider-section.critical-resource {
-    border-color: var(--color-alert-yellow);
-    box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+    border-bottom-color: var(--color-alert-yellow);
 }
 
 .resource-slider-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 4px;
 }
 
 .resource-slider-title {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.resource-icon {
-    font-size: var(--font-size-xl);
+    gap: var(--spacing-xs);
 }
 
 .resource-name {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-desktop-content);
     color: var(--color-terminal-green);
     text-transform: uppercase;
+}
+
+/* BOTÓN INFO [?] - TOOLTIP */
+.resource-info-btn {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--color-terminal-green-dim);
+    color: var(--color-terminal-green-dim);
+    font-family: var(--font-monaco);
+    font-size: 11px;
+    cursor: help;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.25s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.resource-info-btn:hover {
+    background: var(--color-terminal-green-dim);
+    color: var(--color-terminal-bg);
+    border-color: var(--color-terminal-green);
+}
+
+.resource-info-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 0; /* Justificado a la izquierda */
+    margin-bottom: 8px;
+    background: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green);
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green);
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 100;
+}
+
+.resource-info-btn:hover .resource-info-tooltip {
+    opacity: 1;
 }
 
 .critical-badge {
     font-family: var(--font-monaco);
     font-size: var(--font-size-xs);
     color: var(--color-alert-yellow);
-    background: var(--color-terminal-bg-light);
-    padding: 2px 6px;
-    border: 1px solid var(--color-alert-yellow);
+    /* SIN background, SIN border - solo texto */
 }
 
 .resource-slider-values {
     display: flex;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     align-items: center;
 }
 
 .resource-value {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-desktop-content);
     color: var(--color-terminal-green);
     font-weight: bold;
     min-width: 60px;
@@ -747,50 +765,60 @@
 
 .resource-weight {
     font-family: var(--font-monaco);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-terminal-green-dim);
 }
 
 .resource-slider-container {
     position: relative;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 4px;
 }
 
+/* SLIDER CON RELLENO PROGRESIVO - MÁS FINO */
 .resource-slider {
     width: 100%;
-    height: 8px;
-    background: var(--color-terminal-bg-light);
+    height: 6px;
+    background: linear-gradient(to right,
+        var(--color-terminal-green) 0%,
+        var(--color-terminal-green) var(--slider-fill, 0%),
+        var(--color-terminal-bg-light) var(--slider-fill, 0%),
+        var(--color-terminal-bg-light) 100%);
     border: 1px solid var(--color-terminal-green-dark);
     outline: none;
     -webkit-appearance: none;
     cursor: pointer;
+    transition: background 0.15s ease;
 }
 
 .resource-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     background: var(--color-terminal-green);
     cursor: pointer;
-    border: 2px solid var(--color-terminal-green);
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+    border: 2px solid var(--color-terminal-bg);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+    transition: all 0.25s ease;
 }
 
 .resource-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     background: var(--color-terminal-green);
     cursor: pointer;
-    border: 2px solid var(--color-terminal-green);
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+    border: 2px solid var(--color-terminal-bg);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+    transition: all 0.25s ease;
 }
 
 .resource-slider:hover::-webkit-slider-thumb {
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.8);
+    transform: scale(1.1);
 }
 
 .resource-slider:hover::-moz-range-thumb {
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.8);
+    transform: scale(1.1);
 }
 
 .resource-slider-markers {
@@ -812,26 +840,6 @@
     transform: translateX(-50%);
 }
 
-.resource-slider-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: var(--spacing-sm);
-}
-
-.resource-renewable {
-    font-family: var(--font-monaco);
-    font-size: var(--font-size-xs);
-    color: var(--color-terminal-green-dim);
-}
-
-.resource-description {
-    font-family: var(--font-monaco);
-    font-size: var(--font-size-xs);
-    color: var(--color-terminal-green-dark);
-    font-style: italic;
-    text-align: right;
-}
-
 .preset-feedback {
     position: fixed;
     top: 50%;
@@ -843,6 +851,7 @@
     font-family: var(--font-monaco);
     font-size: var(--font-size-lg);
     border: 3px solid var(--color-terminal-green);
+    border-radius: 10px;
     box-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
     z-index: 10000;
     animation: fadeIn var(--transition-fast);
@@ -860,7 +869,10 @@
     background: var(--color-alert-red);
 }
 
-/* === RESUMEN (PASO 3) === */
+/* ============================================
+   PASO 3: RESUMEN - SIN CAJAS
+   ============================================ */
+
 .summary-crew-list,
 .summary-resources-list {
     display: flex;
@@ -874,9 +886,18 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm);
-    background: var(--color-terminal-bg);
-    border-left: 3px solid var(--color-terminal-green-dark);
+    padding: var(--spacing-sm) 0;
+    padding-bottom: 4px;
+    /* SIN background, SIN border en caja */
+}
+
+.summary-crew-benefits {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    padding: 0 0 var(--spacing-sm) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    margin-bottom: var(--spacing-sm);
 }
 
 .summary-crew-icon,
@@ -912,44 +933,106 @@
     color: var(--color-terminal-green);
     text-align: right;
     padding-top: var(--spacing-sm);
-    border-top: 1px solid var(--color-terminal-green-dark);
+    border-top: 2px solid var(--color-terminal-green);
     font-weight: bold;
 }
 
-/* === PANTALLAS MUY PEQUEÑAS === */
-@media (max-width: 480px) {
+/* === RESPONSIVE - MÓVIL === */
+@media (max-width: 768px) {
+    .mission-configurator {
+        padding: var(--spacing-sm);
+    }
+
+    .configurator-window {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+
+    .configurator-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+        align-items: flex-start;
+    }
+
     .configurator-title {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-mobile-h1);
+    }
+
+    .configurator-step-indicator {
+        font-size: var(--font-size-mobile-content);
     }
 
     .config-step {
-        padding: var(--spacing-sm);
+        padding: 0;
+        max-height: calc(95vh - 120px);
+    }
+
+    .config-step-header {
+        padding: var(--spacing-md);
+    }
+
+    .config-step-header h3 {
+        font-size: var(--font-size-mobile-h2);
+    }
+
+    .config-step-description {
+        font-size: var(--font-size-xs);
     }
 
     .config-budget-bar {
-        padding: var(--spacing-sm);
-    }
-
-    .budget-label {
-        font-size: 8px;
+        padding: var(--spacing-md);
     }
 
     .budget-display {
+        font-size: var(--font-size-md);
+    }
+
+    .budget-meter {
+        height: 20px;
+    }
+
+    .presets-buttons {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+
+    .preset-btn {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-xs);
+    }
+
+    .config-step-nav {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+
+    .config-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-xs);
+    }
+
+    .config-btn-start {
+        font-size: var(--font-size-md);
+        padding: var(--spacing-md);
+    }
+
+    .seed-display {
+        flex-direction: column;
+    }
+
+    .seed-input {
         font-size: var(--font-size-sm);
     }
 
-    .config-crew-container,
-    .config-resources-container {
-        min-height: 150px;
-        padding: var(--spacing-sm);
+    .summary-content {
+        font-size: var(--font-size-xs);
     }
 
-    .summary-section {
-        padding: var(--spacing-sm);
-    }
-
-    .summary-section h4 {
-        font-size: var(--font-size-sm);
+    /* Resumen en 1 columna en móvil */
+    .config-summary {
+        grid-template-columns: 1fr;
     }
 
     .crew-options-grid {
@@ -960,9 +1043,54 @@
         padding: var(--spacing-sm);
     }
 
+    .crew-card-perks {
+        grid-template-columns: 1fr;
+    }
+
+    .crew-role-section,
+    .config-crew-container,
+    .config-resources-container,
+    .resource-slider-section,
+    .config-summary {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+
+    .config-presets {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+
     .resource-slider-header {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-xs);
+    }
+}
+
+/* === PANTALLAS MUY PEQUEÑAS === */
+@media (max-width: 480px) {
+    .configurator-title {
+        font-size: var(--font-size-mobile-h2);
+    }
+
+    .config-step-header h3 {
+        font-size: var(--font-size-mobile-h3);
+    }
+
+    .budget-label {
+        font-size: 10px;
+    }
+
+    .budget-display {
+        font-size: var(--font-size-sm);
+    }
+
+    .crew-options-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .crew-option-card {
+        padding: var(--spacing-sm);
     }
 }
