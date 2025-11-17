@@ -1164,13 +1164,20 @@ class ShipMapSystem {
                 // Verificar que el usuario sigue en el baño
                 const stillInBathroom = crewInBathroom.find(c => c.id === user.id);
                 if (stillInBathroom) {
-                    // Aumentar wasteNeed por tick (5 puntos por tick)
-                    user.wasteNeed = Math.min(100, user.wasteNeed + 5);
-                    user.currentActivity = '🚽 Usando el baño';
+                    // Reducir wasteNeed por tick (5 puntos por tick)
+                    // Consumir agua proporcionalmente (0.5 de agua por cada 5 de wasteNeed reducido)
+                    if (typeof Water !== 'undefined' && Water.quantity >= 0.5) {
+                        Water.consume(0.5);
+                        user.wasteNeed = Math.max(0, user.wasteNeed - 5);
+                        user.currentActivity = '🚽 Usando el baño';
 
-                    // Si ya terminó (wasteNeed >= 100), liberar baño
-                    if (user.wasteNeed >= 100) {
-                        this.releaseBathroom();
+                        // Si ya terminó (wasteNeed <= 10), liberar baño
+                        if (user.wasteNeed <= 10) {
+                            this.releaseBathroom();
+                        }
+                    } else {
+                        // Sin agua, no se puede usar el baño
+                        user.currentActivity = '⚠️ Baño sin agua';
                     }
                 } else {
                     // Usuario salió del baño, liberar
