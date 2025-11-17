@@ -487,9 +487,12 @@ class GameLoop {
         // Actualizar popup de tripulante si está abierto
         this.updateCrewPopupIfOpen();
 
-        // Actualizar panel de tripulación si está abierto (cada 1 segundo en lugar de 0.5s)
+        // Actualizar panel de tripulación si está abierto (cada 3 segundos para reducir lag)
         if (typeof panelManager !== 'undefined' && panelManager && panelManager.isPanelOpen('crew')) {
-            panelManager.updateCrewPanel();
+            // Solo actualizar cada 3 ticks (cada 3 segundos)
+            if (timeSystem.tickCount % 3 === 0) {
+                panelManager.updateCrewPanel();
+            }
         }
     }
 

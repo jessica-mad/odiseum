@@ -689,7 +689,13 @@ class ShipMapSystem {
             }
 
             // PRIORIDAD 1: Higiene (wasteNeed >= 50)
-            if (crew.wasteNeed >= 50) {
+            // Solo crear tarea de baño si:
+            // - wasteNeed >= 70 (muy urgente) O
+            // - wasteNeed >= 50 Y han pasado 30+ ticks desde última visita (30 segundos)
+            const ticksSinceLastBathroom = timeSystem.globalTickCounter - (crew.lastBathroomTick || 0);
+            const needsBathroom = crew.wasteNeed >= 70 || (crew.wasteNeed >= 50 && ticksSinceLastBathroom >= 30);
+
+            if (needsBathroom) {
                 // Agregar tarea de baño si no está en la lista
                 const hasBathroomTask = crew.currentTask?.type === 'bathroom' ||
                                        crew.taskQueue.some(t => t.type === 'bathroom');
@@ -1192,6 +1198,9 @@ class ShipMapSystem {
 
                         // Si ya terminó (wasteNeed <= 5), liberar baño
                         if (user.wasteNeed <= 5) {
+                            // Registrar última visita al baño (cooldown)
+                            user.lastBathroomTick = timeSystem.globalTickCounter;
+
                             // Completar tarea de baño y reanudar tarea pausada
                             if (user.currentTask?.type === 'bathroom') {
                                 user.completeCurrentTask();

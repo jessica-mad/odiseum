@@ -86,6 +86,7 @@ class Crew {
         this.taskQueue = [];  // Array de tareas pendientes
         this.currentTask = null;  // Tarea actualmente ejecutándose
         this.pausedTask = null;  // Tarea pausada (por ejemplo, cuando va al baño)
+        this.lastBathroomTick = 0;  // Último tick en que usó el baño (para cooldown)
 
         // Log para debugging
         if (data.configStats && Object.keys(data.configStats).length > 0) {

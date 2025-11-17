@@ -112,6 +112,16 @@ class PanelManager {
                 const panel = this.panels[panelName];
                 const tab = document.getElementById(`panel-tab-${panelName}`);
 
+                // IMPORTANTE: Los paneles laterales (map y crew) NO deben cerrarse al hacer click fuera
+                // Solo deben cerrarse cuando:
+                // 1. Se hace click en su tab (togglePanel)
+                // 2. Se abre el panel de control
+                // 3. Termina el tramo
+                // El panel de control SÍ se cierra al hacer click fuera
+                if (panelName === 'map' || panelName === 'crew') {
+                    return; // No cerrar paneles laterales con click fuera
+                }
+
                 // Si el click no fue dentro del panel ni en el tab
                 if (panel && !panel.contains(e.target) && !tab?.contains(e.target)) {
                     // Verificar que tampoco sea un popup
@@ -121,7 +131,7 @@ class PanelManager {
                 }
             });
 
-            // Cerrar paneles donde se hizo click fuera
+            // Cerrar paneles donde se hizo click fuera (solo control panel)
             clickedOutside.forEach(panelName => this.closePanel(panelName));
         });
     }
