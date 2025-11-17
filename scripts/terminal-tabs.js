@@ -139,9 +139,9 @@ function createFullCrewProfile(crew) {
             ${roleLabel} ! ${crew.initialAge}a ! ${age}a ! ${activity} ! 📍 ${location}
         </div>
 
-        <!-- PENSAMIENTO: marquesina -->
+        <!-- PENSAMIENTO: texto completo -->
         <div class="crew-compact-thought">
-            <div class="thought-marquee">${thought}</div>
+            ${thought}
         </div>
 
         <!-- NECESIDADES (solo si está vivo) -->

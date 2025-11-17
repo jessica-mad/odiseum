@@ -1051,7 +1051,7 @@ class ShipMapSystem {
                     📍 ${location}
                 </div>
                 <div class="crew-card-thought">
-                    <div class="thought-marquee">${thought}</div>
+                    ${thought}
                 </div>
             `;
         } else {
@@ -1656,22 +1656,15 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // Actualizar posiciones cada 1.5 segundos (velocidad x2)
-        setInterval(() => {
-            this.updateCrewLocations();
-        }, 1500);
+        // NOTA: updateCrewLocations, processRepairTick y processGreenhouseCooldown
+        // ahora se ejecutan desde el fastTick del GameLoop (cada 500ms)
 
-        // Degradar zonas y gestionar baño cada 5 segundos (velocidad x2)
+        // Gestionar baño cada 5 segundos (velocidad x2)
         setInterval(() => {
-            this.degradeZones();
             this.processBathroomQueue();
         }, 5000);
 
-        // REPARACIONES E INVERNADERO: Procesar cada tick del juego (ahora cada 1 segundo)
-        setInterval(() => {
-            this.processRepairTick();
-            this.processGreenhouseCooldown();
-        }, 1000); // Cada 1 segundo = cada tick
+        // NOTA: degradeZones ahora se ejecuta desde el tick normal del GameLoop (cada 1 segundo)
 
         // También actualizar cada vez que cambie algo relevante
         if (typeof addEventListener === 'function') {
@@ -1681,9 +1674,10 @@ class ShipMapSystem {
             });
         }
 
-        console.log('✅ Auto-actualización del mapa iniciada (cada 1.5 segundos - velocidad x2)');
-        console.log('⚙️ Sistema de averías activado (degradación cada 5 segundos, reparación cada 1 segundo - velocidad x2)');
-        console.log('🌱 Sistema de invernadero activado (cooldown cada 1 segundo)');
+        console.log('✅ Auto-actualización del mapa iniciada');
+        console.log('⚙️ Sistema de averías activado (degradación en tick normal, reparación en fastTick)');
+        console.log('🌱 Sistema de invernadero activado (cooldown en fastTick)');
+        console.log('👥 Posiciones de tripulantes actualizadas en fastTick (cada 500ms)');
     }
 }
 

@@ -324,6 +324,7 @@ class GameLoop {
     constructor() {
         this.gameState = GAME_STATES.PAUSED;
         this.gameLoopInterval = null;
+        this.fastTickInterval = null;
         this.timerInterval = null;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.currentSpeed = 65;
@@ -370,8 +371,11 @@ class GameLoop {
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
 
-        // Iniciar bucle de simulación (cada 1 segundo - velocidad x2)
+        // Iniciar bucle de simulación normal (cada 1 segundo - velocidad x2)
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+
+        // Iniciar bucle de simulación veloz (cada 0.5 segundos - el doble de rápido)
+        this.fastTickInterval = setInterval(() => this.fastTick(), FAST_TICK_RATE);
 
         // Iniciar actualización del temporizador visual (cada 1 segundo)
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
@@ -453,6 +457,11 @@ class GameLoop {
             shipIntegritySystem.tick(awakeBenefitSystem);
         }
 
+        // Degradar zonas del mapa de la nave
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.degradeZones();
+        }
+
         // Actualizar recursos
         this.updateAllResources();
         
@@ -472,10 +481,40 @@ class GameLoop {
         this.updateCrewPopupIfOpen();
     }
 
+    fastTick() {
+        // Este tick se ejecuta cada 0.5 segundos (el doble de rápido que el tick normal)
+        // Contiene operaciones que necesitan actualizarse más frecuentemente
+
+        // Actualizar posiciones de tripulantes en el mapa
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.updateCrewLocations();
+        }
+
+        // Procesar reparaciones de zonas
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processRepairTick();
+        }
+
+        // Procesar cooldown del invernadero
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processGreenhouseCooldown();
+        }
+
+        // Actualizar popup de tripulante si está abierto (UI más responsive)
+        this.updateCrewPopupIfOpen();
+
+        // Actualizar panel de tripulación si está abierto
+        if (typeof panelManager !== 'undefined' && panelManager && panelManager.isPanelOpen('crew')) {
+            panelManager.updateCrewPanel();
+        }
+    }
+
     endTranche() {
-        // Detener ambos intervalos
+        // Detener todos los intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.fastTickInterval);
+        this.fastTickInterval = null;
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
@@ -551,9 +590,11 @@ class GameLoop {
     pause() {
         if (this.gameState !== GAME_STATES.IN_TRANCHE) return;
 
-        // Detener ambos intervalos
+        // Detener todos los intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.fastTickInterval);
+        this.fastTickInterval = null;
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
@@ -596,8 +637,9 @@ class GameLoop {
             playTrancheSound();
         }
 
-        // Reiniciar ambos intervalos
+        // Reiniciar todos los intervalos
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+        this.fastTickInterval = setInterval(() => this.fastTick(), FAST_TICK_RATE);
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
 
         // Actualizar botones desktop
@@ -688,9 +730,11 @@ class GameLoop {
     }
     
     gameOverNoFuel() {
-        // Detener ambos intervalos
+        // Detener todos los intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.fastTickInterval);
+        this.fastTickInterval = null;
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 

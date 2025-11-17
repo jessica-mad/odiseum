@@ -546,7 +546,7 @@ class Crew {
                         📍 ${location}
                     </div>
                     <div class="crew-card-thought">
-                        <div class="thought-marquee">${thought}</div>
+                        ${thought}
                     </div>
                 `;
                 console.log(`  ✅ HTML generado correctamente, longitud: ${card.innerHTML.length}`);
@@ -876,7 +876,7 @@ class Crew {
                     📍 ${location}
                 </div>
                 <div class="crew-card-thought">
-                    <div class="thought-marquee">${thought}</div>
+                    ${thought}
                 </div>
             `;
         } else {
