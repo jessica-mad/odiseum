@@ -688,8 +688,8 @@ class ShipMapSystem {
                 }
             }
 
-            // PRIORIDAD 1: Higiene (wasteNeed < 70%)
-            if (crew.wasteNeed < 70) {
+            // PRIORIDAD 1: Higiene (wasteNeed >= 50)
+            if (crew.wasteNeed >= 50) {
                 return 'bathroom';
             }
 
