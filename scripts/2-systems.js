@@ -8,11 +8,18 @@ class TimeSystem {
         this.currentYear = 0;
         this.trancheCount = 0;
         this.tickCount = 0;
+        this.globalTickCounter = 0; // Contador global de ticks (nunca se reinicia)
+        this.fastTickCounter = 0; // Contador de fast ticks (nunca se reinicia)
     }
 
     advanceTick() {
         this.tickCount++;
+        this.globalTickCounter++;
         this.currentYear += YEARS_PER_TICK;
+    }
+
+    advanceFastTick() {
+        this.fastTickCounter++;
     }
 
     advanceTranche() {
@@ -462,6 +469,11 @@ class GameLoop {
             shipMapSystem.degradeZones();
         }
 
+        // Procesar cola del baño (FIFO)
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processBathroomQueue();
+        }
+
         // Actualizar recursos
         this.updateAllResources();
         
@@ -484,6 +496,9 @@ class GameLoop {
     fastTick() {
         // Este tick se ejecuta cada 0.5 segundos (el doble de rápido que el tick normal)
         // Contiene operaciones que necesitan actualizarse más frecuentemente
+
+        // Avanzar contador de fast ticks
+        timeSystem.advanceFastTick();
 
         // Actualizar posiciones de tripulantes en el mapa
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
@@ -1216,7 +1231,7 @@ class EventSystem {
         // Guardar pensamiento personalizado del evento
         if (changes.personalThought) {
             crew.personalThought = changes.personalThought;
-            crew.personalThoughtExpiry = Date.now() + (60000); // Dura 1 minuto (velocidad x2)
+            crew.personalThoughtExpiry = timeSystem.globalTickCounter + 60; // Dura 60 ticks (1 minuto de juego)
         }
 
         if (changes.relationships && typeof changes.relationships === 'object') {

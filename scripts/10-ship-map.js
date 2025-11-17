@@ -875,7 +875,7 @@ class ShipMapSystem {
                         this.animateCrewMovement(crew);
                     }
                 }
-                this.lastSubtleMove[crew.id] = Date.now();
+                this.lastSubtleMove[crew.id] = timeSystem.fastTickCounter;
             } else {
                 // Tripulante ya está en su zona objetivo
                 if (currentPos) {
@@ -886,13 +886,13 @@ class ShipMapSystem {
                         // Los encapsulados NO se mueven
                         this.createOrUpdateCrewMarker(crew, currentPos);
                     } else {
-                        // Movimiento sutil: Cada 30-60 segundos, moverse a otra tile en la misma zona
+                        // Movimiento sutil: Cada 60 fast ticks (30 segundos de juego), moverse a otra tile en la misma zona
                         const lastMove = this.lastSubtleMove[crew.id] || 0;
-                        const timeSinceLastMove = Date.now() - lastMove;
+                        const ticksSinceLastMove = timeSystem.fastTickCounter - lastMove;
                         const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
 
-                        // Solo mover si no está en movimiento y han pasado 30+ segundos
-                        if (!isMoving && timeSinceLastMove > 30000 && Math.random() < 0.3) {
+                        // Solo mover si no está en movimiento y han pasado 60+ fast ticks (30 segundos de juego)
+                        if (!isMoving && ticksSinceLastMove > 60 && Math.random() < 0.3) {
                             const newPos = this.getRandomTileInZone(targetZone, crew.id);
                             // Solo mover si la nueva posición es diferente
                             if (newPos.row !== currentPos.row || newPos.col !== currentPos.col) {
@@ -900,7 +900,7 @@ class ShipMapSystem {
                                 if (path.length > 1) {
                                     this.crewPaths[crew.id] = path;
                                     this.animateCrewMovement(crew);
-                                    this.lastSubtleMove[crew.id] = Date.now();
+                                    this.lastSubtleMove[crew.id] = timeSystem.fastTickCounter;
                                 }
                             }
                         } else {
@@ -1133,20 +1133,26 @@ class ShipMapSystem {
         const bathroom = this.zones.bathroom;
         if (!bathroom) return;
 
-        // Obtener tripulantes que están en la zona del baño
+        // Obtener tripulantes que están en la cola del baño o dirigiéndose al baño
         const crewInBathroom = crewMembers.filter(crew => {
             if (!crew.isAlive || crew.state !== 'Despierto') return false;
+
+            // Incluir tripulantes que tienen como objetivo el baño
+            const target = this.crewTargets[crew.id];
+            if (target === 'bathroom') return true;
+
+            // También incluir a los que están físicamente en el baño
             const pos = this.crewLocations[crew.id];
             if (!pos) return false;
             const cellType = this.grid[pos.row]?.[pos.col];
             return cellType === 'w';
         });
 
-        // Registrar tiempo de llegada para nuevos tripulantes
-        const currentTime = Date.now();
+        // Registrar tick de llegada para nuevos tripulantes
+        const currentTick = timeSystem.globalTickCounter;
         crewInBathroom.forEach(crew => {
             if (!bathroom.arrivalOrder[crew.id]) {
-                bathroom.arrivalOrder[crew.id] = currentTime;
+                bathroom.arrivalOrder[crew.id] = currentTick;
             }
         });
 
@@ -1191,15 +1197,34 @@ class ShipMapSystem {
 
         // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR
         if (!bathroom.isOccupied && crewInBathroom.length > 0) {
-            // Ordenar por tiempo de llegada (FIFO)
+            // Ordenar por tick de llegada (FIFO)
             const sortedByArrival = crewInBathroom.sort((a, b) => {
-                return bathroom.arrivalOrder[a.id] - bathroom.arrivalOrder[b.id];
+                const timeA = bathroom.arrivalOrder[a.id] || 999999;
+                const timeB = bathroom.arrivalOrder[b.id] || 999999;
+                return timeA - timeB;
             });
 
             const nextUser = sortedByArrival[0];
             bathroom.isOccupied = true;
             bathroom.currentUser = nextUser.id;
             nextUser.currentActivity = '🚽 Usando el baño';
+
+            // Mover al usuario al baño (tile 'w')
+            // Los demás deben esperar fuera
+            const bathroomTile = this.getRandomTileInZone('bathroom', nextUser.id);
+            if (bathroomTile) {
+                const currentPos = this.crewLocations[nextUser.id];
+                if (currentPos) {
+                    const path = this.findPath(currentPos, bathroomTile);
+                    if (path.length > 1) {
+                        this.crewPaths[nextUser.id] = path;
+                        this.animateCrewMovement(nextUser);
+                    } else {
+                        this.crewLocations[nextUser.id] = bathroomTile;
+                        this.createOrUpdateCrewMarker(nextUser, bathroomTile);
+                    }
+                }
+            }
         }
 
         // Actualizar cola visual (tripulantes esperando)
@@ -1659,12 +1684,7 @@ class ShipMapSystem {
         // NOTA: updateCrewLocations, processRepairTick y processGreenhouseCooldown
         // ahora se ejecutan desde el fastTick del GameLoop (cada 500ms)
 
-        // Gestionar baño cada 5 segundos (velocidad x2)
-        setInterval(() => {
-            this.processBathroomQueue();
-        }, 5000);
-
-        // NOTA: degradeZones ahora se ejecuta desde el tick normal del GameLoop (cada 1 segundo)
+        // NOTA: degradeZones y processBathroomQueue ahora se ejecutan desde el tick normal del GameLoop (cada 1 segundo)
 
         // También actualizar cada vez que cambie algo relevante
         if (typeof addEventListener === 'function') {

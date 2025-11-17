@@ -609,9 +609,10 @@ class Crew {
     getCurrentThought() {
         try {
             // 1. MÁXIMA PRIORIDAD: Pensamiento personalizado de eventos (si existe y no ha expirado)
-            if (this.personalThought && this.personalThoughtExpiry && Date.now() < this.personalThoughtExpiry) {
+            const currentTick = typeof timeSystem !== 'undefined' ? timeSystem.globalTickCounter : 0;
+            if (this.personalThought && this.personalThoughtExpiry && currentTick < this.personalThoughtExpiry) {
                 return `💭 ${this.personalThought}`;
-            } else if (this.personalThought && this.personalThoughtExpiry && Date.now() >= this.personalThoughtExpiry) {
+            } else if (this.personalThought && this.personalThoughtExpiry && currentTick >= this.personalThoughtExpiry) {
                 // Limpiar pensamiento expirado
                 this.personalThought = null;
                 this.personalThoughtExpiry = null;
