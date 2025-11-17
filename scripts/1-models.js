@@ -82,6 +82,11 @@ class Crew {
         this.configBenefits = data.configBenefits || null;
         this.configDrawbacks = data.configDrawbacks || null;
 
+        // Sistema de cola de tareas
+        this.taskQueue = [];  // Array de tareas pendientes
+        this.currentTask = null;  // Tarea actualmente ejecutándose
+        this.pausedTask = null;  // Tarea pausada (por ejemplo, cuando va al baño)
+
         // Log para debugging
         if (data.configStats && Object.keys(data.configStats).length > 0) {
             console.log(`[Crew Constructor] ${this.name} - configStats recibidos:`, this.configStats);
@@ -379,7 +384,69 @@ class Crew {
         Data.updateResourceUI();
         Medicine.updateResourceUI();
     }
-    
+
+    /* === SISTEMA DE COLA DE TAREAS === */
+    addTask(taskType, description, priority = 1) {
+        const task = {
+            type: taskType,  // 'work', 'bathroom', 'eat', 'rest', 'medical', etc.
+            description: description,
+            priority: priority,  // Mayor número = mayor prioridad (baño = 10, trabajo = 1)
+            addedAt: timeSystem.globalTickCounter
+        };
+
+        // Insertar tarea ordenada por prioridad
+        const insertIndex = this.taskQueue.findIndex(t => t.priority < task.priority);
+        if (insertIndex === -1) {
+            this.taskQueue.push(task);
+        } else {
+            this.taskQueue.splice(insertIndex, 0, task);
+        }
+    }
+
+    pauseCurrentTask() {
+        if (this.currentTask && this.currentTask.type !== 'bathroom') {
+            this.pausedTask = this.currentTask;
+            this.currentTask = null;
+        }
+    }
+
+    resumePausedTask() {
+        if (this.pausedTask) {
+            this.currentTask = this.pausedTask;
+            this.pausedTask = null;
+            this.currentActivity = this.currentTask.description;
+        }
+    }
+
+    completeCurrentTask() {
+        this.currentTask = null;
+        // Iniciar siguiente tarea si hay
+        if (this.taskQueue.length > 0) {
+            this.currentTask = this.taskQueue.shift();
+            this.currentActivity = this.currentTask.description;
+        } else {
+            this.currentActivity = 'idle';
+        }
+    }
+
+    getTasksDescription() {
+        const tasks = [];
+
+        if (this.pausedTask) {
+            tasks.push(`⏸️ ${this.pausedTask.description} (pausada)`);
+        }
+
+        if (this.currentTask) {
+            tasks.push(`▶️ ${this.currentTask.description}`);
+        }
+
+        this.taskQueue.forEach((task, index) => {
+            tasks.push(`${index + 1}. ${task.description}`);
+        });
+
+        return tasks.length > 0 ? tasks : ['Sin tareas'];
+    }
+
     /* === SISTEMA DE RELACIONES === */
     initializeRelationships(allCrew) {
         allCrew.forEach(other => {

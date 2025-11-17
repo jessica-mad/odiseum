@@ -690,6 +690,14 @@ class ShipMapSystem {
 
             // PRIORIDAD 1: Higiene (wasteNeed >= 50)
             if (crew.wasteNeed >= 50) {
+                // Agregar tarea de baño si no está en la lista
+                const hasBathroomTask = crew.currentTask?.type === 'bathroom' ||
+                                       crew.taskQueue.some(t => t.type === 'bathroom');
+                if (!hasBathroomTask) {
+                    crew.pauseCurrentTask();  // Pausar tarea actual
+                    crew.addTask('bathroom', '🚽 Ir al baño', 10);  // Alta prioridad
+                    crew.currentTask = crew.taskQueue.shift();  // Iniciar tarea de baño inmediatamente
+                }
                 return 'bathroom';
             }
 
@@ -1039,6 +1047,7 @@ class ShipMapSystem {
             const benefit = crew.getAwakeBenefitDescription?.() || '';
             const location = crew.getCurrentLocation?.() || 'Nave';
             const thought = crew.getCurrentThought?.() || '';
+            const tasks = crew.getTasksDescription?.() || ['Sin tareas'];
 
             cardContent = `
                 <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
@@ -1052,6 +1061,10 @@ class ShipMapSystem {
                 </div>
                 <div class="crew-card-thought">
                     ${thought}
+                </div>
+                <div class="crew-card-tasks">
+                    <div class="crew-card-tasks-header">📋 Tareas:</div>
+                    ${tasks.map(task => `<div class="crew-card-task-item">${task}</div>`).join('')}
                 </div>
             `;
         } else {
@@ -1170,15 +1183,20 @@ class ShipMapSystem {
                 // Verificar que el usuario sigue en el baño
                 const stillInBathroom = crewInBathroom.find(c => c.id === user.id);
                 if (stillInBathroom) {
-                    // Reducir wasteNeed por tick (5 puntos por tick)
-                    // Consumir agua proporcionalmente (0.5 de agua por cada 5 de wasteNeed reducido)
-                    if (typeof Water !== 'undefined' && Water.quantity >= 0.5) {
-                        Water.consume(0.5);
-                        user.wasteNeed = Math.max(0, user.wasteNeed - 5);
+                    // Reducir wasteNeed por fast tick (10 puntos por tick veloz - cada 500ms)
+                    // Consumir agua proporcionalmente (1.0 de agua por cada 10 de wasteNeed reducido)
+                    if (typeof Water !== 'undefined' && Water.quantity >= 1.0) {
+                        Water.consume(1.0);
+                        user.wasteNeed = Math.max(0, user.wasteNeed - 10);
                         user.currentActivity = '🚽 Usando el baño';
 
-                        // Si ya terminó (wasteNeed <= 10), liberar baño
-                        if (user.wasteNeed <= 10) {
+                        // Si ya terminó (wasteNeed <= 5), liberar baño
+                        if (user.wasteNeed <= 5) {
+                            // Completar tarea de baño y reanudar tarea pausada
+                            if (user.currentTask?.type === 'bathroom') {
+                                user.completeCurrentTask();
+                                user.resumePausedTask();
+                            }
                             this.releaseBathroom();
                         }
                     } else {
@@ -1681,10 +1699,10 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // NOTA: updateCrewLocations, processRepairTick y processGreenhouseCooldown
+        // NOTA: updateCrewLocations, processRepairTick, processGreenhouseCooldown y processBathroomQueue
         // ahora se ejecutan desde el fastTick del GameLoop (cada 500ms)
 
-        // NOTA: degradeZones y processBathroomQueue ahora se ejecutan desde el tick normal del GameLoop (cada 1 segundo)
+        // NOTA: degradeZones ahora se ejecuta desde el tick normal del GameLoop (cada 1 segundo)
 
         // También actualizar cada vez que cambie algo relevante
         if (typeof addEventListener === 'function') {

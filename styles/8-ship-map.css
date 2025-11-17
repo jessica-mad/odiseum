@@ -1204,6 +1204,32 @@
     text-overflow: ellipsis;
 }
 
+.floating-crew-card .crew-card-tasks {
+    margin-top: 8px;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    font-size: 9px;
+}
+
+.floating-crew-card .crew-card-tasks-header {
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.floating-crew-card .crew-card-task-item {
+    color: rgba(0, 255, 65, 0.7);
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.floating-crew-card .crew-card-task-item:last-child {
+    border-bottom: none;
+}
+
 .floating-crew-card .crew-card-state {
     font-size: 11px;
     padding: 6px;

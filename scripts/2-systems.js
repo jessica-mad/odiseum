@@ -469,11 +469,6 @@ class GameLoop {
             shipMapSystem.degradeZones();
         }
 
-        // Procesar cola del baño (FIFO)
-        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
-            shipMapSystem.processBathroomQueue();
-        }
-
         // Actualizar recursos
         this.updateAllResources();
         
@@ -513,6 +508,11 @@ class GameLoop {
         // Procesar cooldown del invernadero
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
             shipMapSystem.processGreenhouseCooldown();
+        }
+
+        // Procesar cola del baño (FIFO) - Cada 500ms para descargar más rápido
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processBathroomQueue();
         }
 
         // Actualizar popup de tripulante si está abierto (UI más responsive)
