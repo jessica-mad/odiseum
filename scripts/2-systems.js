@@ -483,9 +483,14 @@ class GameLoop {
         Oxygen.checkQuantity();
         Medicine.checkQuantity();
         Fuel.checkQuantity();
-        
+
         // Actualizar popup de tripulante si está abierto
         this.updateCrewPopupIfOpen();
+
+        // Actualizar panel de tripulación si está abierto (cada 1 segundo en lugar de 0.5s)
+        if (typeof panelManager !== 'undefined' && panelManager && panelManager.isPanelOpen('crew')) {
+            panelManager.updateCrewPanel();
+        }
     }
 
     fastTick() {
@@ -518,10 +523,7 @@ class GameLoop {
         // Actualizar popup de tripulante si está abierto (UI más responsive)
         this.updateCrewPopupIfOpen();
 
-        // Actualizar panel de tripulación si está abierto
-        if (typeof panelManager !== 'undefined' && panelManager && panelManager.isPanelOpen('crew')) {
-            panelManager.updateCrewPanel();
-        }
+        // NOTA: NO actualizar panel aquí - causa lag. El panel se actualiza solo cuando hay cambios.
     }
 
     endTranche() {

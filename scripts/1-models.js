@@ -588,12 +588,13 @@ class Crew {
         card.onclick = () => switchTerminalTab(`crew-${this.id}`);
 
         try {
-            // DESPIERTOS: mostrar beneficio, ubicación y pensamiento
+            // DESPIERTOS: mostrar beneficio, ubicación, pensamiento y tareas
             if (this.state === 'Despierto') {
                 console.log(`🎨 Creando card DESPIERTO para ${this.name}`);
                 const benefit = this.getAwakeBenefitDescription();
                 const location = this.getCurrentLocation();
                 const thought = this.getCurrentThought();
+                const tasks = this.getTasksDescription();
                 console.log(`  Benefit: "${benefit}", Location: "${location}", Thought: "${thought}"`);
 
                 // Generar botón de reparación para el ingeniero
@@ -614,6 +615,10 @@ class Crew {
                     </div>
                     <div class="crew-card-thought">
                         ${thought}
+                    </div>
+                    <div class="crew-card-tasks">
+                        <div class="crew-card-tasks-header">📋 Tareas:</div>
+                        ${tasks.map(task => `<div class="crew-card-task-item">${task}</div>`).join('')}
                     </div>
                 `;
                 console.log(`  ✅ HTML generado correctamente, longitud: ${card.innerHTML.length}`);
