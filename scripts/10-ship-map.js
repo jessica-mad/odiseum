@@ -849,6 +849,11 @@ class ShipMapSystem {
     }
 
     updateCrewLocations() {
+        // Solo mover tripulantes si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         if (!Array.isArray(crewMembers)) {
             console.warn('⚠️ crewMembers no es un array');
             return;
@@ -1149,6 +1154,11 @@ class ShipMapSystem {
      * Sistema de cola del baño - FIFO: Primero en llegar, primero en usar
      */
     processBathroomQueue() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         const bathroom = this.zones.bathroom;
         if (!bathroom) return;
 
@@ -1513,6 +1523,11 @@ class ShipMapSystem {
      * Procesa un tick de reparación (llamado cada 10 segundos)
      */
     processRepairTick() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         const engineer = crewMembers.find(c =>
             c.position && c.position.includes('Ingenier') && c.isAlive && c.state === 'Despierto'
         );
@@ -1678,6 +1693,11 @@ class ShipMapSystem {
      * Procesar cooldown del invernadero (llamado cada tick)
      */
     processGreenhouseCooldown() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         const greenhouse = this.zones.greenhouse;
         if (!greenhouse) return;
 
