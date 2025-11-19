@@ -93,8 +93,14 @@ class ShipMapSystem {
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
-            bathroom: {
-                name: 'Baño', icon: '🚽', tiles: this.findTiles('w'), color: '#44aaff',
+            bathroom_bridge: {
+                name: 'Baño Control', icon: '🚽', tiles: this.findBathroomBridgeTiles(), color: '#44aaff',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
+            },
+            bathroom_capsules: {
+                name: 'Baño Cápsulas', icon: '🚽', tiles: this.findBathroomCapsulesTiles(), color: '#44aaff',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
@@ -135,6 +141,32 @@ class ShipMapSystem {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 if (this.grid[row][col] === type) {
+                    tiles.push({ row, col });
+                }
+            }
+        }
+        return tiles;
+    }
+
+    findBathroomBridgeTiles() {
+        // Baño cerca del puente de control: Row 2, Col 6
+        const tiles = [];
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                if (this.grid[row][col] === 'w' && row === 2 && col === 6) {
+                    tiles.push({ row, col });
+                }
+            }
+        }
+        return tiles;
+    }
+
+    findBathroomCapsulesTiles() {
+        // Baño cerca de las cápsulas: Row 16, Col 3
+        const tiles = [];
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                if (this.grid[row][col] === 'w' && row === 16 && col === 3) {
                     tiles.push({ row, col });
                 }
             }
@@ -336,7 +368,7 @@ class ShipMapSystem {
             if (!pos) return;
 
             const cellType = this.grid[pos.row]?.[pos.col];
-            const currentZone = this.getCellTypeToZoneName(cellType);
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
 
             if (currentZone === zoneKey) {
                 crew.push(c);
@@ -634,7 +666,7 @@ class ShipMapSystem {
             if (!pos) return;
 
             const cellType = this.grid[pos.row]?.[pos.col];
-            const currentZone = this.getCellTypeToZoneName(cellType);
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
 
             if (currentZone === zoneKey) {
                 crew.push(c);
@@ -664,6 +696,32 @@ class ShipMapSystem {
             case 'navigator': return '👨‍🚀';
             default: return '👤';
         }
+    }
+
+    /**
+     * Calcula la distancia Manhattan entre dos posiciones
+     */
+    calculateDistance(pos1, pos2) {
+        return Math.abs(pos1.row - pos2.row) + Math.abs(pos1.col - pos2.col);
+    }
+
+    /**
+     * Determina cuál baño está más cerca del tripulante
+     */
+    getNearestBathroom(crewId) {
+        const crewPos = this.crewLocations[crewId];
+        if (!crewPos) {
+            // Si no tiene posición, por defecto baño del puente
+            return 'bathroom_bridge';
+        }
+
+        const bridgeBathroomPos = { row: 2, col: 6 };
+        const capsulesBathroomPos = { row: 16, col: 3 };
+
+        const distanceToBridge = this.calculateDistance(crewPos, bridgeBathroomPos);
+        const distanceToCapsules = this.calculateDistance(crewPos, capsulesBathroomPos);
+
+        return distanceToBridge <= distanceToCapsules ? 'bathroom_bridge' : 'bathroom_capsules';
     }
 
     getTargetZoneForCrew(crew) {
@@ -704,7 +762,8 @@ class ShipMapSystem {
                     crew.addTask('bathroom', '🚽 Ir al baño', 10);  // Alta prioridad
                     crew.currentTask = crew.taskQueue.shift();  // Iniciar tarea de baño inmediatamente
                 }
-                return 'bathroom';
+                // Determinar cuál baño está más cerca
+                return this.getNearestBathroom(crew.id);
             }
 
             // PRIORIDAD 2: Salud (healthNeed < 50%) - ir a enfermería
@@ -1152,6 +1211,7 @@ class ShipMapSystem {
 
     /**
      * Sistema de cola del baño - FIFO: Primero en llegar, primero en usar
+     * Procesa ambos baños independientemente
      */
     processBathroomQueue() {
         // Solo procesar si el tramo está activo
@@ -1159,22 +1219,32 @@ class ShipMapSystem {
             return;
         }
 
-        const bathroom = this.zones.bathroom;
+        // Procesar cada baño independientemente
+        this.processSingleBathroomQueue('bathroom_bridge');
+        this.processSingleBathroomQueue('bathroom_capsules');
+    }
+
+    /**
+     * Procesa la cola de un baño específico
+     */
+    processSingleBathroomQueue(bathroomKey) {
+        const bathroom = this.zones[bathroomKey];
         if (!bathroom) return;
 
-        // Obtener tripulantes que están en la cola del baño o dirigiéndose al baño
+        // Obtener tripulantes que están en la cola de ESTE baño específico
         const crewInBathroom = crewMembers.filter(crew => {
             if (!crew.isAlive || crew.state !== 'Despierto') return false;
 
-            // Incluir tripulantes que tienen como objetivo el baño
+            // Incluir tripulantes que tienen como objetivo ESTE baño
             const target = this.crewTargets[crew.id];
-            if (target === 'bathroom') return true;
+            if (target === bathroomKey) return true;
 
-            // También incluir a los que están físicamente en el baño
+            // También incluir a los que están físicamente en ESTE baño
             const pos = this.crewLocations[crew.id];
             if (!pos) return false;
             const cellType = this.grid[pos.row]?.[pos.col];
-            return cellType === 'w';
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === bathroomKey;
         });
 
         // Registrar tick de llegada para nuevos tripulantes
@@ -1216,7 +1286,7 @@ class ShipMapSystem {
                                 user.completeCurrentTask();
                                 user.resumePausedTask();
                             }
-                            this.releaseBathroom();
+                            this.releaseBathroom(bathroomKey);
                         }
                     } else {
                         // Sin agua, no se puede usar el baño
@@ -1224,11 +1294,11 @@ class ShipMapSystem {
                     }
                 } else {
                     // Usuario salió del baño, liberar
-                    this.releaseBathroom();
+                    this.releaseBathroom(bathroomKey);
                 }
             } else {
                 // Usuario ya no es válido, liberar baño
-                this.releaseBathroom();
+                this.releaseBathroom(bathroomKey);
             }
         }
 
@@ -1246,9 +1316,8 @@ class ShipMapSystem {
             bathroom.currentUser = nextUser.id;
             nextUser.currentActivity = '🚽 Usando el baño';
 
-            // Mover al usuario al baño (tile 'w')
-            // Los demás deben esperar fuera
-            const bathroomTile = this.getRandomTileInZone('bathroom', nextUser.id);
+            // Mover al usuario al baño específico
+            const bathroomTile = this.getRandomTileInZone(bathroomKey, nextUser.id);
             if (bathroomTile) {
                 const currentPos = this.crewLocations[nextUser.id];
                 if (currentPos) {
@@ -1273,7 +1342,7 @@ class ShipMapSystem {
         bathroom.queue.forEach(crewId => {
             const crew = crewMembers.find(c => c.id === crewId);
             if (crew) {
-                crew.currentActivity = '⏳ Esperando baño';
+                crew.currentActivity = `⏳ Esperando ${bathroom.name}`;
             }
         });
     }
@@ -1281,8 +1350,8 @@ class ShipMapSystem {
     /**
      * Libera el baño para el siguiente usuario
      */
-    releaseBathroom() {
-        const bathroom = this.zones.bathroom;
+    releaseBathroom(bathroomKey) {
+        const bathroom = this.zones[bathroomKey];
         if (!bathroom) return;
 
         const user = crewMembers.find(c => c.id === bathroom.currentUser);
@@ -1332,7 +1401,7 @@ class ShipMapSystem {
             if (!position) return;
 
             const cellType = this.grid[position.row]?.[position.col];
-            const zoneName = this.getCellTypeToZoneName(cellType);
+            const zoneName = this.getCellTypeToZoneName(cellType, position.row, position.col);
 
             if (zoneName) {
                 crewCountByZone[zoneName] = (crewCountByZone[zoneName] || 0) + 1;
@@ -1368,7 +1437,7 @@ class ShipMapSystem {
     /**
      * Convierte tipo de celda a nombre de zona para el sistema de averías
      */
-    getCellTypeToZoneName(cellType) {
+    getCellTypeToZoneName(cellType, row = null, col = null) {
         const mapping = {
             'c': 'bridge',
             'e': 'medbay',
@@ -1376,9 +1445,20 @@ class ShipMapSystem {
             'k': 'kitchen',
             'n': 'greenhouse',
             'd': 'capsules',
-            'b': 'cargo',
-            'w': 'bathroom'
+            'b': 'cargo'
         };
+
+        // Diferenciar baños por coordenadas
+        if (cellType === 'w') {
+            if (row === 2 && col === 6) {
+                return 'bathroom_bridge';
+            } else if (row === 16 && col === 3) {
+                return 'bathroom_capsules';
+            }
+            // Fallback por si acaso
+            return 'bathroom_bridge';
+        }
+
         return mapping[cellType];
     }
 
@@ -1557,7 +1637,7 @@ class ShipMapSystem {
             }
 
             const cellType = this.grid[engineerPos.row]?.[engineerPos.col];
-            const engineerZone = this.getCellTypeToZoneName(cellType);
+            const engineerZone = this.getCellTypeToZoneName(cellType, engineerPos.row, engineerPos.col);
 
             // Si el ingeniero no está en la zona correcta, está viajando
             if (engineerZone !== zoneKey) {
