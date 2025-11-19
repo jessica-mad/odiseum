@@ -147,29 +147,46 @@ function createFullCrewProfile(crew) {
     const activity = crew.currentActivity || 'Sin actividad';
     const thought = crew.getCurrentThought ? crew.getCurrentThought() : '💭 ...';
 
-    // Generar HTML del perfil compacto
+    // Generar HTML del perfil reorganizado
     container.innerHTML = `
-        <!-- HEADER: [Rol + Nombre] [emoji estado] -->
+        <!-- HEADER: Emoji, Rol, Nombre, Edad, Pensamiento (marquesina), Estado -->
         <div class="crew-compact-header">
-            <span class="crew-compact-name">${roleLabel} ${crew.name}</span>
+            <span class="crew-compact-name">${roleLabel} ${crew.name} (${age}a)</span>
             <span class="crew-compact-status" data-crew-status>${statusIcon}</span>
         </div>
 
-        <!-- INFO: [emoji] ! [Edad inicial] ! [Edad actual] ! [Actividad] ! [Ubicación] -->
-        <div class="crew-compact-info" data-crew-info>
-            ${roleLabel} ! ${crew.initialAge}a ! ${age}a ! ${activity} ! 📍 ${location}
-        </div>
-
-        <!-- PENSAMIENTO: texto completo -->
+        <!-- PENSAMIENTO: texto completo con marquesina -->
         <div class="crew-compact-thought" data-crew-thought>
             ${thought}
         </div>
 
-        <!-- NECESIDADES (solo si está vivo) -->
-        ${crew.isAlive ? createCompactCrewNeeds(crew) : ''}
+        <div class="crew-section-divider"></div>
 
-        <!-- GESTOR DE TAREAS (solo si está despierto) -->
-        ${createTaskManager(crew)}
+        <!-- ACTIVIDAD Y LOCALIZACIÓN -->
+        <div class="crew-activity-location" data-crew-info>
+            <div class="activity-item">⚙️ ${activity}</div>
+            <div class="location-item">📍 ${location}</div>
+        </div>
+
+        <div class="crew-section-divider"></div>
+
+        <!-- GESTOR DE TAREAS Y ACCIONES (2 COLUMNAS EN DESKTOP) -->
+        <div class="crew-task-grid">
+            <!-- COLUMNA 1: Tareas de supervivencia + Necesidades -->
+            <div class="task-grid-column">
+                <h3 class="task-column-title">📋 Tareas de Supervivencia</h3>
+                ${createSurvivalTasksSection(crew)}
+                ${crew.isAlive ? createCompactCrewNeeds(crew) : ''}
+            </div>
+
+            <!-- COLUMNA 2: Acciones del rol -->
+            <div class="task-grid-column">
+                <h3 class="task-column-title">⚡ Acciones de Rol</h3>
+                ${createRoleActionsSection(crew)}
+            </div>
+        </div>
+
+        <div class="crew-section-divider"></div>
 
         <!-- LOG PERSONAL -->
         ${createCrewPersonalLog(crew)}
@@ -253,59 +270,61 @@ function createCrewPersonalLog(crew) {
     return html;
 }
 
-/* === CREAR GESTOR DE TAREAS === */
-function createTaskManager(crew) {
-    if (!crew.isAlive || crew.state !== 'Despierto') return '';
+/* === CREAR SECCIÓN DE TAREAS DE SUPERVIVENCIA === */
+function createSurvivalTasksSection(crew) {
+    if (!crew.isAlive || crew.state !== 'Despierto') {
+        return '<div class="task-item empty">Tripulante no disponible</div>';
+    }
 
-    let html = '<div class="crew-task-manager">';
+    let html = '<div class="task-list">';
 
-    // SECCIÓN 1: Tareas de Supervivencia (automáticas)
-    html += '<div class="task-section">';
-    html += '<h3 class="task-section-title">📋 Tareas de Supervivencia</h3>';
-    html += '<div class="task-list">';
-
-    // Tarea actual o próxima
+    // Tarea actual
     if (crew.currentTask) {
         const taskIcon = getTaskIcon(crew.currentTask.type);
         html += `
             <div class="task-item active">
                 <span class="task-icon">${taskIcon}</span>
                 <span class="task-description">${crew.currentTask.description}</span>
-                <span class="task-status">⏳ En curso</span>
+                <span class="task-status">⏳</span>
             </div>
         `;
     }
 
     // Tareas en cola
     if (crew.taskQueue && crew.taskQueue.length > 0) {
-        crew.taskQueue.slice(0, 3).forEach((task, index) => {
+        crew.taskQueue.slice(0, 2).forEach((task, index) => {
             const taskIcon = getTaskIcon(task.type);
             html += `
                 <div class="task-item queued">
                     <span class="task-icon">${taskIcon}</span>
                     <span class="task-description">${task.description}</span>
-                    <span class="task-status">⏸️ En cola</span>
+                    <span class="task-status">⏸️</span>
                 </div>
             `;
         });
     }
 
     if (!crew.currentTask && (!crew.taskQueue || crew.taskQueue.length === 0)) {
-        html += '<div class="task-item empty">Sin tareas pendientes</div>';
+        html += '<div class="task-item empty">Sin tareas programadas</div>';
     }
 
-    html += '</div>'; // task-list
-    html += '</div>'; // task-section
+    html += '</div>';
+    return html;
+}
 
-    // SECCIÓN 2: Acciones de Rol
-    html += '<div class="task-section">';
-    html += '<h3 class="task-section-title">⚡ Acciones de Rol</h3>';
-    html += '<div class="role-actions">';
+/* === CREAR SECCIÓN DE ACCIONES DE ROL === */
+function createRoleActionsSection(crew) {
+    if (!crew.isAlive) {
+        return '<div class="role-action-info">Tripulante fallecido</div>';
+    }
+
+    if (crew.state !== 'Despierto') {
+        return '<div class="role-action-info">Tripulante encapsulado</div>';
+    }
+
+    let html = '<div class="role-actions">';
     html += getRoleActionsHTML(crew);
-    html += '</div>'; // role-actions
-    html += '</div>'; // task-section
-
-    html += '</div>'; // crew-task-manager
+    html += '</div>';
     return html;
 }
 

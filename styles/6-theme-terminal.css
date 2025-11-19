@@ -2155,32 +2155,104 @@
 }
 
 /* ========================================
-   GESTOR DE TAREAS DE TRIPULANTE
+   REORGANIZACIÓN DE FICHA DE TRIPULANTE
    ======================================== */
 
-.crew-task-manager {
-    margin: 16px 0;
-    padding: 12px;
-    background: rgba(0, 255, 0, 0.03);
-    border: 1px solid var(--color-terminal-green-dark);
+/* Hacer el contenedor scrolleable */
+.crew-profile-compact {
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Scroll personalizado */
+.crew-profile-compact::-webkit-scrollbar {
+    width: 8px;
+}
+
+.crew-profile-compact::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.crew-profile-compact::-webkit-scrollbar-thumb {
+    background: var(--color-terminal-green-dark);
     border-radius: 4px;
 }
 
-.task-section {
-    margin-bottom: 16px;
+.crew-profile-compact::-webkit-scrollbar-thumb:hover {
+    background: var(--color-terminal-green);
 }
 
-.task-section:last-child {
-    margin-bottom: 0;
+/* Pensamiento con efecto marquesina */
+.crew-compact-thought {
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    padding: 8px 0;
 }
 
-.task-section-title {
-    font-size: 14px;
+.crew-compact-thought:hover {
+    animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Divisor de sección */
+.crew-section-divider {
+    height: 1px;
+    background: var(--color-terminal-green-dark);
+    margin: 12px 0;
+}
+
+/* Actividad y localización */
+.crew-activity-location {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 0;
+}
+
+.activity-item,
+.location-item {
+    font-size: 12px;
+    color: var(--color-terminal-green);
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+/* Grid de tareas (2 columnas) */
+.crew-task-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+}
+
+.task-grid-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.task-column-title {
+    font-size: 13px;
     font-weight: bold;
     color: var(--color-terminal-green);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     padding-bottom: 4px;
     border-bottom: 1px solid var(--color-terminal-green-dark);
+}
+
+/* Responsive: Una columna en móvil */
+@media (max-width: 768px) {
+    .crew-task-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
 }
 
 /* === LISTA DE TAREAS === */
