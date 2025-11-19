@@ -52,19 +52,21 @@ function generateCrewTabs() {
             mobileTabsContainer.appendChild(mobileTabBtn);
         }
 
-        // DESKTOP: Crear contenido de tab
+        // DESKTOP: Crear contenedor vacío (lazy loading - se llena al hacer clic)
         const content = document.createElement('div');
         content.className = 'terminal-tab-content';
         content.id = `terminal-content-crew-${crew.id}`;
-        content.appendChild(createFullCrewProfile(crew));
+        content.dataset.crewId = crew.id;
+        content.dataset.loaded = 'false';
         contentContainer.appendChild(content);
 
-        // MÓVIL: Crear contenido de tab
+        // MÓVIL: Crear contenedor vacío (lazy loading)
         if (mobileContentContainer) {
             const mobileContent = document.createElement('div');
             mobileContent.className = 'terminal-tab-content';
             mobileContent.id = `terminal-content-crew-${crew.id}-mobile`;
-            mobileContent.appendChild(createFullCrewProfile(crew));
+            mobileContent.dataset.crewId = crew.id;
+            mobileContent.dataset.loaded = 'false';
             mobileContentContainer.appendChild(mobileContent);
         }
     });
@@ -88,6 +90,25 @@ function switchTerminalTab(tabName) {
 
     // También activar para móvil
     const selectedContentMobile = document.getElementById(`terminal-content-${tabName}-mobile`);
+
+    // LAZY LOADING: Cargar contenido solo la primera vez
+    if (selectedContent && selectedContent.dataset.loaded === 'false') {
+        const crewId = parseInt(selectedContent.dataset.crewId);
+        const crew = crewMembers.find(c => c.id === crewId);
+        if (crew) {
+            selectedContent.appendChild(createFullCrewProfile(crew));
+            selectedContent.dataset.loaded = 'true';
+        }
+    }
+
+    if (selectedContentMobile && selectedContentMobile.dataset.loaded === 'false') {
+        const crewId = parseInt(selectedContentMobile.dataset.crewId);
+        const crew = crewMembers.find(c => c.id === crewId);
+        if (crew) {
+            selectedContentMobile.appendChild(createFullCrewProfile(crew));
+            selectedContentMobile.dataset.loaded = 'true';
+        }
+    }
 
     if (selectedContent) selectedContent.classList.add('active');
     if (selectedContentMobile) selectedContentMobile.classList.add('active');
@@ -317,11 +338,12 @@ function updateCrewProfile(crewId) {
         const profile = content.querySelector('.crew-profile-compact');
         if (profile && updateCrewProfileSelective(profile, crew)) {
             // Actualización selectiva exitosa
-        } else {
-            // Si no existe el perfil, crearlo desde cero
+        } else if (content.dataset.loaded === 'true') {
+            // El perfil debería existir pero no está, recrearlo
             content.innerHTML = '';
             content.appendChild(createFullCrewProfile(crew));
         }
+        // Si loaded='false', no hacer nada (se cargará cuando se haga clic)
     }
 
     // Actualizar móvil
@@ -331,11 +353,12 @@ function updateCrewProfile(crewId) {
         const profileMobile = mobileContent.querySelector('.crew-profile-compact');
         if (profileMobile && updateCrewProfileSelective(profileMobile, crew)) {
             // Actualización selectiva exitosa
-        } else {
-            // Si no existe el perfil, crearlo desde cero
+        } else if (mobileContent.dataset.loaded === 'true') {
+            // El perfil debería existir pero no está, recrearlo
             mobileContent.innerHTML = '';
             mobileContent.appendChild(createFullCrewProfile(crew));
         }
+        // Si loaded='false', no hacer nada (se cargará cuando se haga clic)
     }
 }
 
