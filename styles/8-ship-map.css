@@ -931,12 +931,12 @@
     .resource-strip {
         flex-wrap: wrap;
         justify-content: center;
-        padding: 8px 4px;
+        padding: 8px 0;
     }
 
     .resource-chip {
         font-size: 10px;
-        padding: 4px 6px;
+        padding: 0 12px;
         min-width: 80px;
     }
 

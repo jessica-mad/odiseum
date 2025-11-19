@@ -8,14 +8,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-md);
+    gap: 0;
     flex-wrap: wrap;
-    row-gap: var(--spacing-sm);
-    padding: 8px 16px;
+    row-gap: 0;
+    padding: 8px 0;
     background: var(--color-terminal-bg);
     border-top: 2px solid var(--color-terminal-green);
     border-bottom: 2px solid var(--color-terminal-green-dark);
-    box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.1);
     font-family: var(--font-monaco);
     color: var(--color-terminal-green);
 }
@@ -24,48 +23,41 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
-    border-radius: 0;
+    padding: 0 16px;
+    border-right: 1px solid var(--color-terminal-green-dark);
     min-width: 140px;
     justify-content: space-between;
-    box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.05);
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
+}
+
+.resource-chip:last-child {
+    border-right: none;
 }
 
 /* Resource chip color states */
 .resource-chip.full {
-    background: rgba(0, 255, 65, 0.15);
-    border-color: var(--color-terminal-green);
     color: var(--color-terminal-green);
 }
 
 .resource-chip.medium {
-    background: rgba(255, 170, 0, 0.15);
-    border-color: #ffaa00;
     color: #ffaa00;
 }
 
 .resource-chip.low {
-    background: rgba(255, 136, 0, 0.15);
-    border-color: #ff8800;
     color: #ff8800;
 }
 
 .resource-chip.critical {
-    background: rgba(255, 68, 68, 0.15);
-    border-color: #ff4444;
     color: #ff4444;
-    animation: pulse-chip-critical 1.5s ease-in-out infinite;
+    animation: pulse-text-critical 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse-chip-critical {
+@keyframes pulse-text-critical {
     0%, 100% {
-        box-shadow: inset 0 0 10px rgba(255, 68, 68, 0.2), 0 0 8px rgba(255, 68, 68, 0.3);
+        opacity: 1;
     }
     50% {
-        box-shadow: inset 0 0 20px rgba(255, 68, 68, 0.3), 0 0 12px rgba(255, 68, 68, 0.5);
+        opacity: 0.6;
     }
 }
 
