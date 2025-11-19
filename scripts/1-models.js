@@ -306,29 +306,18 @@ class Crew {
         }
 
         // Auto-gestionar salud (medicina)
-        // Si healthNeed < 100, intentar curar hasta que esté completamente sano
-        if (this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // Buscar al doctor y verificar si está despierto
-            let doctor = null;
-            let doctorAwake = false;
-            if (typeof crewMembers !== 'undefined' && crewMembers) {
-                doctor = crewMembers.find(c => c.role === 'doctor');
-                if (doctor && doctor.state === 'Despierto' && doctor.isAlive) {
-                    doctorAwake = true;
-                }
-            }
+        // SOLO EL DOCTOR PUEDE ADMINISTRAR MEDICINA
+        // El doctor trata a tripulantes con healthNeed < 100 (incluyéndose a sí mismo)
+        if (this.role === 'doctor' && this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
+            // El doctor se auto-trata
+            const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
 
-            // Recuperación base con multiplicador de eficiencia
+            // Recuperación base con stats del doctor
             let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
-
-            // Bonus de +50% si el doctor está despierto (legacy default)
-            // O usar healingRate del configStats si existe
-            if (doctorAwake) {
-                if (doctor.configStats && doctor.configStats.healingRate) {
-                    baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * doctor.configStats.healingRate * efficiencyMultiplier;
-                } else {
-                    baseRecovery *= 1.5;
-                }
+            if (this.configStats && this.configStats.healingRate) {
+                baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * this.configStats.healingRate * efficiencyMultiplier;
+            } else {
+                baseRecovery *= 1.5; // Bonus por ser doctor
             }
 
             // Calcular cuánto realmente necesita para llegar a 100
@@ -339,8 +328,8 @@ class Crew {
             let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
 
             // Aplicar modificador de consumo de medicina si el doctor lo tiene
-            if (doctorAwake && doctor.configStats && doctor.configStats.medicineUsage) {
-                resourcesNeeded = Math.ceil(resourcesNeeded * doctor.configStats.medicineUsage);
+            if (this.configStats && this.configStats.medicineUsage) {
+                resourcesNeeded = Math.ceil(resourcesNeeded * this.configStats.medicineUsage);
             }
 
             const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
@@ -348,14 +337,52 @@ class Crew {
             if (resourcesToUse > 0) {
                 Medicine.consume(resourcesToUse);
                 this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
-
-                if (doctorAwake) {
-                    autoManageActions.push(`fue atendido por ${doctor.name}`);
-                } else {
-                    autoManageActions.push('tomó medicina');
-                }
-
+                autoManageActions.push('se auto-trató');
                 this.currentActivity = 'resting';
+            }
+        } else if (this.role === 'doctor' && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
+            // El doctor busca tripulantes heridos para tratar
+            if (typeof crewMembers !== 'undefined' && crewMembers) {
+                const injured = crewMembers.filter(c =>
+                    c.isAlive &&
+                    c.state === 'Despierto' &&
+                    c.healthNeed < 100 &&
+                    c.id !== this.id
+                ).sort((a, b) => a.healthNeed - b.healthNeed); // Tratar al más herido primero
+
+                if (injured.length > 0) {
+                    const patient = injured[0];
+                    const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
+
+                    // Recuperación base con stats del doctor
+                    let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
+                    if (this.configStats && this.configStats.healingRate) {
+                        baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * this.configStats.healingRate * efficiencyMultiplier;
+                    } else {
+                        baseRecovery *= 1.5; // Bonus por ser doctor
+                    }
+
+                    // Calcular cuánto realmente necesita el paciente para llegar a 100
+                    const needed = 100 - patient.healthNeed;
+                    const actualRecovery = Math.min(needed, baseRecovery);
+
+                    // Consumir recursos proporcionalmente (regla de 3)
+                    let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
+
+                    // Aplicar modificador de consumo de medicina si el doctor lo tiene
+                    if (this.configStats && this.configStats.medicineUsage) {
+                        resourcesNeeded = Math.ceil(resourcesNeeded * this.configStats.medicineUsage);
+                    }
+
+                    const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
+
+                    if (resourcesToUse > 0) {
+                        Medicine.consume(resourcesToUse);
+                        patient.healthNeed = Math.min(100, patient.healthNeed + actualRecovery);
+                        autoManageActions.push(`trató a ${patient.name.split(' ')[0]}`);
+                        this.currentActivity = 'treating';
+                    }
+                }
             }
         }
 
