@@ -131,16 +131,16 @@ function createFullCrewProfile(crew) {
         <!-- HEADER: [Rol + Nombre] [emoji estado] -->
         <div class="crew-compact-header">
             <span class="crew-compact-name">${roleLabel} ${crew.name}</span>
-            <span class="crew-compact-status">${statusIcon}</span>
+            <span class="crew-compact-status" data-crew-status>${statusIcon}</span>
         </div>
 
         <!-- INFO: [emoji] ! [Edad inicial] ! [Edad actual] ! [Actividad] ! [Ubicación] -->
-        <div class="crew-compact-info">
+        <div class="crew-compact-info" data-crew-info>
             ${roleLabel} ! ${crew.initialAge}a ! ${age}a ! ${activity} ! 📍 ${location}
         </div>
 
         <!-- PENSAMIENTO: texto completo -->
-        <div class="crew-compact-thought">
+        <div class="crew-compact-thought" data-crew-thought>
             ${thought}
         </div>
 
@@ -186,14 +186,14 @@ function createCompactCrewNeeds(crew) {
         const buttonOnClick = isAwake ? '' : `onclick="event.stopPropagation(); quickManage('${crew.name}', '${need.label}')"`;
 
         html += `
-            <div class="need-bar-advanced">
+            <div class="need-bar-advanced" data-need="${need.label}">
                 <button class="need-bar-icon-btn" ${buttonDisabled} ${buttonOnClick}>
                     ${need.icon}
                 </button>
                 <div class="need-bar-track">
-                    <div class="need-bar-fill-advanced ${colorClass}" style="width: ${percentage}%"></div>
+                    <div class="need-bar-fill-advanced ${colorClass}" data-need-fill style="width: ${percentage}%"></div>
                 </div>
-                <span class="need-bar-percent">${Math.round(percentage)}%</span>
+                <span class="need-bar-percent" data-need-percent>${Math.round(percentage)}%</span>
             </div>
         `;
     });
@@ -229,6 +229,82 @@ function createCrewPersonalLog(crew) {
     return html;
 }
 
+/* === ACTUALIZAR PERFIL DE TRIPULANTE (SELECTIVO - SIN DESTRUIR DOM) === */
+function updateCrewProfileSelective(container, crew) {
+    if (!container || !crew) return false;
+
+    // Determinar estado e icono
+    let statusIcon = '❤️';
+    if (!crew.isAlive) {
+        statusIcon = '💀';
+    } else if (crew.state === 'Despierto') {
+        statusIcon = '⚡';
+    } else if (crew.state === 'Encapsulado') {
+        statusIcon = '💤';
+    }
+
+    // Información básica
+    const roleLabel = crew.getRoleLabel ? crew.getRoleLabel() : '👤';
+    const age = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
+    const location = crew.getCurrentLocation ? crew.getCurrentLocation() : 'Nave';
+    const activity = crew.currentActivity || 'Sin actividad';
+    const thought = crew.getCurrentThought ? crew.getCurrentThought() : '💭 ...';
+
+    // Actualizar estado (emoji)
+    const statusEl = container.querySelector('[data-crew-status]');
+    if (statusEl) statusEl.textContent = statusIcon;
+
+    // Actualizar info
+    const infoEl = container.querySelector('[data-crew-info]');
+    if (infoEl) infoEl.textContent = `${roleLabel} ! ${crew.initialAge}a ! ${age}a ! ${activity} ! 📍 ${location}`;
+
+    // Actualizar pensamiento
+    const thoughtEl = container.querySelector('[data-crew-thought]');
+    if (thoughtEl) thoughtEl.textContent = thought;
+
+    // Actualizar barras de necesidades (solo si está vivo)
+    if (crew.isAlive) {
+        const needs = [
+            { label: 'alimentación', value: crew.foodNeed || 0, max: 100, inverse: false },
+            { label: 'salud', value: crew.healthNeed || 0, max: 100, inverse: false },
+            { label: 'higiene', value: crew.wasteNeed || 0, max: 100, inverse: true },
+            { label: 'descanso', value: crew.restNeed || 0, max: 100, inverse: false },
+            { label: 'entretenimiento', value: crew.entertainmentNeed || 0, max: 100, inverse: false }
+        ];
+
+        needs.forEach(need => {
+            const needBar = container.querySelector(`[data-need="${need.label}"]`);
+            if (!needBar) return;
+
+            const percentage = (need.value / need.max) * 100;
+            let colorClass = 'good';
+
+            if (need.inverse) {
+                if (percentage > 80) colorClass = 'critical';
+                else if (percentage > 60) colorClass = 'warning';
+            } else {
+                if (percentage < 20) colorClass = 'critical';
+                else if (percentage < 40) colorClass = 'warning';
+            }
+
+            // Actualizar fill (barra y clase)
+            const fillEl = needBar.querySelector('[data-need-fill]');
+            if (fillEl) {
+                fillEl.style.width = `${percentage}%`;
+                fillEl.className = `need-bar-fill-advanced ${colorClass}`;
+            }
+
+            // Actualizar porcentaje
+            const percentEl = needBar.querySelector('[data-need-percent]');
+            if (percentEl) percentEl.textContent = `${Math.round(percentage)}%`;
+        });
+    }
+
+    // TODO: Actualizar log si hay nuevas entradas (más complejo, lo dejamos para después)
+
+    return true;
+}
+
 /* === ACTUALIZAR PERFIL DE TRIPULANTE === */
 function updateCrewProfile(crewId) {
     const crew = crewMembers.find(c => c.id === crewId);
@@ -237,15 +313,29 @@ function updateCrewProfile(crewId) {
     // Actualizar desktop
     const content = document.getElementById(`terminal-content-crew-${crewId}`);
     if (content) {
-        content.innerHTML = '';
-        content.appendChild(createFullCrewProfile(crew));
+        // Intentar actualización selectiva primero
+        const profile = content.querySelector('.crew-profile-compact');
+        if (profile && updateCrewProfileSelective(profile, crew)) {
+            // Actualización selectiva exitosa
+        } else {
+            // Si no existe el perfil, crearlo desde cero
+            content.innerHTML = '';
+            content.appendChild(createFullCrewProfile(crew));
+        }
     }
 
     // Actualizar móvil
     const mobileContent = document.getElementById(`terminal-content-crew-${crewId}-mobile`);
     if (mobileContent) {
-        mobileContent.innerHTML = '';
-        mobileContent.appendChild(createFullCrewProfile(crew));
+        // Intentar actualización selectiva primero
+        const profileMobile = mobileContent.querySelector('.crew-profile-compact');
+        if (profileMobile && updateCrewProfileSelective(profileMobile, crew)) {
+            // Actualización selectiva exitosa
+        } else {
+            // Si no existe el perfil, crearlo desde cero
+            mobileContent.innerHTML = '';
+            mobileContent.appendChild(createFullCrewProfile(crew));
+        }
     }
 }
 
