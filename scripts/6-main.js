@@ -66,6 +66,13 @@ function namePlayer() {
     const seedInput = document.getElementById('player-seed-input');
     const seed = seedInput ? seedInput.value.trim().toUpperCase() : '';
 
+    // SEMILLA ESTÁNDAR DE PRUEBA: Si seed es "TEST" o "QUICK", iniciar directamente con configuración estándar
+    if (seed === 'TEST' || seed === 'QUICK') {
+        console.log('[Game] Semilla de prueba detectada - Iniciando con configuración estándar');
+        startQuickTestGame();
+        return;
+    }
+
     // Guardar seed en variable global si existe
     if (seed && seed.startsWith('KEPLER-')) {
         window.loadedSeed = seed;
@@ -77,6 +84,45 @@ function namePlayer() {
     document.getElementById('initial-screen').style.display = 'none';
 
     showIntroOverlay();
+}
+
+// Función para iniciar juego rápido con configuración estándar de prueba
+function startQuickTestGame() {
+    console.log('[Quick Test] Creando configuración estándar...');
+
+    // Configuración estándar: opción del medio (índice 1) de cada rol
+    const standardConfig = {
+        crew: {
+            comandante: CREW_OPTIONS.comandante.options[1], // Morgan (estándar)
+            doctor: CREW_OPTIONS.doctor.options[1],         // Kim (estándar)
+            ingeniero: CREW_OPTIONS.ingeniero.options[1],   // Patel (estándar)
+            navegante: CREW_OPTIONS.navegante.options[1],   // Johnson (estándar, 12 tramos)
+            chef: CREW_OPTIONS.chef.options[1]              // Garcia (estándar)
+        },
+        resources: RESOURCE_PRESETS.balanceado.resources,
+        seed: 'KEPLER-TEST-' + Date.now().toString().slice(-6),
+        timestamp: Date.now()
+    };
+
+    console.log('[Quick Test] Configuración creada:', standardConfig);
+
+    // Ocultar pantalla inicial
+    document.getElementById('initial-screen').style.display = 'none';
+
+    // Ocultar intro si existe
+    const introOverlay = document.getElementById('intro-overlay');
+    if (introOverlay) {
+        introOverlay.style.display = 'none';
+    }
+
+    // Ocultar configurador si existe
+    const configurator = document.getElementById('mission-configurator');
+    if (configurator) {
+        configurator.style.display = 'none';
+    }
+
+    // Iniciar juego directamente con configuración estándar
+    startGameWithConfiguration(standardConfig);
 }
 
 function showIntroOverlay() {

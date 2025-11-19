@@ -8,11 +8,18 @@ class TimeSystem {
         this.currentYear = 0;
         this.trancheCount = 0;
         this.tickCount = 0;
+        this.globalTickCounter = 0; // Contador global de ticks (nunca se reinicia)
+        this.fastTickCounter = 0; // Contador de fast ticks (nunca se reinicia)
     }
 
     advanceTick() {
         this.tickCount++;
+        this.globalTickCounter++;
         this.currentYear += YEARS_PER_TICK;
+    }
+
+    advanceFastTick() {
+        this.fastTickCounter++;
     }
 
     advanceTranche() {
@@ -324,6 +331,7 @@ class GameLoop {
     constructor() {
         this.gameState = GAME_STATES.PAUSED;
         this.gameLoopInterval = null;
+        this.fastTickInterval = null;
         this.timerInterval = null;
         this.trancheTimeRemaining = TRANCHE_DURATION_MS;
         this.currentSpeed = 65;
@@ -370,8 +378,11 @@ class GameLoop {
         logbook.addEntry(`Tramo iniciado. Velocidad: ${this.currentSpeed}%`, LOG_TYPES.EVENT);
         new Notification('Tramo iniciado. Gestionando sistemas...', NOTIFICATION_TYPES.INFO);
 
-        // Iniciar bucle de simulación (cada 1 segundo - velocidad x2)
+        // Iniciar bucle de simulación normal (cada 1 segundo - velocidad x2)
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+
+        // Iniciar bucle de simulación veloz (cada 0.5 segundos - el doble de rápido)
+        this.fastTickInterval = setInterval(() => this.fastTick(), FAST_TICK_RATE);
 
         // Iniciar actualización del temporizador visual (cada 1 segundo)
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
@@ -453,6 +464,11 @@ class GameLoop {
             shipIntegritySystem.tick(awakeBenefitSystem);
         }
 
+        // Degradar zonas del mapa de la nave
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.degradeZones();
+        }
+
         // Actualizar recursos
         this.updateAllResources();
         
@@ -467,15 +483,58 @@ class GameLoop {
         Oxygen.checkQuantity();
         Medicine.checkQuantity();
         Fuel.checkQuantity();
-        
+
         // Actualizar popup de tripulante si está abierto
         this.updateCrewPopupIfOpen();
+
+        // Actualizar panel de tripulación si está abierto (cada 3 segundos para reducir lag)
+        if (typeof panelManager !== 'undefined' && panelManager && panelManager.isPanelOpen('crew')) {
+            // Solo actualizar cada 3 ticks (cada 3 segundos)
+            if (timeSystem.tickCount % 3 === 0) {
+                panelManager.updateCrewPanel();
+            }
+        }
+    }
+
+    fastTick() {
+        // Este tick se ejecuta cada 0.5 segundos (el doble de rápido que el tick normal)
+        // Contiene operaciones que necesitan actualizarse más frecuentemente
+
+        // Avanzar contador de fast ticks
+        timeSystem.advanceFastTick();
+
+        // Actualizar posiciones de tripulantes en el mapa
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.updateCrewLocations();
+        }
+
+        // Procesar reparaciones de zonas
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processRepairTick();
+        }
+
+        // Procesar cooldown del invernadero
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processGreenhouseCooldown();
+        }
+
+        // Procesar cola del baño (FIFO) - Cada 500ms para descargar más rápido
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processBathroomQueue();
+        }
+
+        // Actualizar popup de tripulante si está abierto (UI más responsive)
+        this.updateCrewPopupIfOpen();
+
+        // NOTA: NO actualizar panel aquí - causa lag. El panel se actualiza solo cuando hay cambios.
     }
 
     endTranche() {
-        // Detener ambos intervalos
+        // Detener todos los intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.fastTickInterval);
+        this.fastTickInterval = null;
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
@@ -551,9 +610,11 @@ class GameLoop {
     pause() {
         if (this.gameState !== GAME_STATES.IN_TRANCHE) return;
 
-        // Detener ambos intervalos
+        // Detener todos los intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.fastTickInterval);
+        this.fastTickInterval = null;
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
@@ -596,8 +657,9 @@ class GameLoop {
             playTrancheSound();
         }
 
-        // Reiniciar ambos intervalos
+        // Reiniciar todos los intervalos
         this.gameLoopInterval = setInterval(() => this.tick(), SIMULATION_TICK_RATE);
+        this.fastTickInterval = setInterval(() => this.fastTick(), FAST_TICK_RATE);
         this.timerInterval = setInterval(() => this.updateTimerTick(), 1000);
 
         // Actualizar botones desktop
@@ -688,9 +750,11 @@ class GameLoop {
     }
     
     gameOverNoFuel() {
-        // Detener ambos intervalos
+        // Detener todos los intervalos
         clearInterval(this.gameLoopInterval);
         this.gameLoopInterval = null;
+        clearInterval(this.fastTickInterval);
+        this.fastTickInterval = null;
         clearInterval(this.timerInterval);
         this.timerInterval = null;
 
@@ -1172,7 +1236,7 @@ class EventSystem {
         // Guardar pensamiento personalizado del evento
         if (changes.personalThought) {
             crew.personalThought = changes.personalThought;
-            crew.personalThoughtExpiry = Date.now() + (60000); // Dura 1 minuto (velocidad x2)
+            crew.personalThoughtExpiry = timeSystem.globalTickCounter + 60; // Dura 60 ticks (1 minuto de juego)
         }
 
         if (changes.relationships && typeof changes.relationships === 'object') {

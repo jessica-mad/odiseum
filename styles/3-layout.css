@@ -807,6 +807,34 @@
     }
 }
 
+/* Tareas de tripulantes */
+.crew-card-tasks {
+    margin-top: 6px;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    font-size: var(--font-size-xs);
+}
+
+.crew-card-tasks-header {
+    font-size: var(--font-size-xs);
+    font-weight: bold;
+    color: var(--color-terminal-green);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.crew-card-task-item {
+    color: rgba(0, 255, 65, 0.7);
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+    font-size: 9px;
+}
+
+.crew-card-task-item:last-child {
+    border-bottom: none;
+}
+
 /* Necesidades avanzadas */
 .crew-card-needs-advanced {
     display: flex;

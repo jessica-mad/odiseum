@@ -93,8 +93,14 @@ class ShipMapSystem {
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.8, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
             },
-            bathroom: {
-                name: 'Baño', icon: '🚽', tiles: this.findTiles('w'), color: '#44aaff',
+            bathroom_bridge: {
+                name: 'Baño Control', icon: '🚽', tiles: this.findBathroomBridgeTiles(), color: '#44aaff',
+                integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false,
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
+            },
+            bathroom_capsules: {
+                name: 'Baño Cápsulas', icon: '🚽', tiles: this.findBathroomCapsulesTiles(), color: '#44aaff',
                 integrity: 100, maxIntegrity: 100, degradationRate: 0.6, isBroken: false,
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 isOccupied: false, currentUser: null, queue: [], arrivalOrder: {}
@@ -135,6 +141,32 @@ class ShipMapSystem {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 if (this.grid[row][col] === type) {
+                    tiles.push({ row, col });
+                }
+            }
+        }
+        return tiles;
+    }
+
+    findBathroomBridgeTiles() {
+        // Baño cerca del puente de control: Row 2, Col 6
+        const tiles = [];
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                if (this.grid[row][col] === 'w' && row === 2 && col === 6) {
+                    tiles.push({ row, col });
+                }
+            }
+        }
+        return tiles;
+    }
+
+    findBathroomCapsulesTiles() {
+        // Baño cerca de las cápsulas: Row 16, Col 3
+        const tiles = [];
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                if (this.grid[row][col] === 'w' && row === 16 && col === 3) {
                     tiles.push({ row, col });
                 }
             }
@@ -336,7 +368,7 @@ class ShipMapSystem {
             if (!pos) return;
 
             const cellType = this.grid[pos.row]?.[pos.col];
-            const currentZone = this.getCellTypeToZoneName(cellType);
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
 
             if (currentZone === zoneKey) {
                 crew.push(c);
@@ -634,7 +666,7 @@ class ShipMapSystem {
             if (!pos) return;
 
             const cellType = this.grid[pos.row]?.[pos.col];
-            const currentZone = this.getCellTypeToZoneName(cellType);
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
 
             if (currentZone === zoneKey) {
                 crew.push(c);
@@ -666,6 +698,32 @@ class ShipMapSystem {
         }
     }
 
+    /**
+     * Calcula la distancia Manhattan entre dos posiciones
+     */
+    calculateDistance(pos1, pos2) {
+        return Math.abs(pos1.row - pos2.row) + Math.abs(pos1.col - pos2.col);
+    }
+
+    /**
+     * Determina cuál baño está más cerca del tripulante
+     */
+    getNearestBathroom(crewId) {
+        const crewPos = this.crewLocations[crewId];
+        if (!crewPos) {
+            // Si no tiene posición, por defecto baño del puente
+            return 'bathroom_bridge';
+        }
+
+        const bridgeBathroomPos = { row: 2, col: 6 };
+        const capsulesBathroomPos = { row: 16, col: 3 };
+
+        const distanceToBridge = this.calculateDistance(crewPos, bridgeBathroomPos);
+        const distanceToCapsules = this.calculateDistance(crewPos, capsulesBathroomPos);
+
+        return distanceToBridge <= distanceToCapsules ? 'bathroom_bridge' : 'bathroom_capsules';
+    }
+
     getTargetZoneForCrew(crew) {
         if (!crew.isAlive) return null;
 
@@ -689,8 +747,23 @@ class ShipMapSystem {
             }
 
             // PRIORIDAD 1: Higiene (wasteNeed >= 50)
-            if (crew.wasteNeed >= 50) {
-                return 'bathroom';
+            // Solo crear tarea de baño si:
+            // - wasteNeed >= 70 (muy urgente) O
+            // - wasteNeed >= 50 Y han pasado 30+ ticks desde última visita (30 segundos)
+            const ticksSinceLastBathroom = timeSystem.globalTickCounter - (crew.lastBathroomTick || 0);
+            const needsBathroom = crew.wasteNeed >= 70 || (crew.wasteNeed >= 50 && ticksSinceLastBathroom >= 30);
+
+            if (needsBathroom) {
+                // Agregar tarea de baño si no está en la lista
+                const hasBathroomTask = crew.currentTask?.type === 'bathroom' ||
+                                       crew.taskQueue.some(t => t.type === 'bathroom');
+                if (!hasBathroomTask) {
+                    crew.pauseCurrentTask();  // Pausar tarea actual
+                    crew.addTask('bathroom', '🚽 Ir al baño', 10);  // Alta prioridad
+                    crew.currentTask = crew.taskQueue.shift();  // Iniciar tarea de baño inmediatamente
+                }
+                // Determinar cuál baño está más cerca
+                return this.getNearestBathroom(crew.id);
             }
 
             // PRIORIDAD 2: Salud (healthNeed < 50%) - ir a enfermería
@@ -835,6 +908,11 @@ class ShipMapSystem {
     }
 
     updateCrewLocations() {
+        // Solo mover tripulantes si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         if (!Array.isArray(crewMembers)) {
             console.warn('⚠️ crewMembers no es un array');
             return;
@@ -858,7 +936,11 @@ class ShipMapSystem {
             const currentPos = this.crewLocations[crew.id];
             const currentTarget = this.crewTargets[crew.id];
 
-            if (currentTarget !== targetZone) {
+            // NO CAMBIAR TARGET SI ESTÁ USANDO EL BAÑO ACTIVAMENTE
+            const isUsingBathroom = this.zones.bathroom_bridge?.currentUser === crew.id ||
+                                   this.zones.bathroom_capsules?.currentUser === crew.id;
+
+            if (currentTarget !== targetZone && !isUsingBathroom) {
                 console.log(`🎯 ${crew.name} va a ${targetZone} (antes: ${currentTarget || 'ninguno'})`);
                 this.crewTargets[crew.id] = targetZone;
                 const targetPos = this.getRandomTileInZone(targetZone, crew.id);
@@ -875,7 +957,7 @@ class ShipMapSystem {
                         this.animateCrewMovement(crew);
                     }
                 }
-                this.lastSubtleMove[crew.id] = Date.now();
+                this.lastSubtleMove[crew.id] = timeSystem.fastTickCounter;
             } else {
                 // Tripulante ya está en su zona objetivo
                 if (currentPos) {
@@ -886,13 +968,13 @@ class ShipMapSystem {
                         // Los encapsulados NO se mueven
                         this.createOrUpdateCrewMarker(crew, currentPos);
                     } else {
-                        // Movimiento sutil: Cada 30-60 segundos, moverse a otra tile en la misma zona
+                        // Movimiento sutil: Cada 60 fast ticks (30 segundos de juego), moverse a otra tile en la misma zona
                         const lastMove = this.lastSubtleMove[crew.id] || 0;
-                        const timeSinceLastMove = Date.now() - lastMove;
+                        const ticksSinceLastMove = timeSystem.fastTickCounter - lastMove;
                         const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
 
-                        // Solo mover si no está en movimiento y han pasado 30+ segundos
-                        if (!isMoving && timeSinceLastMove > 30000 && Math.random() < 0.3) {
+                        // Solo mover si no está en movimiento y han pasado 60+ fast ticks (30 segundos de juego)
+                        if (!isMoving && ticksSinceLastMove > 60 && Math.random() < 0.3) {
                             const newPos = this.getRandomTileInZone(targetZone, crew.id);
                             // Solo mover si la nueva posición es diferente
                             if (newPos.row !== currentPos.row || newPos.col !== currentPos.col) {
@@ -900,7 +982,7 @@ class ShipMapSystem {
                                 if (path.length > 1) {
                                     this.crewPaths[crew.id] = path;
                                     this.animateCrewMovement(crew);
-                                    this.lastSubtleMove[crew.id] = Date.now();
+                                    this.lastSubtleMove[crew.id] = timeSystem.fastTickCounter;
                                 }
                             }
                         } else {
@@ -1039,6 +1121,7 @@ class ShipMapSystem {
             const benefit = crew.getAwakeBenefitDescription?.() || '';
             const location = crew.getCurrentLocation?.() || 'Nave';
             const thought = crew.getCurrentThought?.() || '';
+            const tasks = crew.getTasksDescription?.() || ['Sin tareas'];
 
             cardContent = `
                 <div class="floating-card-close" onclick="shipMapSystem.closeFloatingCrewCard()">×</div>
@@ -1051,7 +1134,11 @@ class ShipMapSystem {
                     📍 ${location}
                 </div>
                 <div class="crew-card-thought">
-                    <div class="thought-marquee">${thought}</div>
+                    ${thought}
+                </div>
+                <div class="crew-card-tasks">
+                    <div class="crew-card-tasks-header">📋 Tareas:</div>
+                    ${tasks.map(task => `<div class="crew-card-task-item">${task}</div>`).join('')}
                 </div>
             `;
         } else {
@@ -1128,25 +1215,50 @@ class ShipMapSystem {
 
     /**
      * Sistema de cola del baño - FIFO: Primero en llegar, primero en usar
+     * Procesa ambos baños independientemente
      */
     processBathroomQueue() {
-        const bathroom = this.zones.bathroom;
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
+        // Procesar cada baño independientemente
+        this.processSingleBathroomQueue('bathroom_bridge');
+        this.processSingleBathroomQueue('bathroom_capsules');
+    }
+
+    /**
+     * Procesa la cola de un baño específico
+     */
+    processSingleBathroomQueue(bathroomKey) {
+        const bathroom = this.zones[bathroomKey];
         if (!bathroom) return;
 
-        // Obtener tripulantes que están en la zona del baño
+        // Obtener tripulantes que están en la cola de ESTE baño específico
         const crewInBathroom = crewMembers.filter(crew => {
             if (!crew.isAlive || crew.state !== 'Despierto') return false;
+
+            // SIEMPRE incluir al usuario actual del baño (aunque su target haya cambiado)
+            if (bathroom.currentUser === crew.id) return true;
+
+            // Incluir tripulantes que tienen como objetivo ESTE baño
+            const target = this.crewTargets[crew.id];
+            if (target === bathroomKey) return true;
+
+            // También incluir a los que están físicamente en ESTE baño
             const pos = this.crewLocations[crew.id];
             if (!pos) return false;
             const cellType = this.grid[pos.row]?.[pos.col];
-            return cellType === 'w';
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === bathroomKey;
         });
 
-        // Registrar tiempo de llegada para nuevos tripulantes
-        const currentTime = Date.now();
+        // Registrar tick de llegada para nuevos tripulantes
+        const currentTick = timeSystem.globalTickCounter;
         crewInBathroom.forEach(crew => {
             if (!bathroom.arrivalOrder[crew.id]) {
-                bathroom.arrivalOrder[crew.id] = currentTime;
+                bathroom.arrivalOrder[crew.id] = currentTick;
             }
         });
 
@@ -1164,16 +1276,24 @@ class ShipMapSystem {
                 // Verificar que el usuario sigue en el baño
                 const stillInBathroom = crewInBathroom.find(c => c.id === user.id);
                 if (stillInBathroom) {
-                    // Reducir wasteNeed por tick (5 puntos por tick)
-                    // Consumir agua proporcionalmente (0.5 de agua por cada 5 de wasteNeed reducido)
-                    if (typeof Water !== 'undefined' && Water.quantity >= 0.5) {
-                        Water.consume(0.5);
-                        user.wasteNeed = Math.max(0, user.wasteNeed - 5);
+                    // Reducir wasteNeed por fast tick (10 puntos por tick veloz - cada 500ms)
+                    // Consumir agua proporcionalmente (1.0 de agua por cada 10 de wasteNeed reducido)
+                    if (typeof Water !== 'undefined' && Water.quantity >= 1.0) {
+                        Water.consume(1.0);
+                        user.wasteNeed = Math.max(0, user.wasteNeed - 10);
                         user.currentActivity = '🚽 Usando el baño';
 
-                        // Si ya terminó (wasteNeed <= 10), liberar baño
-                        if (user.wasteNeed <= 10) {
-                            this.releaseBathroom();
+                        // Si ya terminó (wasteNeed = 0), liberar baño
+                        if (user.wasteNeed <= 0) {
+                            // Registrar última visita al baño (cooldown)
+                            user.lastBathroomTick = timeSystem.globalTickCounter;
+
+                            // Completar tarea de baño y reanudar tarea pausada
+                            if (user.currentTask?.type === 'bathroom') {
+                                user.completeCurrentTask();
+                                user.resumePausedTask();
+                            }
+                            this.releaseBathroom(bathroomKey);
                         }
                     } else {
                         // Sin agua, no se puede usar el baño
@@ -1181,25 +1301,43 @@ class ShipMapSystem {
                     }
                 } else {
                     // Usuario salió del baño, liberar
-                    this.releaseBathroom();
+                    this.releaseBathroom(bathroomKey);
                 }
             } else {
                 // Usuario ya no es válido, liberar baño
-                this.releaseBathroom();
+                this.releaseBathroom(bathroomKey);
             }
         }
 
         // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR
         if (!bathroom.isOccupied && crewInBathroom.length > 0) {
-            // Ordenar por tiempo de llegada (FIFO)
+            // Ordenar por tick de llegada (FIFO)
             const sortedByArrival = crewInBathroom.sort((a, b) => {
-                return bathroom.arrivalOrder[a.id] - bathroom.arrivalOrder[b.id];
+                const timeA = bathroom.arrivalOrder[a.id] || 999999;
+                const timeB = bathroom.arrivalOrder[b.id] || 999999;
+                return timeA - timeB;
             });
 
             const nextUser = sortedByArrival[0];
             bathroom.isOccupied = true;
             bathroom.currentUser = nextUser.id;
             nextUser.currentActivity = '🚽 Usando el baño';
+
+            // Mover al usuario al baño específico
+            const bathroomTile = this.getRandomTileInZone(bathroomKey, nextUser.id);
+            if (bathroomTile) {
+                const currentPos = this.crewLocations[nextUser.id];
+                if (currentPos) {
+                    const path = this.findPath(currentPos, bathroomTile);
+                    if (path.length > 1) {
+                        this.crewPaths[nextUser.id] = path;
+                        this.animateCrewMovement(nextUser);
+                    } else {
+                        this.crewLocations[nextUser.id] = bathroomTile;
+                        this.createOrUpdateCrewMarker(nextUser, bathroomTile);
+                    }
+                }
+            }
         }
 
         // Actualizar cola visual (tripulantes esperando)
@@ -1211,7 +1349,7 @@ class ShipMapSystem {
         bathroom.queue.forEach(crewId => {
             const crew = crewMembers.find(c => c.id === crewId);
             if (crew) {
-                crew.currentActivity = '⏳ Esperando baño';
+                crew.currentActivity = `⏳ Esperando ${bathroom.name}`;
             }
         });
     }
@@ -1219,8 +1357,8 @@ class ShipMapSystem {
     /**
      * Libera el baño para el siguiente usuario
      */
-    releaseBathroom() {
-        const bathroom = this.zones.bathroom;
+    releaseBathroom(bathroomKey) {
+        const bathroom = this.zones[bathroomKey];
         if (!bathroom) return;
 
         const user = crewMembers.find(c => c.id === bathroom.currentUser);
@@ -1270,7 +1408,7 @@ class ShipMapSystem {
             if (!position) return;
 
             const cellType = this.grid[position.row]?.[position.col];
-            const zoneName = this.getCellTypeToZoneName(cellType);
+            const zoneName = this.getCellTypeToZoneName(cellType, position.row, position.col);
 
             if (zoneName) {
                 crewCountByZone[zoneName] = (crewCountByZone[zoneName] || 0) + 1;
@@ -1306,7 +1444,7 @@ class ShipMapSystem {
     /**
      * Convierte tipo de celda a nombre de zona para el sistema de averías
      */
-    getCellTypeToZoneName(cellType) {
+    getCellTypeToZoneName(cellType, row = null, col = null) {
         const mapping = {
             'c': 'bridge',
             'e': 'medbay',
@@ -1314,9 +1452,20 @@ class ShipMapSystem {
             'k': 'kitchen',
             'n': 'greenhouse',
             'd': 'capsules',
-            'b': 'cargo',
-            'w': 'bathroom'
+            'b': 'cargo'
         };
+
+        // Diferenciar baños por coordenadas
+        if (cellType === 'w') {
+            if (row === 2 && col === 6) {
+                return 'bathroom_bridge';
+            } else if (row === 16 && col === 3) {
+                return 'bathroom_capsules';
+            }
+            // Fallback por si acaso
+            return 'bathroom_bridge';
+        }
+
         return mapping[cellType];
     }
 
@@ -1461,6 +1610,11 @@ class ShipMapSystem {
      * Procesa un tick de reparación (llamado cada 10 segundos)
      */
     processRepairTick() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         const engineer = crewMembers.find(c =>
             c.position && c.position.includes('Ingenier') && c.isAlive && c.state === 'Despierto'
         );
@@ -1490,7 +1644,7 @@ class ShipMapSystem {
             }
 
             const cellType = this.grid[engineerPos.row]?.[engineerPos.col];
-            const engineerZone = this.getCellTypeToZoneName(cellType);
+            const engineerZone = this.getCellTypeToZoneName(cellType, engineerPos.row, engineerPos.col);
 
             // Si el ingeniero no está en la zona correcta, está viajando
             if (engineerZone !== zoneKey) {
@@ -1626,6 +1780,11 @@ class ShipMapSystem {
      * Procesar cooldown del invernadero (llamado cada tick)
      */
     processGreenhouseCooldown() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
         const greenhouse = this.zones.greenhouse;
         if (!greenhouse) return;
 
@@ -1656,22 +1815,10 @@ class ShipMapSystem {
     }
 
     startAutoUpdate() {
-        // Actualizar posiciones cada 1.5 segundos (velocidad x2)
-        setInterval(() => {
-            this.updateCrewLocations();
-        }, 1500);
+        // NOTA: updateCrewLocations, processRepairTick, processGreenhouseCooldown y processBathroomQueue
+        // ahora se ejecutan desde el fastTick del GameLoop (cada 500ms)
 
-        // Degradar zonas y gestionar baño cada 5 segundos (velocidad x2)
-        setInterval(() => {
-            this.degradeZones();
-            this.processBathroomQueue();
-        }, 5000);
-
-        // REPARACIONES E INVERNADERO: Procesar cada tick del juego (ahora cada 1 segundo)
-        setInterval(() => {
-            this.processRepairTick();
-            this.processGreenhouseCooldown();
-        }, 1000); // Cada 1 segundo = cada tick
+        // NOTA: degradeZones ahora se ejecuta desde el tick normal del GameLoop (cada 1 segundo)
 
         // También actualizar cada vez que cambie algo relevante
         if (typeof addEventListener === 'function') {
@@ -1681,9 +1828,10 @@ class ShipMapSystem {
             });
         }
 
-        console.log('✅ Auto-actualización del mapa iniciada (cada 1.5 segundos - velocidad x2)');
-        console.log('⚙️ Sistema de averías activado (degradación cada 5 segundos, reparación cada 1 segundo - velocidad x2)');
-        console.log('🌱 Sistema de invernadero activado (cooldown cada 1 segundo)');
+        console.log('✅ Auto-actualización del mapa iniciada');
+        console.log('⚙️ Sistema de averías activado (degradación en tick normal, reparación en fastTick)');
+        console.log('🌱 Sistema de invernadero activado (cooldown en fastTick)');
+        console.log('👥 Posiciones de tripulantes actualizadas en fastTick (cada 500ms)');
     }
 }
 
