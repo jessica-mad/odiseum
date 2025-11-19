@@ -936,7 +936,11 @@ class ShipMapSystem {
             const currentPos = this.crewLocations[crew.id];
             const currentTarget = this.crewTargets[crew.id];
 
-            if (currentTarget !== targetZone) {
+            // NO CAMBIAR TARGET SI ESTÁ USANDO EL BAÑO ACTIVAMENTE
+            const isUsingBathroom = this.zones.bathroom_bridge?.currentUser === crew.id ||
+                                   this.zones.bathroom_capsules?.currentUser === crew.id;
+
+            if (currentTarget !== targetZone && !isUsingBathroom) {
                 console.log(`🎯 ${crew.name} va a ${targetZone} (antes: ${currentTarget || 'ninguno'})`);
                 this.crewTargets[crew.id] = targetZone;
                 const targetPos = this.getRandomTileInZone(targetZone, crew.id);
@@ -1279,8 +1283,8 @@ class ShipMapSystem {
                         user.wasteNeed = Math.max(0, user.wasteNeed - 10);
                         user.currentActivity = '🚽 Usando el baño';
 
-                        // Si ya terminó (wasteNeed <= 5), liberar baño
-                        if (user.wasteNeed <= 5) {
+                        // Si ya terminó (wasteNeed = 0), liberar baño
+                        if (user.wasteNeed <= 0) {
                             // Registrar última visita al baño (cooldown)
                             user.lastBathroomTick = timeSystem.globalTickCounter;
 
