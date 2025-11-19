@@ -1235,6 +1235,9 @@ class ShipMapSystem {
         const crewInBathroom = crewMembers.filter(crew => {
             if (!crew.isAlive || crew.state !== 'Despierto') return false;
 
+            // SIEMPRE incluir al usuario actual del baño (aunque su target haya cambiado)
+            if (bathroom.currentUser === crew.id) return true;
+
             // Incluir tripulantes que tienen como objetivo ESTE baño
             const target = this.crewTargets[crew.id];
             if (target === bathroomKey) return true;
