@@ -512,3 +512,25 @@ const RESOURCE_PRESETS = {
 
 // Peso máximo de carga
 const MAX_CARGO_WEIGHT = 3000;
+
+/* === CONFIGURACIÓN DE COOLDOWNS DE ACCIONES DE ROL === */
+// Cooldowns en fast ticks (1 fast tick = 500ms)
+const ROLE_ACTION_COOLDOWNS = {
+    // Capitán
+    goToBridge: 0, // Sin cooldown - siempre disponible
+
+    // Doctor
+    investigate: 60, // 30 segundos (60 fast ticks)
+    harvestMedicine: 0, // Depende del cooldown del invernadero
+
+    // Ingeniero
+    startRepair: 0, // Sin cooldown - disponible si hay zonas dañadas
+
+    // Navegante
+    push: 30, // 15 segundos entre PUSH (30 fast ticks)
+    maxPushes: 5, // Máximo 5 PUSH por viaje
+
+    // Chef
+    cook: 40, // 20 segundos (40 fast ticks)
+    harvestFood: 0 // Depende del cooldown del invernadero
+};
