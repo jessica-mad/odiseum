@@ -481,53 +481,39 @@
             MAPA
         </div>
 
-        <!-- PANEL DERECHO: CONSOLA/TRIPULACIÓN/NAVE -->
+        <!-- PANEL DERECHO: TRIPULACIÓN -->
         <div id="panel-crew" class="panel-right desktop-only">
-            <!-- Tabs principales horizontales -->
-            <div class="panel-main-tabs">
-                <button class="panel-main-tab active" data-tab="console" onclick="switchMainTab('console')">
-                    > Consola
-                </button>
-                <button class="panel-main-tab" data-tab="crew" onclick="switchMainTab('crew')">
-                    > Tripulación
-                </button>
-                <button class="panel-main-tab" data-tab="ship" onclick="switchMainTab('ship')">
-                    > Nave
-                </button>
+            <div class="panel-header">
+                <h3>🚀 TRIPULACIÓN</h3>
             </div>
-
-            <!-- CONTENIDO: CONSOLA -->
-            <div id="main-tab-content-console" class="main-tab-content active">
-                <div class="console-logs-container" id="console-logs-container">
-                    <!-- Los logs se generarán dinámicamente (nuevos arriba) -->
-                </div>
+            <div class="panel-sorting">
+                <label for="crew-sort-select">Ordenar por:</label>
+                <select id="crew-sort-select" onchange="onSortChange()">
+                    <!-- Se genera dinámicamente con JS -->
+                </select>
             </div>
-
-            <!-- CONTENIDO: TRIPULACIÓN -->
-            <div id="main-tab-content-crew" class="main-tab-content">
-                <div class="vertical-tabs-layout">
-                    <!-- Tabs verticales de tripulantes (izquierda) -->
-                    <div class="vertical-tabs-sidebar" id="crew-tabs-sidebar">
-                        <!-- Se genera dinámicamente con JS -->
+            <div class="panel-content panel-crew-content">
+                <div class="crew-columns">
+                    <div class="crew-column">
+                        <div class="crew-column-header">DESPIERTOS</div>
+                        <div class="crew-column-content" id="panel-crew-awake">
+                            <!-- Tripulantes despiertos -->
+                        </div>
                     </div>
-                    <!-- Contenido de ficha individual (derecha con scroll) -->
-                    <div class="vertical-tabs-content" id="crew-tabs-content">
-                        <div class="no-selection-message">Selecciona un tripulante</div>
+                    <div class="crew-column">
+                        <div class="crew-column-header">ENCAPSULADOS</div>
+                        <div class="crew-column-content" id="panel-crew-asleep">
+                            <!-- Tripulantes en cápsulas -->
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- CONTENIDO: NAVE -->
-            <div id="main-tab-content-ship" class="main-tab-content">
-                <div class="vertical-tabs-layout">
-                    <!-- Tabs verticales de habitaciones (izquierda) -->
-                    <div class="vertical-tabs-sidebar" id="ship-tabs-sidebar">
-                        <!-- Se genera dinámicamente con JS -->
-                    </div>
-                    <!-- Contenido de habitación (derecha con scroll) -->
-                    <div class="vertical-tabs-content" id="ship-tabs-content">
-                        <div class="no-selection-message">Selecciona una habitación</div>
-                    </div>
+                <div class="crew-quick-controls">
+                    <button class="crew-control-btn sleep-all" onclick="sleepAllCrew()" title="Encapsular a todos">
+                        💤
+                    </button>
+                    <button class="crew-control-btn wake-all" onclick="wakeAllCrew()" title="Despertar a todos">
+                        ⚡
+                    </button>
                 </div>
             </div>
         </div>

@@ -265,11 +265,6 @@ class ShipMapSystem {
     }
 
     generateRoomsStatusHTML() {
-        // Las cards de estado se movieron al panel de "Nave" (tabs verticales)
-        // Ahora solo mostramos el mapa sin las cards
-        return '';
-
-        /* CÓDIGO ORIGINAL - DESHABILITADO POR NUEVA UX
         let html = '<h4 class="rooms-status-title">ESTADO DE LA NAVE</h4><div class="rooms-status-grid">';
 
         // Verificar disponibilidad del ingeniero
@@ -409,7 +404,6 @@ class ShipMapSystem {
 
         html += '</div>';
         return html;
-        */  // FIN DEL CÓDIGO ORIGINAL DESHABILITADO
     }
 
     /**
