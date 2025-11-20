@@ -153,29 +153,25 @@ function createFullCrewProfile(crew) {
 
     // Generar HTML del perfil reorganizado según nuevo diseño
     container.innerHTML = `
-        <!-- BLOQUE 1: EMOJI + INFORMACIÓN BÁSICA (2 columnas: 1/3 + 2/3) -->
+        <!-- BLOQUE 1: EMOJI + INFORMACIÓN BÁSICA (2 columnas: 1/4 + 3/4) -->
         <div class="crew-header-block">
-            <!-- Columna 1: Emoji (1/3) -->
+            <!-- Columna 1: Emoji (1/4) -->
             <div class="crew-emoji-column">
                 <span class="crew-main-emoji">${emoji}</span>
                 <span class="crew-status-icon" data-crew-status>${statusIcon}</span>
             </div>
 
-            <!-- Columna 2: Información (2/3) -->
+            <!-- Columna 2: Información (3/4) -->
             <div class="crew-info-column">
                 <!-- Línea 1: ROL Nombre - XX años + YY años despierto = ZZ biológicos -->
                 <div class="crew-info-line-1" data-crew-header>
                     <strong>${roleName}</strong> ${crew.name} - ${initialAge}a + ${yearsAwake}a despierto = ${biologicalAge}a biológicos
                 </div>
 
-                <div class="crew-section-divider"></div>
-
                 <!-- Línea 2: Pensamiento en marquesina -->
                 <div class="crew-thought-marquee" data-crew-thought>
                     ${thought}
                 </div>
-
-                <div class="crew-section-divider"></div>
 
                 <!-- Línea 3: Actividad en ubicación -->
                 <div class="crew-activity-line" data-crew-activity>
@@ -183,8 +179,6 @@ function createFullCrewProfile(crew) {
                 </div>
             </div>
         </div>
-
-        <div class="crew-section-divider"></div>
 
         <!-- BLOQUE 2: NECESIDADES Y ACCIONES (2 columnas: 1/2 + 1/2) -->
         <div class="crew-task-grid">
@@ -200,8 +194,6 @@ function createFullCrewProfile(crew) {
                 ${createRoleActionsSection(crew)}
             </div>
         </div>
-
-        <div class="crew-section-divider"></div>
 
         <!-- BLOQUE 3: LOG DE ACTIVIDAD (1/1) -->
         <div class="crew-entries-section">
@@ -246,7 +238,7 @@ function createCompactCrewNeeds(crew) {
 
         html += `
             <div class="need-bar-advanced" data-need="${need.label}">
-                <button class="need-bar-icon-btn" ${buttonDisabled} ${buttonOnClick}>
+                <button class="need-bar-icon-btn" data-need-name="${need.label}" ${buttonDisabled} ${buttonOnClick}>
                     ${need.icon}
                 </button>
                 <div class="need-bar-track">
@@ -388,7 +380,7 @@ function createActionBar(icon, actionName, cooldownCurrent, cooldownMax, isEnabl
                 onclick="event.stopPropagation(); ${isDisabled ? '' : onClickFunc}"
                 ${isDisabled ? 'disabled' : ''}
                 ${dataAttr}>
-            <span class="action-bar-icon">${icon}</span>
+            <span class="action-bar-icon" data-action-name="${actionName}">${icon}</span>
             <span class="action-bar-name">${actionName}</span>
             <div class="action-bar-track">
                 <div class="action-bar-fill ${colorClass}" style="width: ${percentage}%"></div>
