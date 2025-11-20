@@ -367,6 +367,14 @@ class GameLoop {
             updateVoyageStatus();
         }
 
+        // Abrir panel del mapa automáticamente al iniciar tramo
+        if (typeof panelManager !== 'undefined' && panelManager && !panelManager.isPanelOpen('map')) {
+            setTimeout(() => {
+                panelManager.openPanel('map');
+                console.log('📂 Panel del mapa abierto automáticamente al iniciar tramo');
+            }, 500); // Pequeño delay para que la UI se estabilice
+        }
+
         // Obtener velocidad actual (antes de deshabilitar el control)
         this.currentSpeed = parseInt(document.getElementById('speed-control').value);
 
@@ -530,6 +538,16 @@ class GameLoop {
         // Procesar cola del baño (FIFO) - Cada 500ms para descargar más rápido
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
             shipMapSystem.processBathroomQueue();
+        }
+
+        // Procesar cola de la enfermería (FIFO) - Cada 500ms para curar más rápido
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processMedbayQueue();
+        }
+
+        // Procesar recolección del invernadero - Cada 500ms para detectar cuando llegan
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processGreenhouseHarvest();
         }
 
         // Actualizar popup de tripulante si está abierto (UI más responsive)

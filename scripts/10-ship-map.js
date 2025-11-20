@@ -60,7 +60,9 @@ class ShipMapSystem {
             medbay: {
                 name: 'Enfermería', icon: '🏥', tiles: this.findTiles('e'), color: '#ff4444',
                 integrity: 100, maxIntegrity: 100, degradationRate: 2.4, isBroken: false,
-                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                // Sistema de cola de curación (similar al baño)
+                isOccupied: false, currentPatient: null, queue: [], arrivalOrder: {}, doctorPresent: false
             },
             engineering: {
                 name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('g'), color: '#ffaa00',
@@ -78,10 +80,12 @@ class ShipMapSystem {
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 // Sistema de cooldown para cosecha
                 cooldownProgress: 100, // 0-100, cuando llega a 100 está listo para cosechar
-                cooldownDuration: 150, // 150 ticks = 5 tramos (30 ticks por tramo)
+                cooldownDuration: 10, // 10 ticks para estar listo
                 waterConsumptionPerTick: 0.5, // Agua consumida por tick durante cooldown
                 isReady: true, // Inicia listo para cosechar
-                lastHarvestType: null // 'food' o 'medicine'
+                lastHarvestType: null, // 'food' o 'medicine'
+                harvestingNow: false, // Si alguien está recolectando ahora
+                currentHarvester: null // ID del tripulante recolectando
             },
             capsules: {
                 name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('d'), color: '#4488ff',
@@ -732,6 +736,21 @@ class ShipMapSystem {
         }
 
         if (crew.state === 'Despierto') {
+            // PRIORIDAD ABSOLUTA: Si está regresando del baño PERO su wasteNeed volvió a subir, cancelar retorno
+            if (crew.returningFromBathroom) {
+                const ticksSinceLastBathroom = timeSystem.globalTickCounter - (crew.lastBathroomTick || 0);
+                const needsBathroomAgain = crew.wasteNeed >= 70 || (crew.wasteNeed >= 50 && ticksSinceLastBathroom >= 30);
+
+                if (needsBathroomAgain) {
+                    // Necesita volver al baño, cancelar retorno a workspace
+                    crew.returningFromBathroom = false;
+                    console.log(`⚠️ ${crew.name} necesita volver al baño (wasteNeed: ${crew.wasteNeed})`);
+                } else {
+                    // Continuar regresando a workspace
+                    return crew.getWorkspaceZone();
+                }
+            }
+
             const activity = crew.currentActivity?.toLowerCase() || '';
             const role = crew.role || '';
 
@@ -753,6 +772,16 @@ class ShipMapSystem {
             const ticksSinceLastBathroom = timeSystem.globalTickCounter - (crew.lastBathroomTick || 0);
             const needsBathroom = crew.wasteNeed >= 70 || (crew.wasteNeed >= 50 && ticksSinceLastBathroom >= 30);
 
+            // LIMPIAR tareas de baño si ya no las necesita (wasteNeed < 40)
+            if (crew.wasteNeed < 40) {
+                // Cancelar tarea actual de baño si existe
+                if (crew.currentTask?.type === 'bathroom') {
+                    crew.completeCurrentTask();
+                }
+                // Limpiar todas las tareas de baño de la cola
+                crew.taskQueue = crew.taskQueue.filter(t => t.type !== 'bathroom');
+            }
+
             if (needsBathroom) {
                 // Agregar tarea de baño si no está en la lista
                 const hasBathroomTask = crew.currentTask?.type === 'bathroom' ||
@@ -766,27 +795,44 @@ class ShipMapSystem {
                 return this.getNearestBathroom(crew.id);
             }
 
-            // PRIORIDAD 2: Salud (healthNeed < 50%) - ir a enfermería
-            if (crew.healthNeed < 50) {
+            // PRIORIDAD 2: Salud (healthNeed < 40%) - ir a enfermería
+            const needsHealing = crew.healthNeed < 40;
+
+            // LIMPIAR tareas de curación si ya no las necesita (healthNeed >= 70)
+            if (crew.healthNeed >= 70 && crew.role !== 'doctor') {
+                // Cancelar tarea actual de curación si existe
+                if (crew.currentTask?.type === 'healing') {
+                    crew.completeCurrentTask();
+                }
+                // Limpiar todas las tareas de curación de la cola
+                crew.taskQueue = crew.taskQueue.filter(t => t.type !== 'healing');
+            }
+
+            if (needsHealing && crew.role !== 'doctor') {
+                // Agregar tarea de curación si no está en la lista
+                const hasHealingTask = crew.currentTask?.type === 'healing' ||
+                                       crew.taskQueue.some(t => t.type === 'healing');
+                if (!hasHealingTask) {
+                    crew.pauseCurrentTask();  // Pausar tarea actual
+                    crew.addTask('healing', '🏥 Ir a enfermería', 9);  // Alta prioridad (menos que baño)
+                    crew.currentTask = crew.taskQueue.shift();  // Iniciar tarea de curación inmediatamente
+                }
                 return 'medbay';
             }
 
-            // PRIORIDAD 3: Alimentación (foodNeed entre 45-70%)
+            // PRIORIDAD 3: Cosecha del invernadero (tarea de harvest)
+            if (crew.currentTask?.type === 'harvest' && crew.harvestType) {
+                return 'greenhouse';
+            }
+
+            // PRIORIDAD 4: Alimentación (foodNeed entre 45-70%)
             if (crew.foodNeed >= 45 && crew.foodNeed < 70) {
                 return 'kitchen';
             }
 
             // Mapeo de ROLES a zonas de trabajo
-
-            // Chef necesita ir al invernadero por provisiones de alimentos (cuando foodNeed > 80%)
-            if (role === 'cook' && crew.foodNeed > 80) {
-                return 'greenhouse';
-            }
-
-            // Doctor necesita ir al invernadero por medicina (cuando healthNeed > 80%)
-            if (role === 'doctor' && crew.healthNeed > 80) {
-                return 'greenhouse';
-            }
+            // NOTA: Los roles ya NO van automáticamente al invernadero
+            // Deben recibir una orden explícita para cosechar
 
             // Navigator/Navegante -> Puente de Mando (bridge)
             if (role === 'navigator') {
@@ -799,7 +845,20 @@ class ShipMapSystem {
             }
 
             // Doctor -> Enfermería (medbay)
+            // PRIORIDAD: Si hay pacientes esperando en medbay, el doctor debe ir allí
             if (role === 'doctor') {
+                const medbay = this.zones.medbay;
+                const patientsWaiting = typeof crewMembers !== 'undefined' ?
+                    crewMembers.filter(c =>
+                        c.isAlive &&
+                        c.state === 'Despierto' &&
+                        c.role !== 'doctor' &&
+                        (c.currentTask?.type === 'healing' || this.crewTargets[c.id] === 'medbay')
+                    ).length : 0;
+
+                if (patientsWaiting > 0) {
+                    console.log(`👩‍⚕️ Doctor necesita ir a enfermería - ${patientsWaiting} paciente(s) esperando`);
+                }
                 return 'medbay';
             }
 
@@ -972,6 +1031,13 @@ class ShipMapSystem {
                         const lastMove = this.lastSubtleMove[crew.id] || 0;
                         const ticksSinceLastMove = timeSystem.fastTickCounter - lastMove;
                         const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
+
+                        // Si estaba regresando del baño y ya llegó a su workspace (no está en movimiento), limpiar bandera
+                        if (crew.returningFromBathroom && !isMoving && currentTarget === crew.getWorkspaceZone()) {
+                            crew.returningFromBathroom = false;
+                            crew.currentActivity = 'working';
+                            console.log(`✅ ${crew.name} llegó a su workspace (${currentTarget}), ahora puede buscar actividades`);
+                        }
 
                         // Solo mover si no está en movimiento y han pasado 60+ fast ticks (30 segundos de juego)
                         if (!isMoving && ticksSinceLastMove > 60 && Math.random() < 0.3) {
@@ -1294,17 +1360,24 @@ class ShipMapSystem {
                                 user.resumePausedTask();
                             }
 
+                            // LIMPIAR TODAS las tareas de baño de la cola (evitar duplicados)
+                            user.taskQueue = user.taskQueue.filter(t => t.type !== 'bathroom');
+
                             // Liberar baño
                             this.releaseBathroom(bathroomKey);
 
-                            // FORZAR ACTUALIZACIÓN DE TARGET: El tripulante ya no necesita el baño
-                            // Obtener nuevo target basado en necesidades actuales
+                            // MARCAR QUE ESTÁ REGRESANDO DEL BAÑO A SU WORKSPACE
+                            user.returningFromBathroom = true;
+                            user.currentActivity = '🚶 Regresando a su estación';
+
+                            // FORZAR ACTUALIZACIÓN DE TARGET: Regresar a workspace
+                            // getTargetZoneForCrew ahora retornará el workspace porque returningFromBathroom = true
                             const newTarget = this.getTargetZoneForCrew(user);
                             if (newTarget && newTarget !== bathroomKey) {
                                 this.crewTargets[user.id] = newTarget;
-                                console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, nuevo objetivo: ${newTarget}`);
+                                console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, regresando a workspace: ${newTarget}`);
 
-                                // Crear path hacia nuevo target
+                                // Crear path hacia workspace
                                 const targetPos = this.getRandomTileInZone(newTarget, user.id);
                                 if (targetPos) {
                                     const currentPos = this.crewLocations[user.id];
@@ -1332,32 +1405,45 @@ class ShipMapSystem {
             }
         }
 
-        // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR
+        // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR (solo si está físicamente en el baño)
         if (!bathroom.isOccupied && crewInBathroom.length > 0) {
-            // Ordenar por tick de llegada (FIFO)
-            const sortedByArrival = crewInBathroom.sort((a, b) => {
-                const timeA = bathroom.arrivalOrder[a.id] || 999999;
-                const timeB = bathroom.arrivalOrder[b.id] || 999999;
-                return timeA - timeB;
+            // FILTRAR: Solo tripulantes que YA ESTÁN FÍSICAMENTE en la zona del baño
+            const crewPhysicallyInBathroom = crewInBathroom.filter(crew => {
+                const pos = this.crewLocations[crew.id];
+                if (!pos) return false;
+                const cellType = this.grid[pos.row]?.[pos.col];
+                const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                return currentZone === bathroomKey;
             });
 
-            const nextUser = sortedByArrival[0];
-            bathroom.isOccupied = true;
-            bathroom.currentUser = nextUser.id;
-            nextUser.currentActivity = '🚽 Usando el baño';
+            // Solo asignar si hay alguien físicamente en el baño
+            if (crewPhysicallyInBathroom.length > 0) {
+                // Ordenar por tick de llegada (FIFO)
+                const sortedByArrival = crewPhysicallyInBathroom.sort((a, b) => {
+                    const timeA = bathroom.arrivalOrder[a.id] || 999999;
+                    const timeB = bathroom.arrivalOrder[b.id] || 999999;
+                    return timeA - timeB;
+                });
 
-            // Mover al usuario al baño específico
-            const bathroomTile = this.getRandomTileInZone(bathroomKey, nextUser.id);
-            if (bathroomTile) {
-                const currentPos = this.crewLocations[nextUser.id];
-                if (currentPos) {
-                    const path = this.findPath(currentPos, bathroomTile);
-                    if (path.length > 1) {
-                        this.crewPaths[nextUser.id] = path;
-                        this.animateCrewMovement(nextUser);
-                    } else {
-                        this.crewLocations[nextUser.id] = bathroomTile;
-                        this.createOrUpdateCrewMarker(nextUser, bathroomTile);
+                const nextUser = sortedByArrival[0];
+                bathroom.isOccupied = true;
+                bathroom.currentUser = nextUser.id;
+                nextUser.currentActivity = '🚽 Usando el baño';
+                console.log(`🚽 ${nextUser.name} comenzó a usar ${bathroom.name} (físicamente presente)`);
+
+                // Mover al usuario al baño específico (asegurar que esté en una tile del baño)
+                const bathroomTile = this.getRandomTileInZone(bathroomKey, nextUser.id);
+                if (bathroomTile) {
+                    const currentPos = this.crewLocations[nextUser.id];
+                    if (currentPos) {
+                        const path = this.findPath(currentPos, bathroomTile);
+                        if (path.length > 1) {
+                            this.crewPaths[nextUser.id] = path;
+                            this.animateCrewMovement(nextUser);
+                        } else {
+                            this.crewLocations[nextUser.id] = bathroomTile;
+                            this.createOrUpdateCrewMarker(nextUser, bathroomTile);
+                        }
                     }
                 }
             }
@@ -1372,7 +1458,19 @@ class ShipMapSystem {
         bathroom.queue.forEach(crewId => {
             const crew = crewMembers.find(c => c.id === crewId);
             if (crew) {
-                crew.currentActivity = `⏳ Esperando ${bathroom.name}`;
+                // Verificar si está físicamente en el baño o en camino
+                const pos = this.crewLocations[crew.id];
+                if (pos) {
+                    const cellType = this.grid[pos.row]?.[pos.col];
+                    const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                    if (currentZone === bathroomKey) {
+                        crew.currentActivity = `⏳ Esperando ${bathroom.name}`;
+                    } else {
+                        crew.currentActivity = `🚶 Yendo a ${bathroom.name}`;
+                    }
+                } else {
+                    crew.currentActivity = `🚶 Yendo a ${bathroom.name}`;
+                }
             }
         });
     }
@@ -1391,6 +1489,274 @@ class ShipMapSystem {
 
         bathroom.isOccupied = false;
         bathroom.currentUser = null;
+    }
+
+    /**
+     * Sistema de cola de enfermería - FIFO: Primero en llegar, primero en ser atendido
+     * El doctor debe estar presente para curar
+     */
+    processMedbayQueue() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
+        const medbay = this.zones.medbay;
+        if (!medbay) return;
+
+        // Encontrar al doctor
+        const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
+
+        // Verificar si el doctor está físicamente en la enfermería
+        if (doctor) {
+            const doctorPos = this.crewLocations[doctor.id];
+            if (doctorPos) {
+                const cellType = this.grid[doctorPos.row]?.[doctorPos.col];
+                const doctorZone = this.getCellTypeToZoneName(cellType, doctorPos.row, doctorPos.col);
+                medbay.doctorPresent = (doctorZone === 'medbay');
+            } else {
+                medbay.doctorPresent = false;
+            }
+        } else {
+            medbay.doctorPresent = false;
+        }
+
+        // AUTO-CURACIÓN DEL DOCTOR: El doctor puede curarse a sí mismo en la enfermería
+        // Solo cuando healthNeed < 38% y está físicamente presente
+        if (doctor && medbay.doctorPresent && doctor.healthNeed < 38 && typeof Medicine !== 'undefined' && Medicine.quantity >= 1.0) {
+            // Aplicar stats del doctor
+            let healingRate = 5;
+            if (doctor.configStats && doctor.configStats.healingRate) {
+                healingRate = 5 * doctor.configStats.healingRate;
+            }
+
+            // Aplicar medicineUsage (ejemplo: Santos gasta 1.5x más medicina)
+            let medicineCost = 1.0;
+            if (doctor.configStats && doctor.configStats.medicineUsage) {
+                medicineCost = 1.0 * doctor.configStats.medicineUsage;
+            }
+
+            // Verificar que haya suficiente medicina
+            if (Medicine.quantity >= medicineCost) {
+                Medicine.consume(medicineCost);
+                doctor.healthNeed = Math.min(100, doctor.healthNeed + healingRate);
+                doctor.currentActivity = '💊 Auto-curándose';
+                console.log(`👩‍⚕️ Doctor auto-curación: healthNeed = ${doctor.healthNeed.toFixed(1)}, medicina usada: ${medicineCost.toFixed(1)}`);
+
+                // Si se curó lo suficiente (>= 70%), puede volver a sus tareas
+                if (doctor.healthNeed >= 70) {
+                    doctor.currentActivity = 'working';
+                    console.log(`👩‍⚕️✅ Doctor se curó completamente`);
+                }
+
+                // Si el doctor se está auto-curando, no puede atender pacientes en este tick
+                // Actualizar los pacientes para que sepan que el doctor está ocupado
+                const patientsInMedbay = crewMembers.filter(crew => {
+                    if (!crew.isAlive || crew.state !== 'Despierto' || crew.role === 'doctor') return false;
+                    const target = this.crewTargets[crew.id];
+                    if (target === 'medbay') return true;
+                    const pos = this.crewLocations[crew.id];
+                    if (!pos) return false;
+                    const cellType = this.grid[pos.row]?.[pos.col];
+                    const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                    return currentZone === 'medbay';
+                });
+
+                patientsInMedbay.forEach(patient => {
+                    if (patient.currentActivity !== '💊 Siendo curado') {
+                        patient.currentActivity = '⏳ Doctor ocupado auto-curándose';
+                    }
+                });
+
+                // Retornar temprano - el doctor está ocupado curándose
+                return;
+            }
+        }
+
+        // Obtener pacientes (tripulantes no-doctor) que están en la cola de enfermería
+        const patientsInMedbay = crewMembers.filter(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto' || crew.role === 'doctor') return false;
+
+            // SIEMPRE incluir al paciente actual (aunque su target haya cambiado)
+            if (medbay.currentPatient === crew.id) return true;
+
+            // Incluir tripulantes que tienen enfermería como objetivo
+            const target = this.crewTargets[crew.id];
+            if (target === 'medbay') return true;
+
+            // También incluir a los que están físicamente en la enfermería
+            const pos = this.crewLocations[crew.id];
+            if (!pos) return false;
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === 'medbay';
+        });
+
+        // Registrar tick de llegada para nuevos pacientes
+        const currentTick = timeSystem.globalTickCounter;
+        patientsInMedbay.forEach(patient => {
+            if (!medbay.arrivalOrder[patient.id]) {
+                medbay.arrivalOrder[patient.id] = currentTick;
+            }
+        });
+
+        // Limpiar pacientes que ya no están en la enfermería
+        Object.keys(medbay.arrivalOrder).forEach(crewId => {
+            if (!patientsInMedbay.find(c => c.id == crewId)) {
+                delete medbay.arrivalOrder[crewId];
+            }
+        });
+
+        // Si hay un paciente siendo atendido, procesar curación
+        if (medbay.isOccupied && medbay.currentPatient) {
+            const patient = crewMembers.find(c => c.id === medbay.currentPatient);
+            if (patient && patient.isAlive && patient.state === 'Despierto') {
+                // Verificar que el paciente sigue en la enfermería
+                const stillInMedbay = patientsInMedbay.find(c => c.id === patient.id);
+                if (stillInMedbay) {
+                    // SOLO CURAR si el doctor está presente
+                    if (medbay.doctorPresent && typeof Medicine !== 'undefined' && Medicine.quantity >= 1.0) {
+                        // Aplicar stats del doctor
+                        let healingRate = 5;
+                        if (doctor && doctor.configStats && doctor.configStats.healingRate) {
+                            healingRate = 5 * doctor.configStats.healingRate;
+                        }
+
+                        // Aplicar medicineUsage (ejemplo: Santos gasta 1.5x más medicina)
+                        let medicineCost = 1.0;
+                        if (doctor && doctor.configStats && doctor.configStats.medicineUsage) {
+                            medicineCost = 1.0 * doctor.configStats.medicineUsage;
+                        }
+
+                        // Verificar que haya suficiente medicina
+                        if (Medicine.quantity >= medicineCost) {
+                            Medicine.consume(medicineCost);
+                            patient.healthNeed = Math.min(100, patient.healthNeed + healingRate);
+                            patient.currentActivity = '💊 Siendo curado';
+                            if (doctor) {
+                                doctor.currentActivity = '👩‍⚕️ Curando paciente';
+                            }
+
+                            // Si ya terminó (healthNeed >= 70), liberar enfermería
+                            if (patient.healthNeed >= 70) {
+                                // Completar tarea de curación y reanudar tarea pausada
+                                if (patient.currentTask?.type === 'healing') {
+                                    patient.completeCurrentTask();
+                                    patient.resumePausedTask();
+                                }
+
+                                // LIMPIAR TODAS las tareas de curación de la cola (evitar duplicados)
+                                patient.taskQueue = patient.taskQueue.filter(t => t.type !== 'healing');
+
+                                // Liberar enfermería
+                                this.releaseMedbay();
+
+                                // El paciente puede volver a su workspace
+                                patient.returningFromBathroom = false; // Usar el mismo sistema
+                                patient.currentActivity = 'working';
+                                console.log(`🏥✅ ${patient.name} fue curado, healthNeed: ${patient.healthNeed}`);
+                            }
+                        }
+                    } else if (!medbay.doctorPresent) {
+                        // Sin doctor, no se puede curar
+                        patient.currentActivity = '⏳ Esperando al doctor';
+                        if (doctor) {
+                            doctor.currentActivity = 'working';
+                        }
+                    } else {
+                        // Sin medicina, no se puede curar
+                        patient.currentActivity = '⚠️ Sin medicina';
+                        if (doctor) {
+                            doctor.currentActivity = '⚠️ Sin medicina';
+                        }
+                    }
+                } else {
+                    // Paciente salió de la enfermería, liberar
+                    this.releaseMedbay();
+                }
+            } else {
+                // Paciente ya no es válido, liberar enfermería
+                this.releaseMedbay();
+            }
+        }
+
+        // Si la enfermería no está ocupada, asignar al PRIMERO EN LLEGAR (solo si está físicamente)
+        if (!medbay.isOccupied && patientsInMedbay.length > 0) {
+            // FILTRAR: Solo pacientes que YA ESTÁN FÍSICAMENTE en la enfermería
+            const patientsPhysicallyInMedbay = patientsInMedbay.filter(patient => {
+                const pos = this.crewLocations[patient.id];
+                if (!pos) return false;
+                const cellType = this.grid[pos.row]?.[pos.col];
+                const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                return currentZone === 'medbay';
+            });
+
+            // Solo asignar si hay alguien físicamente en la enfermería
+            if (patientsPhysicallyInMedbay.length > 0) {
+                // Ordenar por tick de llegada (FIFO)
+                const sortedByArrival = patientsPhysicallyInMedbay.sort((a, b) => {
+                    const timeA = medbay.arrivalOrder[a.id] || 999999;
+                    const timeB = medbay.arrivalOrder[b.id] || 999999;
+                    return timeA - timeB;
+                });
+
+                const nextPatient = sortedByArrival[0];
+                medbay.isOccupied = true;
+                medbay.currentPatient = nextPatient.id;
+                console.log(`🏥 ${nextPatient.name} comenzó a ser atendido en enfermería`);
+
+                // Si el doctor está presente, iniciar curación inmediatamente
+                if (medbay.doctorPresent) {
+                    nextPatient.currentActivity = '💊 Siendo curado';
+                    if (doctor) {
+                        doctor.currentActivity = '👩‍⚕️ Curando paciente';
+                    }
+                } else {
+                    nextPatient.currentActivity = '⏳ Esperando al doctor';
+                }
+            }
+        }
+
+        // Actualizar cola visual (pacientes esperando)
+        medbay.queue = patientsInMedbay
+            .filter(c => c.id !== medbay.currentPatient)
+            .map(c => c.id);
+
+        // Actualizar actividad de los que esperan
+        medbay.queue.forEach(crewId => {
+            const crew = crewMembers.find(c => c.id === crewId);
+            if (crew) {
+                // Verificar si está físicamente en la enfermería o en camino
+                const pos = this.crewLocations[crew.id];
+                if (pos) {
+                    const cellType = this.grid[pos.row]?.[pos.col];
+                    const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                    if (currentZone === 'medbay') {
+                        crew.currentActivity = `⏳ Esperando turno enfermería`;
+                    } else {
+                        crew.currentActivity = `🚶 Yendo a enfermería`;
+                    }
+                } else {
+                    crew.currentActivity = `🚶 Yendo a enfermería`;
+                }
+            }
+        });
+    }
+
+    /**
+     * Libera la enfermería para el siguiente paciente
+     */
+    releaseMedbay() {
+        const medbay = this.zones.medbay;
+        if (!medbay) return;
+
+        const patient = crewMembers.find(c => c.id === medbay.currentPatient);
+        if (patient) {
+            patient.currentActivity = 'working';
+        }
+
+        medbay.isOccupied = false;
+        medbay.currentPatient = null;
     }
 
     /**
@@ -1740,63 +2106,136 @@ class ShipMapSystem {
     /**
      * Cosechar recursos del invernadero
      */
+    /**
+     * Envía al tripulante al invernadero para cosechar
+     * (Ya no cosecha directamente, el tripulante debe ir físicamente)
+     */
     harvestGreenhouse(type) {
         const greenhouse = this.zones.greenhouse;
         if (!greenhouse || !greenhouse.isReady || greenhouse.cooldownProgress < 100) {
             console.warn('🌱 Invernadero no está listo para cosechar');
+            new Notification('Invernadero no está listo para cosechar', 'ALERT');
             return;
         }
 
-        // Verificar que hay tripulante apropiado despierto
+        // Encontrar al tripulante apropiado
         const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
         const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
 
-        if (type === 'food' && !chef) {
-            console.warn('🌱 No hay chef despierto para cosechar alimentos');
+        let harvester = null;
+        if (type === 'food' && chef) {
+            harvester = chef;
+        } else if (type === 'medicine' && doctor) {
+            harvester = doctor;
+        }
+
+        if (!harvester) {
+            console.warn(`🌱 No hay ${type === 'food' ? 'chef' : 'doctor'} disponible para cosechar`);
+            new Notification(`No hay ${type === 'food' ? 'chef' : 'doctor'} disponible`, 'ALERT');
             return;
         }
 
-        if (type === 'medicine' && !doctor) {
-            console.warn('🌱 No hay doctor despierto para cosechar medicina');
+        // Crear tarea de cosecha para el tripulante
+        harvester.pauseCurrentTask();
+        harvester.addTask('harvest', `🌱 Ir a cosechar ${type === 'food' ? 'alimentos' : 'medicina'}`, 8);
+        harvester.currentTask = harvester.taskQueue.shift();
+        harvester.harvestType = type; // Marcar qué tipo va a cosechar
+
+        console.log(`🌱 ${harvester.name} va al invernadero a cosechar ${type === 'food' ? 'alimentos' : 'medicina'}`);
+    }
+
+    /**
+     * Procesa la recolección del invernadero cuando el tripulante está físicamente allí
+     */
+    processGreenhouseHarvest() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
             return;
         }
 
-        // Obtener bonus del tripulante si tiene
-        let bonus = 0;
-        let baseCantidad = 0;
-
-        if (type === 'food') {
-            baseCantidad = 50;
-            if (chef && chef.configStats && chef.configStats.greenhouseBonus) {
-                bonus = chef.configStats.greenhouseBonus;
-            }
-        } else if (type === 'medicine') {
-            baseCantidad = 30;
-            if (doctor && doctor.configStats && doctor.configStats.greenhouseBonus) {
-                bonus = doctor.configStats.greenhouseBonus;
-            }
+        const greenhouse = this.zones.greenhouse;
+        if (!greenhouse || !greenhouse.isReady || greenhouse.cooldownProgress < 100) {
+            return;
         }
 
-        const cantidad = Math.round(baseCantidad * (1 + bonus));
+        // Buscar tripulantes con tarea de harvest que estén en el invernadero
+        const harvesters = crewMembers.filter(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto') return false;
+            if (!crew.currentTask || crew.currentTask.type !== 'harvest') return false;
+            if (!crew.harvestType) return false;
 
-        // Añadir recursos
-        if (typeof resourcesManager !== 'undefined') {
-            if (type === 'food') {
-                resourcesManager.addResource('food', cantidad);
-                console.log(`🌱 Chef cosechó ${cantidad} de alimentos del invernadero`);
-            } else if (type === 'medicine') {
-                resourcesManager.addResource('medicine', cantidad);
-                console.log(`🌱 Doctor cosechó ${cantidad} de medicina del invernadero`);
+            // Verificar si está físicamente en el invernadero
+            const pos = this.crewLocations[crew.id];
+            if (!pos) return false;
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === 'greenhouse';
+        });
+
+        // Si hay alguien esperando para cosechar, procesarlo
+        if (harvesters.length > 0) {
+            const harvester = harvesters[0]; // El primero que llegó
+            const type = harvester.harvestType;
+
+            // Calcular cantidad con bonus
+            let baseCantidad = 50; // Ahora ambos dan 50 unidades
+            let bonus = 0;
+
+            if (harvester.configStats && harvester.configStats.greenhouseBonus) {
+                bonus = harvester.configStats.greenhouseBonus;
             }
+
+            const cantidad = Math.round(baseCantidad * (1 + bonus));
+
+            // Añadir recursos
+            if (typeof resourcesManager !== 'undefined') {
+                if (type === 'food') {
+                    resourcesManager.addResource('food', cantidad);
+                    console.log(`🌱 ${harvester.name} cosechó ${cantidad} de alimentos del invernadero`);
+                    harvester.addToPersonalLog(`Coseché ${cantidad} de alimentos del invernadero`);
+                    harvester.currentActivity = '🌱 Cosechando alimentos';
+                } else if (type === 'medicine') {
+                    resourcesManager.addResource('medicine', cantidad);
+                    console.log(`🌱 ${harvester.name} cosechó ${cantidad} de medicina del invernadero`);
+                    harvester.addToPersonalLog(`Coseché ${cantidad} de medicina del invernadero`);
+                    harvester.currentActivity = '🌱 Cosechando medicina';
+                }
+            }
+
+            // Reiniciar cooldown
+            greenhouse.cooldownProgress = 0;
+            greenhouse.isReady = false;
+            greenhouse.lastHarvestType = type;
+
+            // Completar tarea de harvest y reanudar tarea pausada
+            if (harvester.currentTask?.type === 'harvest') {
+                harvester.completeCurrentTask();
+                harvester.resumePausedTask();
+            }
+
+            // Limpiar todas las tareas de harvest de la cola
+            harvester.taskQueue = harvester.taskQueue.filter(t => t.type !== 'harvest');
+            delete harvester.harvestType;
+
+            // Actualizar UI
+            this.updateRoomsStatus();
+
+            console.log(`🌱✅ ${harvester.name} completó la cosecha, cooldown reiniciado`);
+        } else {
+            // Actualizar actividad de tripulantes que van hacia el invernadero
+            crewMembers.forEach(crew => {
+                if (crew.currentTask?.type === 'harvest' && crew.harvestType) {
+                    const pos = this.crewLocations[crew.id];
+                    if (pos) {
+                        const cellType = this.grid[pos.row]?.[pos.col];
+                        const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                        if (currentZone !== 'greenhouse') {
+                            crew.currentActivity = `🚶 Yendo al invernadero`;
+                        }
+                    }
+                }
+            });
         }
-
-        // Reiniciar cooldown
-        greenhouse.cooldownProgress = 0;
-        greenhouse.isReady = false;
-        greenhouse.lastHarvestType = type;
-
-        // Actualizar UI
-        this.updateRoomsStatus();
     }
 
     /**

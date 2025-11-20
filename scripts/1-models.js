@@ -87,6 +87,8 @@ class Crew {
         this.currentTask = null;  // Tarea actualmente ejecutándose
         this.pausedTask = null;  // Tarea pausada (por ejemplo, cuando va al baño)
         this.lastBathroomTick = 0;  // Último tick en que usó el baño (para cooldown)
+        this.returningFromBathroom = false;  // Bandera para indicar que está regresando del baño a su workspace
+        this.hadBathroomAccident = false;  // Flag para evitar múltiples accidentes seguidos
 
         // Sistema de cooldowns de acciones de rol (en fast ticks)
         this.actionCooldowns = {
@@ -203,17 +205,54 @@ class Crew {
         if (this.state === CREW_STATES.AWAKE || this.state === CREW_STATES.RESTING) {
             this.foodNeed = Math.max(0, this.foodNeed + (config.food * multiplier));
             this.healthNeed = Math.max(0, this.healthNeed + (config.health * multiplier));
-            // Higiene: solo degrada hasta 70% (no más allá)
-            this.wasteNeed = Math.min(70, this.wasteNeed + (config.waste * multiplier));
+            // Higiene: puede llegar hasta 100%
+            this.wasteNeed = Math.min(100, this.wasteNeed + (config.waste * multiplier));
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + (config.entertainment * multiplier));
             this.restNeed = Math.max(100, this.restNeed + (config.rest * multiplier));
         } else {
             this.foodNeed = Math.max(0, this.foodNeed + config.food);
             this.healthNeed = Math.max(0, this.healthNeed + config.health);
-            // Higiene: solo degrada hasta 70% (no más allá)
-            this.wasteNeed = Math.min(70, this.wasteNeed + config.waste);
+            // Higiene: puede llegar hasta 100%
+            this.wasteNeed = Math.min(100, this.wasteNeed + config.waste);
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + config.entertainment);
             this.restNeed = Math.min(100, this.restNeed + config.rest);
+        }
+
+        // ACCIDENTE: Si wasteNeed llega a 100%, el tripulante "descarga" en su ubicación
+        if (this.wasteNeed >= 100 && this.isAlive && !this.hadBathroomAccident) {
+            this.hadBathroomAccident = true; // Marcar para que solo ocurra una vez
+            this.wasteNeed = 0; // Resetear necesidad de higiene
+
+            // Agregar pensamiento de vergüenza
+            this.addToPersonalLog('💩 Tuve un accidente... no llegué al baño a tiempo. Siento mucha vergüenza.');
+
+            // Notificación al jugador
+            new CrewNotification(`${this.name} tuvo un accidente por no llegar al baño a tiempo`, NOTIFICATION_TYPES.WARNING);
+            logbook.addEntry(`${this.name} tuvo un accidente higiénico`, LOG_TYPES.WARNING);
+
+            // Averiar la zona donde está el tripulante (si está en el mapa)
+            if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+                const crewPos = shipMapSystem.crewLocations[this.id];
+                if (crewPos) {
+                    const cellType = shipMapSystem.grid[crewPos.row]?.[crewPos.col];
+                    const zoneKey = shipMapSystem.getCellTypeToZoneName(cellType, crewPos.row, crewPos.col);
+
+                    if (zoneKey && shipMapSystem.zones[zoneKey]) {
+                        const zone = shipMapSystem.zones[zoneKey];
+                        // Reducir integridad de la zona
+                        if (zone.integrity !== undefined) {
+                            zone.integrity = Math.max(0, zone.integrity - 20); // Reducir 20% de integridad
+                            console.log(`💩 Accidente de ${this.name} en ${zone.name} - integridad reducida a ${zone.integrity}%`);
+                            logbook.addEntry(`La zona ${zone.name} sufrió daños por contaminación`, LOG_TYPES.WARNING);
+                        }
+                    }
+                }
+            }
+
+            // Resetear flag después de un tiempo para que pueda volver a ocurrir
+            setTimeout(() => {
+                this.hadBathroomAccident = false;
+            }, 60000); // 1 minuto de cooldown
         }
 
         // Auto-transición a estado descansando si está muy cansado
@@ -299,6 +338,20 @@ class Crew {
         return '👤'; // Fallback si no hay rol definido
     }
 
+    /* === OBTENER ZONA DE TRABAJO (WORKSPACE) SEGÚN ROL === */
+    getWorkspaceZone() {
+        // Mapeo de roles a sus zonas de trabajo
+        const roleToWorkspace = {
+            'navigator': 'bridge',
+            'captain': 'bridge',
+            'doctor': 'medbay',
+            'engineer': 'engineering',
+            'cook': 'kitchen'
+        };
+
+        return roleToWorkspace[this.role] || 'bridge'; // Por defecto, bridge
+    }
+
     /* === SISTEMA DE AUTO-GESTIÓN === */
     tryAutoManage() {
         if (!this.isAlive || (this.state !== CREW_STATES.AWAKE && this.state !== CREW_STATES.RESTING)) return;
@@ -329,86 +382,9 @@ class Crew {
             }
         }
 
-        // Auto-gestionar salud (medicina)
-        // SOLO EL DOCTOR PUEDE ADMINISTRAR MEDICINA
-        // El doctor trata a tripulantes con healthNeed < 100 (incluyéndose a sí mismo)
-        if (this.role === 'doctor' && this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // El doctor se auto-trata
-            const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
-
-            // Recuperación base con stats del doctor
-            let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
-            if (this.configStats && this.configStats.healingRate) {
-                baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * this.configStats.healingRate * efficiencyMultiplier;
-            } else {
-                baseRecovery *= 1.5; // Bonus por ser doctor
-            }
-
-            // Calcular cuánto realmente necesita para llegar a 100
-            const needed = 100 - this.healthNeed;
-            const actualRecovery = Math.min(needed, baseRecovery);
-
-            // Consumir recursos proporcionalmente (regla de 3)
-            let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
-
-            // Aplicar modificador de consumo de medicina si el doctor lo tiene
-            if (this.configStats && this.configStats.medicineUsage) {
-                resourcesNeeded = Math.ceil(resourcesNeeded * this.configStats.medicineUsage);
-            }
-
-            const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
-
-            if (resourcesToUse > 0) {
-                Medicine.consume(resourcesToUse);
-                this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
-                autoManageActions.push('se auto-trató');
-                this.currentActivity = 'resting';
-            }
-        } else if (this.role === 'doctor' && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // El doctor busca tripulantes heridos para tratar
-            if (typeof crewMembers !== 'undefined' && crewMembers) {
-                const injured = crewMembers.filter(c =>
-                    c.isAlive &&
-                    c.state === 'Despierto' &&
-                    c.healthNeed < 100 &&
-                    c.id !== this.id
-                ).sort((a, b) => a.healthNeed - b.healthNeed); // Tratar al más herido primero
-
-                if (injured.length > 0) {
-                    const patient = injured[0];
-                    const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
-
-                    // Recuperación base con stats del doctor
-                    let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
-                    if (this.configStats && this.configStats.healingRate) {
-                        baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * this.configStats.healingRate * efficiencyMultiplier;
-                    } else {
-                        baseRecovery *= 1.5; // Bonus por ser doctor
-                    }
-
-                    // Calcular cuánto realmente necesita el paciente para llegar a 100
-                    const needed = 100 - patient.healthNeed;
-                    const actualRecovery = Math.min(needed, baseRecovery);
-
-                    // Consumir recursos proporcionalmente (regla de 3)
-                    let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
-
-                    // Aplicar modificador de consumo de medicina si el doctor lo tiene
-                    if (this.configStats && this.configStats.medicineUsage) {
-                        resourcesNeeded = Math.ceil(resourcesNeeded * this.configStats.medicineUsage);
-                    }
-
-                    const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
-
-                    if (resourcesToUse > 0) {
-                        Medicine.consume(resourcesToUse);
-                        patient.healthNeed = Math.min(100, patient.healthNeed + actualRecovery);
-                        autoManageActions.push(`trató a ${patient.name.split(' ')[0]}`);
-                        this.currentActivity = 'treating';
-                    }
-                }
-            }
-        }
+        // SALUD YA NO SE AUTO-GESTIONA - Los tripulantes deben ir a la enfermería
+        // La gestión de salud ahora se realiza en el sistema de enfermería (shipMapSystem.processMedbayQueue)
+        // El doctor debe estar presente en la enfermería para curar a los pacientes
 
         // HIGIENE YA NO SE AUTO-GESTIONA - Los tripulantes deben viajar al baño
         // La gestión de higiene ahora se realiza en el sistema de baños (shipMapSystem.processBathroomQueue)
