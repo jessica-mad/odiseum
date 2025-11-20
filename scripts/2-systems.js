@@ -367,6 +367,14 @@ class GameLoop {
             updateVoyageStatus();
         }
 
+        // Abrir panel del mapa automáticamente al iniciar tramo
+        if (typeof panelManager !== 'undefined' && panelManager && !panelManager.isPanelOpen('map')) {
+            setTimeout(() => {
+                panelManager.openPanel('map');
+                console.log('📂 Panel del mapa abierto automáticamente al iniciar tramo');
+            }, 500); // Pequeño delay para que la UI se estabilice
+        }
+
         // Obtener velocidad actual (antes de deshabilitar el control)
         this.currentSpeed = parseInt(document.getElementById('speed-control').value);
 
