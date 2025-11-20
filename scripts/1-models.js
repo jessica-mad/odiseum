@@ -87,6 +87,7 @@ class Crew {
         this.currentTask = null;  // Tarea actualmente ejecutándose
         this.pausedTask = null;  // Tarea pausada (por ejemplo, cuando va al baño)
         this.lastBathroomTick = 0;  // Último tick en que usó el baño (para cooldown)
+        this.returningFromBathroom = false;  // Bandera para indicar que está regresando del baño a su workspace
 
         // Sistema de cooldowns de acciones de rol (en fast ticks)
         this.actionCooldowns = {
@@ -297,6 +298,20 @@ class Crew {
             return `${roleInfo.emoji} ${roleInfo.label}`;
         }
         return '👤'; // Fallback si no hay rol definido
+    }
+
+    /* === OBTENER ZONA DE TRABAJO (WORKSPACE) SEGÚN ROL === */
+    getWorkspaceZone() {
+        // Mapeo de roles a sus zonas de trabajo
+        const roleToWorkspace = {
+            'navigator': 'bridge',
+            'captain': 'bridge',
+            'doctor': 'medbay',
+            'engineer': 'engineering',
+            'cook': 'kitchen'
+        };
+
+        return roleToWorkspace[this.role] || 'bridge'; // Por defecto, bridge
     }
 
     /* === SISTEMA DE AUTO-GESTIÓN === */

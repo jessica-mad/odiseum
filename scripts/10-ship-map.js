@@ -732,6 +732,11 @@ class ShipMapSystem {
         }
 
         if (crew.state === 'Despierto') {
+            // PRIORIDAD ABSOLUTA: Si está regresando del baño, ir a su workspace
+            if (crew.returningFromBathroom) {
+                return crew.getWorkspaceZone();
+            }
+
             const activity = crew.currentActivity?.toLowerCase() || '';
             const role = crew.role || '';
 
@@ -972,6 +977,13 @@ class ShipMapSystem {
                         const lastMove = this.lastSubtleMove[crew.id] || 0;
                         const ticksSinceLastMove = timeSystem.fastTickCounter - lastMove;
                         const isMoving = this.crewPaths[crew.id] && this.crewPaths[crew.id].length > 0;
+
+                        // Si estaba regresando del baño y ya llegó a su workspace (no está en movimiento), limpiar bandera
+                        if (crew.returningFromBathroom && !isMoving && currentTarget === crew.getWorkspaceZone()) {
+                            crew.returningFromBathroom = false;
+                            crew.currentActivity = 'working';
+                            console.log(`✅ ${crew.name} llegó a su workspace (${currentTarget}), ahora puede buscar actividades`);
+                        }
 
                         // Solo mover si no está en movimiento y han pasado 60+ fast ticks (30 segundos de juego)
                         if (!isMoving && ticksSinceLastMove > 60 && Math.random() < 0.3) {
@@ -1297,14 +1309,18 @@ class ShipMapSystem {
                             // Liberar baño
                             this.releaseBathroom(bathroomKey);
 
-                            // FORZAR ACTUALIZACIÓN DE TARGET: El tripulante ya no necesita el baño
-                            // Obtener nuevo target basado en necesidades actuales
+                            // MARCAR QUE ESTÁ REGRESANDO DEL BAÑO A SU WORKSPACE
+                            user.returningFromBathroom = true;
+                            user.currentActivity = '🚶 Regresando a su estación';
+
+                            // FORZAR ACTUALIZACIÓN DE TARGET: Regresar a workspace
+                            // getTargetZoneForCrew ahora retornará el workspace porque returningFromBathroom = true
                             const newTarget = this.getTargetZoneForCrew(user);
                             if (newTarget && newTarget !== bathroomKey) {
                                 this.crewTargets[user.id] = newTarget;
-                                console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, nuevo objetivo: ${newTarget}`);
+                                console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, regresando a workspace: ${newTarget}`);
 
-                                // Crear path hacia nuevo target
+                                // Crear path hacia workspace
                                 const targetPos = this.getRandomTileInZone(newTarget, user.id);
                                 if (targetPos) {
                                     const currentPos = this.crewLocations[user.id];
