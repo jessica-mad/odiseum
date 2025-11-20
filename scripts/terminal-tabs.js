@@ -355,6 +355,22 @@ function getTaskIcon(taskType) {
     return icons[taskType] || '📌';
 }
 
+/* === CREAR BARRA DE ACCIÓN PARA REPARACIONES === */
+function createRepairActionBar(icon, zoneName, integrityPercent, colorClass, isEnabled, onClickFunc, isRepairing) {
+    return `
+        <button class="action-bar ${!isEnabled ? 'disabled' : ''}"
+                onclick="event.stopPropagation(); ${!isEnabled ? '' : onClickFunc}"
+                ${!isEnabled ? 'disabled' : ''}>
+            <span class="action-bar-icon" data-action-name="${zoneName}">${icon}</span>
+            <span class="action-bar-name">${zoneName}</span>
+            <div class="action-bar-track">
+                <div class="action-bar-fill ${colorClass}" style="width: ${integrityPercent}%"></div>
+            </div>
+            <span class="action-bar-percent">${Math.round(integrityPercent)}%</span>
+        </button>
+    `;
+}
+
 /* === CREAR BARRA DE ACCIÓN (ESTILO NECESIDADES CON COOLDOWN) === */
 function createActionBar(icon, actionName, cooldownCurrent, cooldownMax, isEnabled, onClickFunc, dataAction = null) {
     // Calcular porcentaje de disponibilidad (100% = listo, 0% = acaba de usar)
@@ -484,6 +500,7 @@ function getEngineerRepairManagerHTML(crew) {
     damagedZones.forEach(([zoneKey, zone], index) => {
         const percentage = Math.round(zone.integrity);
         const isRepairing = zone.beingRepaired;
+        const isBroken = zone.isBroken;
         const isEnabled = crew.state === 'Despierto';
 
         // Determinar clase de color según integridad
@@ -491,25 +508,36 @@ function getEngineerRepairManagerHTML(crew) {
         if (percentage < 20) colorClass = 'critical';
         else if (percentage < 50) colorClass = 'warning';
 
+        // Crear nombre con estado
+        let zoneName = zone.name;
+        let statusIndicator = '';
+        if (isBroken) {
+            statusIndicator = ' 💥AVERIADA';
+        } else if (isRepairing) {
+            statusIndicator = ' 🔧';
+        }
+
         if (isRepairing) {
             // Mostrar barra de cancelación cuando está reparando
-            html += createActionBar(
+            html += createRepairActionBar(
                 zone.icon,
-                `${zone.name} (reparando)`,
-                0, // sin cooldown
-                100,
+                `${zoneName}${statusIndicator}`,
+                percentage,
+                colorClass,
                 isEnabled,
-                `cancelRepair('${zoneKey}')`
+                `shipMapSystem.startRepair('${zoneKey}')`,
+                true
             );
         } else {
             // Mostrar barra de inicio de reparación
-            html += createActionBar(
+            html += createRepairActionBar(
                 zone.icon,
-                `Reparar ${zone.name}`,
-                0, // sin cooldown
-                100,
+                `${zoneName}${statusIndicator}`,
+                percentage,
+                colorClass,
                 isEnabled,
-                `startRepair('${zoneKey}')`
+                `shipMapSystem.startRepair('${zoneKey}')`,
+                false
             );
         }
     });

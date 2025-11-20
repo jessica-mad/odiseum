@@ -2118,6 +2118,11 @@ class ShipMapSystem {
             if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
                 panelManager.updateCrewPanel();
             }
+            // Actualizar ficha del ingeniero
+            if (typeof updateActiveProfiles === 'function') {
+                updateActiveProfiles();
+            }
+            this.updateRoomsStatus();
             return false;
         }
 
@@ -2139,6 +2144,11 @@ class ShipMapSystem {
         // Actualizar panel de tripulación
         if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
             panelManager.updateCrewPanel();
+        }
+
+        // Actualizar ficha del ingeniero
+        if (typeof updateActiveProfiles === 'function') {
+            updateActiveProfiles();
         }
 
         this.updateRoomsStatus();
@@ -2242,6 +2252,11 @@ class ShipMapSystem {
                 // Actualizar panel de tripulación
                 if (typeof panelManager !== 'undefined' && panelManager.isPanelOpen('crew')) {
                     panelManager.updateCrewPanel();
+                }
+
+                // Actualizar ficha del ingeniero
+                if (typeof updateActiveProfiles === 'function') {
+                    updateActiveProfiles();
                 }
             }
 
