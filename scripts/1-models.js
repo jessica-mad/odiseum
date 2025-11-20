@@ -88,6 +88,7 @@ class Crew {
         this.pausedTask = null;  // Tarea pausada (por ejemplo, cuando va al baño)
         this.lastBathroomTick = 0;  // Último tick en que usó el baño (para cooldown)
         this.returningFromBathroom = false;  // Bandera para indicar que está regresando del baño a su workspace
+        this.hadBathroomAccident = false;  // Flag para evitar múltiples accidentes seguidos
 
         // Sistema de cooldowns de acciones de rol (en fast ticks)
         this.actionCooldowns = {
@@ -204,17 +205,54 @@ class Crew {
         if (this.state === CREW_STATES.AWAKE || this.state === CREW_STATES.RESTING) {
             this.foodNeed = Math.max(0, this.foodNeed + (config.food * multiplier));
             this.healthNeed = Math.max(0, this.healthNeed + (config.health * multiplier));
-            // Higiene: solo degrada hasta 70% (no más allá)
-            this.wasteNeed = Math.min(70, this.wasteNeed + (config.waste * multiplier));
+            // Higiene: puede llegar hasta 100%
+            this.wasteNeed = Math.min(100, this.wasteNeed + (config.waste * multiplier));
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + (config.entertainment * multiplier));
             this.restNeed = Math.max(100, this.restNeed + (config.rest * multiplier));
         } else {
             this.foodNeed = Math.max(0, this.foodNeed + config.food);
             this.healthNeed = Math.max(0, this.healthNeed + config.health);
-            // Higiene: solo degrada hasta 70% (no más allá)
-            this.wasteNeed = Math.min(70, this.wasteNeed + config.waste);
+            // Higiene: puede llegar hasta 100%
+            this.wasteNeed = Math.min(100, this.wasteNeed + config.waste);
             this.entertainmentNeed = Math.max(0, this.entertainmentNeed + config.entertainment);
             this.restNeed = Math.min(100, this.restNeed + config.rest);
+        }
+
+        // ACCIDENTE: Si wasteNeed llega a 100%, el tripulante "descarga" en su ubicación
+        if (this.wasteNeed >= 100 && this.isAlive && !this.hadBathroomAccident) {
+            this.hadBathroomAccident = true; // Marcar para que solo ocurra una vez
+            this.wasteNeed = 0; // Resetear necesidad de higiene
+
+            // Agregar pensamiento de vergüenza
+            this.addToPersonalLog('💩 Tuve un accidente... no llegué al baño a tiempo. Siento mucha vergüenza.');
+
+            // Notificación al jugador
+            new CrewNotification(`${this.name} tuvo un accidente por no llegar al baño a tiempo`, NOTIFICATION_TYPES.WARNING);
+            logbook.addEntry(`${this.name} tuvo un accidente higiénico`, LOG_TYPES.WARNING);
+
+            // Averiar la zona donde está el tripulante (si está en el mapa)
+            if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+                const crewPos = shipMapSystem.crewLocations[this.id];
+                if (crewPos) {
+                    const cellType = shipMapSystem.grid[crewPos.row]?.[crewPos.col];
+                    const zoneKey = shipMapSystem.getCellTypeToZoneName(cellType, crewPos.row, crewPos.col);
+
+                    if (zoneKey && shipMapSystem.zones[zoneKey]) {
+                        const zone = shipMapSystem.zones[zoneKey];
+                        // Reducir integridad de la zona
+                        if (zone.integrity !== undefined) {
+                            zone.integrity = Math.max(0, zone.integrity - 20); // Reducir 20% de integridad
+                            console.log(`💩 Accidente de ${this.name} en ${zone.name} - integridad reducida a ${zone.integrity}%`);
+                            logbook.addEntry(`La zona ${zone.name} sufrió daños por contaminación`, LOG_TYPES.WARNING);
+                        }
+                    }
+                }
+            }
+
+            // Resetear flag después de un tiempo para que pueda volver a ocurrir
+            setTimeout(() => {
+                this.hadBathroomAccident = false;
+            }, 60000); // 1 minuto de cooldown
         }
 
         // Auto-transición a estado descansando si está muy cansado

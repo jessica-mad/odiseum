@@ -732,9 +732,19 @@ class ShipMapSystem {
         }
 
         if (crew.state === 'Despierto') {
-            // PRIORIDAD ABSOLUTA: Si está regresando del baño, ir a su workspace
+            // PRIORIDAD ABSOLUTA: Si está regresando del baño PERO su wasteNeed volvió a subir, cancelar retorno
             if (crew.returningFromBathroom) {
-                return crew.getWorkspaceZone();
+                const ticksSinceLastBathroom = timeSystem.globalTickCounter - (crew.lastBathroomTick || 0);
+                const needsBathroomAgain = crew.wasteNeed >= 70 || (crew.wasteNeed >= 50 && ticksSinceLastBathroom >= 30);
+
+                if (needsBathroomAgain) {
+                    // Necesita volver al baño, cancelar retorno a workspace
+                    crew.returningFromBathroom = false;
+                    console.log(`⚠️ ${crew.name} necesita volver al baño (wasteNeed: ${crew.wasteNeed})`);
+                } else {
+                    // Continuar regresando a workspace
+                    return crew.getWorkspaceZone();
+                }
             }
 
             const activity = crew.currentActivity?.toLowerCase() || '';
