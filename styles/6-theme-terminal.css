@@ -2352,96 +2352,22 @@
 
 /* === BARRAS DE ACCIÓN (ESTILO NECESIDADES) === */
 
-.action-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: 8px 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--color-terminal-green-dark);
-    border-radius: 3px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.action-bar-wrapper {
+    /* Usa la misma estructura que need-bar-advanced */
 }
 
-.action-bar:hover:not(:disabled) {
-    background: rgba(0, 255, 0, 0.08);
-    border-color: var(--color-terminal-green);
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+.action-icon-btn {
+    /* Botón de acción - usa los estilos de need-bar-icon-btn */
 }
 
-.action-bar:active:not(:disabled) {
-    transform: scale(0.98);
-}
-
-.action-bar:disabled,
-.action-bar.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: rgba(0, 0, 0, 0.2);
-}
-
-.action-bar-icon {
-    font-size: 16px;
-    flex-shrink: 0;
-    width: 20px;
-    text-align: center;
-}
-
-.action-bar-name {
+.action-bar-name-label {
     color: var(--color-terminal-green);
+    font-size: 12px;
     font-weight: 500;
     flex-shrink: 0;
-    min-width: 80px;
-}
-
-.action-bar-track {
-    flex: 1;
-    height: 8px;
-    background: var(--color-terminal-bg-light);
-    border: 1px solid var(--color-terminal-green-dark);
-    border-radius: 2px;
-    position: relative;
-    overflow: hidden;
-    min-width: 60px;
-}
-
-.action-bar-fill {
-    height: 100%;
-    transition: width 0.5s ease-out;
-    position: relative;
-}
-
-.action-bar-fill.good {
-    background: var(--color-terminal-green);
-    box-shadow: 0 0 8px var(--color-terminal-green);
-}
-
-.action-bar-fill.warning {
-    background: #ffaa00;
-    box-shadow: 0 0 8px #ffaa00;
-}
-
-.action-bar-fill.critical {
-    background: #ff4444;
-    box-shadow: 0 0 8px #ff4444;
-}
-
-.action-bar-percent {
-    color: var(--color-terminal-green);
-    font-size: 11px;
-    font-weight: bold;
-    flex-shrink: 0;
-    min-width: 40px;
-    text-align: right;
-}
-
-.action-bar:disabled .action-bar-percent,
-.action-bar.disabled .action-bar-percent {
-    color: rgba(0, 255, 0, 0.4);
+    min-width: 100px;
+    margin-left: -2px;
+    margin-right: 4px;
 }
 
 /* === CONTADOR DE PUSH (NAVEGANTE) === */

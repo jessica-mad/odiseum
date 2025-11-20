@@ -1294,23 +1294,47 @@ class ShipMapSystem {
                                 user.resumePausedTask();
                             }
 
-                            // Liberar baño
+                            // Liberar baño PRIMERO
                             this.releaseBathroom(bathroomKey);
 
-                            // FORZAR ACTUALIZACIÓN DE TARGET: El tripulante ya no necesita el baño
-                            // Obtener nuevo target basado en necesidades actuales
+                            // FORZAR SALIDA DEL BAÑO: Obtener nuevo target
                             const newTarget = this.getTargetZoneForCrew(user);
-                            if (newTarget && newTarget !== bathroomKey) {
-                                this.crewTargets[user.id] = newTarget;
-                                console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, nuevo objetivo: ${newTarget}`);
+                            console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, wasteNeed=${user.wasteNeed}, nuevo objetivo: ${newTarget}`);
 
-                                // Crear path hacia nuevo target
+                            // SIEMPRE actualizar target (incluso si por alguna razón es el mismo baño)
+                            if (newTarget) {
+                                this.crewTargets[user.id] = newTarget;
+
+                                // Crear path hacia nuevo target y FORZAR movimiento
                                 const targetPos = this.getRandomTileInZone(newTarget, user.id);
                                 if (targetPos) {
                                     const currentPos = this.crewLocations[user.id];
                                     if (currentPos) {
                                         const path = this.findPath(currentPos, targetPos);
-                                        if (path.length > 1) {
+                                        // FORZAR movimiento incluso si el path es corto
+                                        // Esto asegura que el tripulante SIEMPRE salga del baño
+                                        if (path.length >= 1) {
+                                            this.crewPaths[user.id] = path;
+                                            this.animateCrewMovement(user);
+                                            console.log(`  🚶 ${user.name} iniciando movimiento hacia ${newTarget} (path: ${path.length} pasos)`);
+                                        } else {
+                                            // Si no hay path, teletransportar a la nueva zona
+                                            console.warn(`  ⚠️ No se pudo crear path, teletransportando a ${newTarget}`);
+                                            this.crewLocations[user.id] = targetPos;
+                                            this.createOrUpdateCrewMarker(user, targetPos);
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Si no hay nuevo target, forzar a zona por defecto (bridge)
+                                console.warn(`  ⚠️ ${user.name} no tiene nuevo target, enviando al puente`);
+                                this.crewTargets[user.id] = 'bridge';
+                                const bridgePos = this.getRandomTileInZone('bridge', user.id);
+                                if (bridgePos) {
+                                    const currentPos = this.crewLocations[user.id];
+                                    if (currentPos) {
+                                        const path = this.findPath(currentPos, bridgePos);
+                                        if (path.length >= 1) {
                                             this.crewPaths[user.id] = path;
                                             this.animateCrewMovement(user);
                                         }

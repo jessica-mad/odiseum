@@ -365,18 +365,20 @@ function createActionBar(icon, actionName, cooldownCurrent, cooldownMax, isEnabl
     // Atributo data-action para poder encontrar y actualizar la barra
     const dataAttr = dataAction ? `data-action="${dataAction}"` : '';
 
+    // Usar la misma estructura que las barras de necesidades
     return `
-        <button class="action-bar ${isDisabled ? 'disabled' : ''}"
-                onclick="event.stopPropagation(); ${isDisabled ? '' : onClickFunc}"
-                ${isDisabled ? 'disabled' : ''}
-                ${dataAttr}>
-            <span class="action-bar-icon">${icon}</span>
-            <span class="action-bar-name">${actionName}</span>
-            <div class="action-bar-track">
-                <div class="action-bar-fill ${colorClass}" style="width: ${percentage}%"></div>
+        <div class="need-bar-advanced action-bar-wrapper" ${dataAttr}>
+            <button class="need-bar-icon-btn action-icon-btn"
+                    ${isDisabled ? 'disabled' : ''}
+                    ${isDisabled ? '' : `onclick="event.stopPropagation(); ${onClickFunc}"`}>
+                ${icon}
+            </button>
+            <span class="action-bar-name-label">${actionName}</span>
+            <div class="need-bar-track">
+                <div class="need-bar-fill-advanced ${colorClass}" style="width: ${percentage}%"></div>
             </div>
-            <span class="action-bar-percent">${Math.round(percentage)}%</span>
-        </button>
+            <span class="need-bar-percent">${Math.round(percentage)}%</span>
+        </div>
     `;
 }
 
@@ -646,29 +648,30 @@ function updateCrewProfileSelective(container, crew) {
                 else if (percentage < 70) colorClass = 'warning';
             }
 
-            // Buscar barra de acción con data-action attribute
+            // Buscar barra de acción con data-action attribute (ahora usa need-bar-advanced)
             const actionBar = container.querySelector(`[data-action="${actionKey}"]`);
             if (!actionBar) return;
 
-            // Actualizar fill
-            const fillEl = actionBar.querySelector('.action-bar-fill');
+            // Actualizar fill (ahora usa need-bar-fill-advanced)
+            const fillEl = actionBar.querySelector('.need-bar-fill-advanced');
             if (fillEl) {
                 fillEl.style.width = `${percentage}%`;
-                fillEl.className = `action-bar-fill ${colorClass}`;
+                fillEl.className = `need-bar-fill-advanced ${colorClass}`;
             }
 
-            // Actualizar porcentaje
-            const percentEl = actionBar.querySelector('.action-bar-percent');
+            // Actualizar porcentaje (ahora usa need-bar-percent)
+            const percentEl = actionBar.querySelector('.need-bar-percent');
             if (percentEl) percentEl.textContent = `${Math.round(percentage)}%`;
 
-            // Actualizar estado disabled del botón
-            const isDisabled = crew.state !== 'Despierto' || cooldownCurrent > 0;
-            if (isDisabled) {
-                actionBar.setAttribute('disabled', 'true');
-                actionBar.classList.add('disabled');
-            } else {
-                actionBar.removeAttribute('disabled');
-                actionBar.classList.remove('disabled');
+            // Actualizar estado disabled del botón (ahora es action-icon-btn)
+            const buttonEl = actionBar.querySelector('.action-icon-btn');
+            if (buttonEl) {
+                const isDisabled = crew.state !== 'Despierto' || cooldownCurrent > 0;
+                if (isDisabled) {
+                    buttonEl.setAttribute('disabled', 'true');
+                } else {
+                    buttonEl.removeAttribute('disabled');
+                }
             }
         });
     }
