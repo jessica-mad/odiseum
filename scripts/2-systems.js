@@ -503,6 +503,15 @@ class GameLoop {
         // Avanzar contador de fast ticks
         timeSystem.advanceFastTick();
 
+        // Actualizar cooldowns de acciones de rol para todos los tripulantes
+        if (Array.isArray(crewMembers)) {
+            crewMembers.forEach(crew => {
+                if (crew.isAlive && typeof crew.updateActionCooldowns === 'function') {
+                    crew.updateActionCooldowns();
+                }
+            });
+        }
+
         // Actualizar posiciones de tripulantes en el mapa
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
             shipMapSystem.updateCrewLocations();

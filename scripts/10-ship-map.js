@@ -1293,7 +1293,30 @@ class ShipMapSystem {
                                 user.completeCurrentTask();
                                 user.resumePausedTask();
                             }
+
+                            // Liberar baño
                             this.releaseBathroom(bathroomKey);
+
+                            // FORZAR ACTUALIZACIÓN DE TARGET: El tripulante ya no necesita el baño
+                            // Obtener nuevo target basado en necesidades actuales
+                            const newTarget = this.getTargetZoneForCrew(user);
+                            if (newTarget && newTarget !== bathroomKey) {
+                                this.crewTargets[user.id] = newTarget;
+                                console.log(`🚽✅ ${user.name} terminó de usar ${bathroom.name}, nuevo objetivo: ${newTarget}`);
+
+                                // Crear path hacia nuevo target
+                                const targetPos = this.getRandomTileInZone(newTarget, user.id);
+                                if (targetPos) {
+                                    const currentPos = this.crewLocations[user.id];
+                                    if (currentPos) {
+                                        const path = this.findPath(currentPos, targetPos);
+                                        if (path.length > 1) {
+                                            this.crewPaths[user.id] = path;
+                                            this.animateCrewMovement(user);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     } else {
                         // Sin agua, no se puede usar el baño

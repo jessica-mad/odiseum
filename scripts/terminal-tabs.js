@@ -345,32 +345,80 @@ function getTaskIcon(taskType) {
     return icons[taskType] || '📌';
 }
 
+/* === CREAR BARRA DE ACCIÓN (ESTILO NECESIDADES CON COOLDOWN) === */
+function createActionBar(icon, actionName, cooldownCurrent, cooldownMax, isEnabled, onClickFunc, dataAction = null) {
+    // Calcular porcentaje de disponibilidad (100% = listo, 0% = acaba de usar)
+    const percentage = cooldownMax > 0
+        ? Math.max(0, ((cooldownMax - cooldownCurrent) / cooldownMax) * 100)
+        : 100;
+
+    // Determinar clase de color
+    let colorClass = 'good';
+    if (percentage < 100) {
+        if (percentage < 30) colorClass = 'critical';
+        else if (percentage < 70) colorClass = 'warning';
+    }
+
+    // Determinar si está disabled
+    const isDisabled = !isEnabled || cooldownCurrent > 0;
+
+    // Atributo data-action para poder encontrar y actualizar la barra
+    const dataAttr = dataAction ? `data-action="${dataAction}"` : '';
+
+    return `
+        <button class="action-bar ${isDisabled ? 'disabled' : ''}"
+                onclick="event.stopPropagation(); ${isDisabled ? '' : onClickFunc}"
+                ${isDisabled ? 'disabled' : ''}
+                ${dataAttr}>
+            <span class="action-bar-icon">${icon}</span>
+            <span class="action-bar-name">${actionName}</span>
+            <div class="action-bar-track">
+                <div class="action-bar-fill ${colorClass}" style="width: ${percentage}%"></div>
+            </div>
+            <span class="action-bar-percent">${Math.round(percentage)}%</span>
+        </button>
+    `;
+}
+
 /* === OBTENER HTML DE ACCIONES POR ROL === */
 function getRoleActionsHTML(crew) {
+    let html = '';
+
     switch(crew.role) {
         case 'captain':
-            return `
-                <button class="role-action-btn" onclick="sendCrewToBridge('${crew.id}')">
-                    🎮 Ir a Control
-                </button>
-                <div class="role-action-info">
-                    El liderazgo solo se aplica cuando está en el puente de mando
-                </div>
-            `;
+            html += createActionBar(
+                '🎮',
+                'Ir a Control',
+                crew.actionCooldowns.goToBridge,
+                ROLE_ACTION_COOLDOWNS.goToBridge,
+                true,
+                `sendCrewToBridge('${crew.id}')`,
+                'goToBridge'
+            );
+            break;
 
         case 'doctor':
-            return `
-                <button class="role-action-btn" onclick="doctorInvestigate('${crew.id}')">
-                    🔬 Investigar
-                </button>
-                <button class="role-action-btn" onclick="doctorHarvestMedicine('${crew.id}')"
-                    ${!canHarvestGreenhouse() ? 'disabled' : ''}>
-                    🌱 Recolectar Medicina
-                </button>
-                <div class="role-action-info">
-                    Investiga para generar Datos. Cosecha medicina del invernadero cuando esté listo.
-                </div>
-            `;
+            // Investigar
+            html += createActionBar(
+                '🔬',
+                'Investigar',
+                crew.actionCooldowns.investigate,
+                ROLE_ACTION_COOLDOWNS.investigate,
+                true,
+                `doctorInvestigate('${crew.id}')`,
+                'investigate'
+            );
+            // Cosechar Medicina
+            html += createActionBar(
+                '🌱',
+                'Recolectar Medicina',
+                crew.actionCooldowns.harvestMedicine,
+                ROLE_ACTION_COOLDOWNS.harvestMedicine,
+                canHarvestGreenhouse(),
+                `doctorHarvestMedicine('${crew.id}')`,
+                'harvestMedicine'
+            );
+            break;
 
         case 'engineer':
             return getEngineerRepairManagerHTML(crew);
@@ -379,22 +427,33 @@ function getRoleActionsHTML(crew) {
             return getNavigatorPushControlHTML(crew);
 
         case 'cook':
-            return `
-                <button class="role-action-btn" onclick="chefCook('${crew.id}')">
-                    🍳 Cocinar
-                </button>
-                <button class="role-action-btn" onclick="chefHarvestFood('${crew.id}')"
-                    ${!canHarvestGreenhouse() ? 'disabled' : ''}>
-                    🌱 Cosechar Alimentos
-                </button>
-                <div class="role-action-info">
-                    Cocina para preparar raciones. Cosecha alimentos del invernadero cuando esté listo.
-                </div>
-            `;
+            // Cocinar
+            html += createActionBar(
+                '🍳',
+                'Cocinar',
+                crew.actionCooldowns.cook,
+                ROLE_ACTION_COOLDOWNS.cook,
+                true,
+                `chefCook('${crew.id}')`,
+                'cook'
+            );
+            // Cosechar Alimentos
+            html += createActionBar(
+                '🌱',
+                'Cosechar Alimentos',
+                crew.actionCooldowns.harvestFood,
+                ROLE_ACTION_COOLDOWNS.harvestFood,
+                canHarvestGreenhouse(),
+                `chefHarvestFood('${crew.id}')`,
+                'harvestFood'
+            );
+            break;
 
         default:
-            return '<div class="role-action-info">Sin acciones especiales</div>';
+            html = '<div class="role-action-info">Sin acciones especiales</div>';
     }
+
+    return html;
 }
 
 /* === GESTOR DE REPARACIONES DEL INGENIERO === */
@@ -415,19 +474,34 @@ function getEngineerRepairManagerHTML(crew) {
     damagedZones.forEach(([zoneKey, zone], index) => {
         const percentage = Math.round(zone.integrity);
         const isRepairing = zone.beingRepaired;
-        const statusClass = percentage < 20 ? 'critical' : percentage < 50 ? 'warning' : 'damaged';
+        const isEnabled = crew.state === 'Despierto';
 
-        html += `
-            <div class="repair-item ${statusClass} ${isRepairing ? 'active' : ''}">
-                <span class="repair-icon">${zone.icon}</span>
-                <span class="repair-name">${zone.name}</span>
-                <span class="repair-integrity">${percentage}%</span>
-                ${isRepairing ?
-                    `<button class="repair-cancel-btn" onclick="cancelRepair('${zoneKey}')">❌</button>` :
-                    `<button class="repair-start-btn" onclick="startRepair('${zoneKey}')">⚙️ Reparar</button>`
-                }
-            </div>
-        `;
+        // Determinar clase de color según integridad
+        let colorClass = 'good';
+        if (percentage < 20) colorClass = 'critical';
+        else if (percentage < 50) colorClass = 'warning';
+
+        if (isRepairing) {
+            // Mostrar barra de cancelación cuando está reparando
+            html += createActionBar(
+                zone.icon,
+                `${zone.name} (reparando)`,
+                0, // sin cooldown
+                100,
+                isEnabled,
+                `cancelRepair('${zoneKey}')`
+            );
+        } else {
+            // Mostrar barra de inicio de reparación
+            html += createActionBar(
+                zone.icon,
+                `Reparar ${zone.name}`,
+                0, // sin cooldown
+                100,
+                isEnabled,
+                `startRepair('${zoneKey}')`
+            );
+        }
     });
 
     html += '</div>';
@@ -436,40 +510,30 @@ function getEngineerRepairManagerHTML(crew) {
 
 /* === CONTROL DE PUSH DEL NAVEGANTE === */
 function getNavigatorPushControlHTML(crew) {
-    // Verificar si existe el sistema de push (lo crearemos después)
     const pushCount = crew.pushCount || 0;
-    const maxPushes = 5;
-    const pushCooldown = crew.pushCooldown || 0;
-    const canPush = pushCount < maxPushes && pushCooldown <= 0;
+    const maxPushes = ROLE_ACTION_COOLDOWNS.maxPushes;
+    const canPush = pushCount < maxPushes;
 
-    let html = '<div class="navigator-push-control">';
+    let html = '';
 
-    // Indicador de pushes usados
+    // Indicador de pushes usados (encima de la barra)
     html += '<div class="push-counter">';
     for (let i = 0; i < maxPushes; i++) {
         html += `<span class="push-dot ${i < pushCount ? 'used' : 'available'}">${i < pushCount ? '🔥' : '⚪'}</span>`;
     }
     html += '</div>';
 
-    // Botón de PUSH
-    html += `
-        <button class="role-action-btn push-btn ${!canPush ? 'disabled' : ''}"
-            onclick="navigatorPush('${crew.id}')"
-            ${!canPush ? 'disabled' : ''}>
-            🚀 PUSH (${pushCount}/${maxPushes})
-        </button>
-    `;
+    // Barra de acción de PUSH
+    html += createActionBar(
+        '🚀',
+        `PUSH (${pushCount}/${maxPushes})`,
+        crew.actionCooldowns.push,
+        ROLE_ACTION_COOLDOWNS.push,
+        canPush,
+        `navigatorPush('${crew.id}')`,
+        'push'
+    );
 
-    // Info de cooldown
-    if (pushCooldown > 0) {
-        html += `<div class="role-action-info">⏳ Cooldown: ${pushCooldown} ticks</div>`;
-    } else if (pushCount >= maxPushes) {
-        html += `<div class="role-action-info">⚠️ PUSH agotado</div>`;
-    } else {
-        html += `<div class="role-action-info">Acelera la nave. Consume más combustible.</div>`;
-    }
-
-    html += '</div>';
     return html;
 }
 
@@ -548,6 +612,64 @@ function updateCrewProfileSelective(container, crew) {
             // Actualizar porcentaje
             const percentEl = needBar.querySelector('[data-need-percent]');
             if (percentEl) percentEl.textContent = `${Math.round(percentage)}%`;
+        });
+    }
+
+    // Actualizar cooldowns de acciones de rol
+    if (crew.isAlive && crew.actionCooldowns && typeof ROLE_ACTION_COOLDOWNS !== 'undefined') {
+        // Mapeo de acciones a cooldowns máximos
+        const actionCooldownMap = {
+            'goToBridge': ROLE_ACTION_COOLDOWNS.goToBridge,
+            'investigate': ROLE_ACTION_COOLDOWNS.investigate,
+            'harvestMedicine': ROLE_ACTION_COOLDOWNS.harvestMedicine,
+            'startRepair': ROLE_ACTION_COOLDOWNS.startRepair,
+            'push': ROLE_ACTION_COOLDOWNS.push,
+            'cook': ROLE_ACTION_COOLDOWNS.cook,
+            'harvestFood': ROLE_ACTION_COOLDOWNS.harvestFood
+        };
+
+        Object.keys(actionCooldownMap).forEach(actionKey => {
+            const cooldownCurrent = crew.actionCooldowns[actionKey] || 0;
+            const cooldownMax = actionCooldownMap[actionKey];
+
+            if (cooldownMax === 0) return; // Sin cooldown, no actualizar
+
+            // Calcular porcentaje de disponibilidad
+            const percentage = cooldownMax > 0
+                ? Math.max(0, ((cooldownMax - cooldownCurrent) / cooldownMax) * 100)
+                : 100;
+
+            // Determinar clase de color
+            let colorClass = 'good';
+            if (percentage < 100) {
+                if (percentage < 30) colorClass = 'critical';
+                else if (percentage < 70) colorClass = 'warning';
+            }
+
+            // Buscar barra de acción con data-action attribute
+            const actionBar = container.querySelector(`[data-action="${actionKey}"]`);
+            if (!actionBar) return;
+
+            // Actualizar fill
+            const fillEl = actionBar.querySelector('.action-bar-fill');
+            if (fillEl) {
+                fillEl.style.width = `${percentage}%`;
+                fillEl.className = `action-bar-fill ${colorClass}`;
+            }
+
+            // Actualizar porcentaje
+            const percentEl = actionBar.querySelector('.action-bar-percent');
+            if (percentEl) percentEl.textContent = `${Math.round(percentage)}%`;
+
+            // Actualizar estado disabled del botón
+            const isDisabled = crew.state !== 'Despierto' || cooldownCurrent > 0;
+            if (isDisabled) {
+                actionBar.setAttribute('disabled', 'true');
+                actionBar.classList.add('disabled');
+            } else {
+                actionBar.removeAttribute('disabled');
+                actionBar.classList.remove('disabled');
+            }
         });
     }
 
@@ -631,6 +753,12 @@ function doctorInvestigate(crewId) {
         return;
     }
 
+    // Verificar cooldown
+    if (crew.actionCooldowns.investigate > 0) {
+        new Notification(`Investigar en cooldown: ${Math.ceil(crew.actionCooldowns.investigate * 0.5)}s restantes`, 'ALERT');
+        return;
+    }
+
     // Verificar si está en la enfermería
     if (typeof shipMapSystem !== 'undefined') {
         const pos = shipMapSystem.crewLocations[crew.id];
@@ -646,6 +774,10 @@ function doctorInvestigate(crewId) {
                     console.log(`🔬 ${crew.name} investigó y generó ${dataGenerated} de Datos`);
                     crew.addToPersonalLog(`Investigué y generé ${dataGenerated} de Datos`);
                     new Notification(`${crew.name} generó ${dataGenerated} de Datos`, 'SUCCESS');
+
+                    // Establecer cooldown
+                    crew.actionCooldowns.investigate = ROLE_ACTION_COOLDOWNS.investigate;
+                    updateActiveProfiles(); // Actualizar UI
                 }
             } else {
                 console.warn('El doctor debe estar en la enfermería para investigar');
@@ -701,25 +833,23 @@ function navigatorPush(crewId) {
         return;
     }
 
-    // Inicializar sistema de push si no existe
-    if (crew.pushCount === undefined) crew.pushCount = 0;
-    if (crew.pushCooldown === undefined) crew.pushCooldown = 0;
+    const maxPushes = ROLE_ACTION_COOLDOWNS.maxPushes;
 
-    const maxPushes = 5;
-
+    // Verificar si se agotaron los PUSH
     if (crew.pushCount >= maxPushes) {
         new Notification('PUSH agotado. Ya se usaron los 5 PUSH disponibles', 'ALERT');
         return;
     }
 
-    if (crew.pushCooldown > 0) {
-        new Notification(`PUSH en cooldown: ${crew.pushCooldown} ticks restantes`, 'ALERT');
+    // Verificar cooldown
+    if (crew.actionCooldowns.push > 0) {
+        new Notification(`PUSH en cooldown: ${Math.ceil(crew.actionCooldowns.push * 0.5)}s restantes`, 'ALERT');
         return;
     }
 
     // Aplicar PUSH
     crew.pushCount++;
-    crew.pushCooldown = 30; // 30 ticks de cooldown
+    crew.actionCooldowns.push = ROLE_ACTION_COOLDOWNS.push; // Establecer cooldown
 
     // Aumentar velocidad de la nave
     if (typeof gameLoop !== 'undefined' && gameLoop.currentSpeed !== undefined) {
@@ -748,6 +878,12 @@ function chefCook(crewId) {
         return;
     }
 
+    // Verificar cooldown
+    if (crew.actionCooldowns.cook > 0) {
+        new Notification(`Cocinar en cooldown: ${Math.ceil(crew.actionCooldowns.cook * 0.5)}s restantes`, 'ALERT');
+        return;
+    }
+
     // Verificar si está en la cocina
     if (typeof shipMapSystem !== 'undefined') {
         const pos = shipMapSystem.crewLocations[crew.id];
@@ -768,6 +904,10 @@ function chefCook(crewId) {
                     console.log(`🍳 ${crew.name} cocinó ${portionsCreated} raciones`);
                     crew.addToPersonalLog(`Cociné ${portionsCreated} raciones de alimento`);
                     new Notification(`${crew.name} cocinó ${portionsCreated} raciones`, 'SUCCESS');
+
+                    // Establecer cooldown
+                    crew.actionCooldowns.cook = ROLE_ACTION_COOLDOWNS.cook;
+                    updateActiveProfiles(); // Actualizar UI
                 } else {
                     new Notification('No hay suficiente comida para cocinar (mínimo 20)', 'ALERT');
                 }

@@ -88,10 +88,34 @@ class Crew {
         this.pausedTask = null;  // Tarea pausada (por ejemplo, cuando va al baño)
         this.lastBathroomTick = 0;  // Último tick en que usó el baño (para cooldown)
 
+        // Sistema de cooldowns de acciones de rol (en fast ticks)
+        this.actionCooldowns = {
+            goToBridge: 0,
+            investigate: 0,
+            harvestMedicine: 0,
+            startRepair: 0,
+            push: 0,
+            cook: 0,
+            harvestFood: 0
+        };
+
+        // Contador de PUSH para navegante
+        this.pushCount = 0;
+
         // Log para debugging
         if (data.configStats && Object.keys(data.configStats).length > 0) {
             console.log(`[Crew Constructor] ${this.name} - configStats recibidos:`, this.configStats);
         }
+    }
+
+    /* === ACTUALIZAR COOLDOWNS DE ACCIONES === */
+    updateActionCooldowns() {
+        // Reducir todos los cooldowns en 1 por cada fast tick
+        Object.keys(this.actionCooldowns).forEach(action => {
+            if (this.actionCooldowns[action] > 0) {
+                this.actionCooldowns[action]--;
+            }
+        });
     }
 
     getEffectiveSkillMultiplier() {
