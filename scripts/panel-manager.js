@@ -344,56 +344,281 @@ class PanelManager {
     }
 
     /**
-     * Actualiza el contenido del panel de tripulación (dos columnas)
+     * Actualiza el contenido del panel de tripulación (nueva estructura con tabs)
      */
     updateCrewPanel() {
-        const awakeContainer = document.getElementById('panel-crew-awake');
-        const asleepContainer = document.getElementById('panel-crew-asleep');
-
-        if (!awakeContainer || !asleepContainer) {
-            console.error('Contenedores de crew no encontrados');
-            return;
-        }
         if (typeof crewMembers === 'undefined' || !crewMembers) {
             console.error('crewMembers no definido');
             return;
         }
 
-        console.log('🔄 Actualizando panel de tripulación');
+        console.log('🔄 Actualizando panel de tripulación (nueva estructura)');
 
-        // Limpiar contenedores
-        awakeContainer.innerHTML = '';
-        asleepContainer.innerHTML = '';
+        // Poblar tabs de tripulación
+        this.populateCrewTabs();
 
-        // Separar tripulantes por estado
-        let awakeCount = 0;
-        let asleepCount = 0;
+        // Poblar tabs de nave
+        this.populateShipTabs();
 
-        crewMembers.forEach(crew => {
-            try {
-                const miniCard = crew.createMiniCard();
-
-                if (crew.state === 'Despierto') {
-                    awakeContainer.appendChild(miniCard);
-                    awakeCount++;
-                    console.log(`  ✅ ${crew.name} -> DESPIERTOS`);
-                } else {
-                    asleepContainer.appendChild(miniCard);
-                    asleepCount++;
-                    console.log(`  💤 ${crew.name} -> ENCAPSULADOS`);
-                }
-            } catch (error) {
-                console.error(`Error creando card para ${crew.name}:`, error);
-            }
-        });
-
-        console.log(`📊 Despiertos: ${awakeCount}, Encapsulados: ${asleepCount}`);
-
-        // Configurar drag & drop en los contenedores
-        this.setupDragAndDrop(awakeContainer, asleepContainer);
+        // Actualizar consola de logs
+        this.updateConsoleLogs();
     }
 
     /**
+     * Pobla los tabs verticales de tripulación
+     */
+    populateCrewTabs() {
+        const sidebar = document.getElementById('crew-tabs-sidebar');
+        if (!sidebar) return;
+
+        sidebar.innerHTML = '';
+
+        crewMembers.forEach((crew, index) => {
+            const tabItem = document.createElement('div');
+            tabItem.className = 'vertical-tab-item';
+            if (index === 0) tabItem.classList.add('active');
+            tabItem.dataset.crewId = crew.id;
+
+            const emoji = document.createElement('div');
+            emoji.className = 'vertical-tab-emoji';
+            emoji.textContent = crew.emoji || '👤';
+
+            const label = document.createElement('div');
+            label.className = 'vertical-tab-label';
+            label.textContent = crew.name;
+
+            tabItem.appendChild(emoji);
+            tabItem.appendChild(label);
+
+            tabItem.addEventListener('click', () => {
+                this.switchCrewTab(crew.id);
+            });
+
+            sidebar.appendChild(tabItem);
+        });
+
+        // Mostrar la ficha del primer tripulante
+        if (crewMembers.length > 0) {
+            this.showCrewProfile(crewMembers[0].id);
+        }
+    }
+
+    /**
+     * Cambia el tab de tripulante activo
+     */
+    switchCrewTab(crewId) {
+        // Actualizar tabs activos
+        document.querySelectorAll('#crew-tabs-sidebar .vertical-tab-item').forEach(tab => {
+            tab.classList.remove('active');
+            if (parseInt(tab.dataset.crewId) === parseInt(crewId)) {
+                tab.classList.add('active');
+            }
+        });
+
+        // Mostrar ficha del tripulante
+        this.showCrewProfile(crewId);
+    }
+
+    /**
+     * Muestra la ficha completa de un tripulante
+     */
+    showCrewProfile(crewId) {
+        const content = document.getElementById('crew-tabs-content');
+        if (!content) return;
+
+        const crew = crewMembers.find(c => c.id === parseInt(crewId));
+        if (!crew) return;
+
+        // Usar la función existente createFullCrewProfile
+        if (typeof createFullCrewProfile === 'function') {
+            content.innerHTML = '';
+            const profileHTML = createFullCrewProfile(crew);
+            content.innerHTML = profileHTML;
+        }
+    }
+
+    /**
+     * Pobla los tabs verticales de habitaciones
+     */
+    populateShipTabs() {
+        const sidebar = document.getElementById('ship-tabs-sidebar');
+        if (!sidebar || typeof shipMapSystem === 'undefined') return;
+
+        sidebar.innerHTML = '';
+
+        const zones = Object.entries(shipMapSystem.zones);
+        zones.forEach(([zoneKey, zone], index) => {
+            const tabItem = document.createElement('div');
+            tabItem.className = 'vertical-tab-item';
+            if (index === 0) tabItem.classList.add('active');
+            tabItem.dataset.zoneKey = zoneKey;
+
+            const emoji = document.createElement('div');
+            emoji.className = 'vertical-tab-emoji';
+            emoji.textContent = zone.icon || '🏠';
+
+            const label = document.createElement('div');
+            label.className = 'vertical-tab-label';
+            label.textContent = zone.name;
+
+            tabItem.appendChild(emoji);
+            tabItem.appendChild(label);
+
+            tabItem.addEventListener('click', () => {
+                this.switchShipTab(zoneKey);
+            });
+
+            sidebar.appendChild(tabItem);
+        });
+
+        // Mostrar la primera habitación
+        if (zones.length > 0) {
+            this.showShipRoom(zones[0][0]);
+        }
+    }
+
+    /**
+     * Cambia el tab de habitación activo
+     */
+    switchShipTab(zoneKey) {
+        // Actualizar tabs activos
+        document.querySelectorAll('#ship-tabs-sidebar .vertical-tab-item').forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.zoneKey === zoneKey) {
+                tab.classList.add('active');
+            }
+        });
+
+        // Mostrar información de la habitación
+        this.showShipRoom(zoneKey);
+    }
+
+    /**
+     * Muestra la información de una habitación
+     */
+    showShipRoom(zoneKey) {
+        const content = document.getElementById('ship-tabs-content');
+        if (!content || typeof shipMapSystem === 'undefined') return;
+
+        const zone = shipMapSystem.zones[zoneKey];
+        if (!zone) return;
+
+        const percentage = Math.round(zone.integrity);
+        let colorClass = 'good';
+        if (percentage < 20) colorClass = 'critical';
+        else if (percentage < 50) colorClass = 'warning';
+
+        let html = `
+            <div class="room-detail-view">
+                <div class="room-detail-header">
+                    <span class="room-detail-icon">${zone.icon}</span>
+                    <h2 class="room-detail-title">${zone.name}</h2>
+                </div>
+
+                <div class="room-detail-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Integridad:</span>
+                        <div class="stat-bar-container">
+                            <div class="stat-bar ${colorClass}" style="width: ${percentage}%"></div>
+                        </div>
+                        <span class="stat-value">${percentage}%</span>
+                    </div>
+
+                    ${zone.isBroken ? '<div class="room-alert">💥 AVERIADA - No funcional</div>' : ''}
+                    ${zone.beingRepaired ? '<div class="room-info">🔧 Siendo reparada</div>' : ''}
+                </div>
+
+                <div class="room-detail-description">
+                    <h3>Descripción</h3>
+                    <p>${this.getRoomDescription(zoneKey)}</p>
+                </div>
+
+                <div class="room-detail-crew">
+                    <h3>Tripulantes en esta zona</h3>
+                    <div class="crew-in-room">
+                        ${this.getCrewInZone(zoneKey)}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        content.innerHTML = html;
+    }
+
+    /**
+     * Obtiene la descripción de una habitación
+     */
+    getRoomDescription(zoneKey) {
+        const descriptions = {
+            bridge: 'Centro de comando de la nave. Aquí el capitán puede liderar a la tripulación.',
+            medbay: 'Enfermería donde el doctor puede sanar a los tripulantes heridos.',
+            quarters: 'Habitaciones donde la tripulación puede descansar y recuperar energía.',
+            engineering: 'Sala de máquinas. Si se daña, las reparaciones son más lentas.',
+            bathroom: 'Baño de la nave. Los tripulantes vienen aquí cuando lo necesitan.',
+            kitchen: 'Cocina donde el chef prepara raciones para la tripulación.',
+            greenhouse: 'Invernadero donde se cultivan plantas medicinales.'
+        };
+        return descriptions[zoneKey] || 'Habitación de la nave.';
+    }
+
+    /**
+     * Obtiene HTML de tripulantes en una zona
+     */
+    getCrewInZone(zoneKey) {
+        if (typeof shipMapSystem === 'undefined') return '<p>No hay tripulantes aquí</p>';
+
+        const crewInZone = [];
+        crewMembers.forEach(crew => {
+            const crewPos = shipMapSystem.crewLocations[crew.id];
+            if (crewPos) {
+                const cellType = shipMapSystem.grid[crewPos.row]?.[crewPos.col];
+                const crewZone = shipMapSystem.getCellTypeToZoneName(cellType, crewPos.row, crewPos.col);
+                if (crewZone === zoneKey) {
+                    crewInZone.push(crew);
+                }
+            }
+        });
+
+        if (crewInZone.length === 0) {
+            return '<p class="empty-crew">No hay tripulantes en esta zona</p>';
+        }
+
+        return crewInZone.map(crew => {
+            return `<div class="crew-mini-badge">${crew.emoji} ${crew.name}</div>`;
+        }).join('');
+    }
+
+    /**
+     * Actualiza la consola de logs
+     */
+    updateConsoleLogs() {
+        const container = document.getElementById('console-logs-container');
+        if (!container || typeof logbook === 'undefined') return;
+
+        // Limpiar y agregar logs (los nuevos aparecerán arriba por el flex-direction: column-reverse)
+        container.innerHTML = '';
+
+        const logs = logbook.logs || [];
+        logs.forEach(log => {
+            const logEntry = document.createElement('div');
+            logEntry.className = `console-log-entry log-${log.type.toLowerCase()}`;
+
+            const timestamp = document.createElement('span');
+            timestamp.className = 'console-log-timestamp';
+            timestamp.textContent = `[${log.time}]`;
+
+            const message = document.createElement('span');
+            message.textContent = log.text;
+
+            logEntry.appendChild(timestamp);
+            logEntry.appendChild(message);
+
+            container.appendChild(logEntry);
+        });
+    }
+
+    /**
+     * Mantener por compatibilidad (ya no se usa con nueva estructura)
      * Configura drag & drop entre columnas
      */
     setupDragAndDrop(awakeContainer, asleepContainer) {
@@ -540,6 +765,38 @@ class PanelManager {
 
 // Instancia global del Panel Manager
 const panelManager = new PanelManager();
+
+// ============================================
+// FUNCIONES GLOBALES PARA TABS PRINCIPALES
+// ============================================
+
+/**
+ * Cambia entre tabs principales (Consola, Tripulación, Nave)
+ */
+function switchMainTab(tabName) {
+    // Actualizar botones de tabs
+    document.querySelectorAll('.panel-main-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.tab === tabName) {
+            tab.classList.add('active');
+        }
+    });
+
+    // Actualizar contenido visible
+    document.querySelectorAll('.main-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    const targetContent = document.getElementById(`main-tab-content-${tabName}`);
+    if (targetContent) {
+        targetContent.classList.add('active');
+    }
+
+    // Si cambiamos a la consola, actualizarla
+    if (tabName === 'console' && panelManager) {
+        panelManager.updateConsoleLogs();
+    }
+}
 
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
