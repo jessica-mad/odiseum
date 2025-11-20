@@ -1361,32 +1361,45 @@ class ShipMapSystem {
             }
         }
 
-        // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR
+        // Si el baño no está ocupado, asignar al PRIMERO EN LLEGAR (solo si está físicamente en el baño)
         if (!bathroom.isOccupied && crewInBathroom.length > 0) {
-            // Ordenar por tick de llegada (FIFO)
-            const sortedByArrival = crewInBathroom.sort((a, b) => {
-                const timeA = bathroom.arrivalOrder[a.id] || 999999;
-                const timeB = bathroom.arrivalOrder[b.id] || 999999;
-                return timeA - timeB;
+            // FILTRAR: Solo tripulantes que YA ESTÁN FÍSICAMENTE en la zona del baño
+            const crewPhysicallyInBathroom = crewInBathroom.filter(crew => {
+                const pos = this.crewLocations[crew.id];
+                if (!pos) return false;
+                const cellType = this.grid[pos.row]?.[pos.col];
+                const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                return currentZone === bathroomKey;
             });
 
-            const nextUser = sortedByArrival[0];
-            bathroom.isOccupied = true;
-            bathroom.currentUser = nextUser.id;
-            nextUser.currentActivity = '🚽 Usando el baño';
+            // Solo asignar si hay alguien físicamente en el baño
+            if (crewPhysicallyInBathroom.length > 0) {
+                // Ordenar por tick de llegada (FIFO)
+                const sortedByArrival = crewPhysicallyInBathroom.sort((a, b) => {
+                    const timeA = bathroom.arrivalOrder[a.id] || 999999;
+                    const timeB = bathroom.arrivalOrder[b.id] || 999999;
+                    return timeA - timeB;
+                });
 
-            // Mover al usuario al baño específico
-            const bathroomTile = this.getRandomTileInZone(bathroomKey, nextUser.id);
-            if (bathroomTile) {
-                const currentPos = this.crewLocations[nextUser.id];
-                if (currentPos) {
-                    const path = this.findPath(currentPos, bathroomTile);
-                    if (path.length > 1) {
-                        this.crewPaths[nextUser.id] = path;
-                        this.animateCrewMovement(nextUser);
-                    } else {
-                        this.crewLocations[nextUser.id] = bathroomTile;
-                        this.createOrUpdateCrewMarker(nextUser, bathroomTile);
+                const nextUser = sortedByArrival[0];
+                bathroom.isOccupied = true;
+                bathroom.currentUser = nextUser.id;
+                nextUser.currentActivity = '🚽 Usando el baño';
+                console.log(`🚽 ${nextUser.name} comenzó a usar ${bathroom.name} (físicamente presente)`);
+
+                // Mover al usuario al baño específico (asegurar que esté en una tile del baño)
+                const bathroomTile = this.getRandomTileInZone(bathroomKey, nextUser.id);
+                if (bathroomTile) {
+                    const currentPos = this.crewLocations[nextUser.id];
+                    if (currentPos) {
+                        const path = this.findPath(currentPos, bathroomTile);
+                        if (path.length > 1) {
+                            this.crewPaths[nextUser.id] = path;
+                            this.animateCrewMovement(nextUser);
+                        } else {
+                            this.crewLocations[nextUser.id] = bathroomTile;
+                            this.createOrUpdateCrewMarker(nextUser, bathroomTile);
+                        }
                     }
                 }
             }
@@ -1401,7 +1414,19 @@ class ShipMapSystem {
         bathroom.queue.forEach(crewId => {
             const crew = crewMembers.find(c => c.id === crewId);
             if (crew) {
-                crew.currentActivity = `⏳ Esperando ${bathroom.name}`;
+                // Verificar si está físicamente en el baño o en camino
+                const pos = this.crewLocations[crew.id];
+                if (pos) {
+                    const cellType = this.grid[pos.row]?.[pos.col];
+                    const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                    if (currentZone === bathroomKey) {
+                        crew.currentActivity = `⏳ Esperando ${bathroom.name}`;
+                    } else {
+                        crew.currentActivity = `🚶 Yendo a ${bathroom.name}`;
+                    }
+                } else {
+                    crew.currentActivity = `🚶 Yendo a ${bathroom.name}`;
+                }
             }
         });
     }
