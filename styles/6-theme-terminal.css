@@ -1187,7 +1187,241 @@
 }
 
 .terminal-tab-content.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === LAYOUT VERTICAL PARA TRIPULACIÓN Y NAVE === */
+.terminal-vertical-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.terminal-vertical-tabs {
+    width: 140px;
+    background: var(--color-terminal-bg-light);
+    border-right: 2px solid var(--color-terminal-green-dark);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-vertical-tab {
+    padding: 14px 10px;
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-monaco);
+    font-size: 10px;
+    color: var(--color-terminal-green-dark);
+    background: transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.terminal-vertical-tab:hover {
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--color-terminal-green);
+}
+
+.terminal-vertical-tab.active {
+    background: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    border-left: 3px solid var(--color-terminal-green);
+    box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.2);
+}
+
+.terminal-vertical-tab-emoji {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.terminal-vertical-tab-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    word-break: break-word;
+}
+
+.terminal-vertical-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    background: var(--color-terminal-bg);
+}
+
+.terminal-empty-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-terminal-green-dark);
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+}
+
+/* Scrollbars para terminal */
+.terminal-vertical-tabs::-webkit-scrollbar,
+.terminal-vertical-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.terminal-vertical-tabs::-webkit-scrollbar-track,
+.terminal-vertical-content::-webkit-scrollbar-track {
+    background: var(--color-terminal-bg-light);
+}
+
+.terminal-vertical-tabs::-webkit-scrollbar-thumb,
+.terminal-vertical-content::-webkit-scrollbar-thumb {
+    background: var(--color-terminal-green-dark);
+    border-radius: 3px;
+}
+
+.terminal-vertical-tabs::-webkit-scrollbar-thumb:hover,
+.terminal-vertical-content::-webkit-scrollbar-thumb:hover {
+    background: var(--color-terminal-green);
+}
+
+/* === VISTA DE HABITACIÓN EN TERMINAL === */
+.terminal-room-view {
+    font-family: var(--font-monaco);
+    color: var(--color-terminal-green);
+}
+
+.terminal-room-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--color-terminal-green-dark);
+}
+
+.terminal-room-icon {
+    font-size: 36px;
+    line-height: 1;
+}
+
+.terminal-room-title {
+    font-size: 16px;
+    color: var(--color-terminal-green);
+    margin: 0;
+    letter-spacing: 1.5px;
+}
+
+.terminal-room-stats {
+    background: var(--color-terminal-bg-light);
+    padding: 12px;
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
+    margin-bottom: 16px;
+}
+
+.terminal-room-actions {
+    margin-bottom: 20px;
+}
+
+.terminal-room-actions h3 {
+    font-size: 13px;
+    color: var(--color-terminal-green);
+    margin: 0 0 12px 0;
+    letter-spacing: 1px;
+}
+
+.room-action-panel {
+    background: var(--color-terminal-bg-light);
+    padding: 12px;
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
+}
+
+.room-action-panel h4 {
+    font-size: 12px;
+    color: var(--color-terminal-green);
+    margin: 0 0 8px 0;
+}
+
+.action-status {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: var(--color-terminal-green);
+}
+
+.action-info {
+    font-size: 11px;
+    color: var(--color-terminal-green-dark);
+    margin: 0;
+    font-style: italic;
+}
+
+.room-action-btn {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--color-terminal-bg);
+    border: 2px solid var(--color-terminal-green);
+    color: var(--color-terminal-green);
+    font-family: var(--font-monaco);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-bottom: 8px;
+    border-radius: 3px;
+}
+
+.room-action-btn:hover:not(.disabled) {
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.room-action-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: var(--color-terminal-green-dark);
+    color: var(--color-terminal-green-dark);
+}
+
+.room-action-btn:last-child {
+    margin-bottom: 0;
+}
+
+.terminal-room-crew {
+    margin-bottom: 16px;
+}
+
+.terminal-room-crew h3 {
+    font-size: 13px;
+    color: var(--color-terminal-green);
+    margin: 0 0 12px 0;
+    letter-spacing: 1px;
+}
+
+.crew-in-room {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.crew-mini-badge {
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    padding: 6px 10px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--color-terminal-green);
+}
+
+.empty-crew {
+    font-size: 11px;
+    color: var(--color-terminal-green-dark);
+    font-style: italic;
+    margin: 0;
 }
 
 /* === FICHAS DE TRIPULANTES EN TERMINAL === */

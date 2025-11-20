@@ -91,7 +91,18 @@ function switchTerminalTab(tabName) {
     // También activar para móvil
     const selectedContentMobile = document.getElementById(`terminal-content-${tabName}-mobile`);
 
-    // LAZY LOADING: Cargar contenido solo la primera vez
+    // LAZY LOADING para los nuevos tabs principales
+    if (tabName === 'crew' && selectedContent && !selectedContent.dataset.loaded) {
+        populateTerminalCrewTab();
+        selectedContent.dataset.loaded = 'true';
+    }
+
+    if (tabName === 'ship' && selectedContent && !selectedContent.dataset.loaded) {
+        populateTerminalShipTab();
+        selectedContent.dataset.loaded = 'true';
+    }
+
+    // LAZY LOADING: Cargar contenido de fichas individuales (compatibilidad con tabs antiguos)
     if (selectedContent && selectedContent.dataset.loaded === 'false') {
         const crewId = parseInt(selectedContent.dataset.crewId);
         const crew = crewMembers.find(c => c.id === crewId);
@@ -115,7 +126,7 @@ function switchTerminalTab(tabName) {
     if (selectedTab) selectedTab.classList.add('active');
 
     // Activar el botón móvil correspondiente
-    if (tabName !== 'console') {
+    if (tabName !== 'console' && tabName !== 'crew' && tabName !== 'ship') {
         const crewId = tabName.replace('crew-', '');
         const mobileTabBtn = document.querySelector(`.mobile-terminal-tab[data-crew-tab="${crewId}"]`);
         if (mobileTabBtn) mobileTabBtn.classList.add('active');
@@ -1005,6 +1016,310 @@ function chefHarvestFood(crewId) {
         console.log(`🌱 ${crew.name} cosechó alimentos del invernadero`);
         crew.addToPersonalLog('Cosech\u00e9 alimentos del invernadero');
     }
+}
+
+/* === POBLAR TAB DE TRIPULACIÓN (TABS VERTICALES) === */
+function populateTerminalCrewTab() {
+    const sidebar = document.getElementById('terminal-crew-tabs');
+    const content = document.getElementById('terminal-crew-content');
+
+    if (!sidebar || !content) return;
+
+    sidebar.innerHTML = '';
+
+    crewMembers.forEach((crew, index) => {
+        const tabItem = document.createElement('div');
+        tabItem.className = 'terminal-vertical-tab';
+        if (index === 0) tabItem.classList.add('active');
+        tabItem.dataset.crewId = crew.id;
+
+        const emoji = document.createElement('div');
+        emoji.className = 'terminal-vertical-tab-emoji';
+        emoji.textContent = crew.emoji || '👤';
+
+        const label = document.createElement('div');
+        label.className = 'terminal-vertical-tab-label';
+        label.textContent = crew.name;
+
+        tabItem.appendChild(emoji);
+        tabItem.appendChild(label);
+
+        tabItem.addEventListener('click', () => {
+            switchTerminalCrewVerticalTab(crew.id);
+        });
+
+        sidebar.appendChild(tabItem);
+    });
+
+    // Mostrar la ficha del primer tripulante
+    if (crewMembers.length > 0) {
+        showTerminalCrewProfile(crewMembers[0].id);
+    }
+}
+
+function switchTerminalCrewVerticalTab(crewId) {
+    // Actualizar tabs activos
+    document.querySelectorAll('#terminal-crew-tabs .terminal-vertical-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (parseInt(tab.dataset.crewId) === parseInt(crewId)) {
+            tab.classList.add('active');
+        }
+    });
+
+    // Mostrar ficha del tripulante
+    showTerminalCrewProfile(crewId);
+}
+
+function showTerminalCrewProfile(crewId) {
+    const content = document.getElementById('terminal-crew-content');
+    if (!content) return;
+
+    const crew = crewMembers.find(c => c.id === parseInt(crewId));
+    if (!crew) return;
+
+    // Usar la función existente createFullCrewProfile
+    const profileHTML = createFullCrewProfile(crew);
+    content.innerHTML = '';
+    content.appendChild(profileHTML);
+}
+
+/* === POBLAR TAB DE NAVE (TABS VERTICALES CON ACCIONES) === */
+function populateTerminalShipTab() {
+    const sidebar = document.getElementById('terminal-ship-tabs');
+    const content = document.getElementById('terminal-ship-content');
+
+    if (!sidebar || !content || typeof shipMapSystem === 'undefined') return;
+
+    sidebar.innerHTML = '';
+
+    const zones = Object.entries(shipMapSystem.zones);
+    zones.forEach(([zoneKey, zone], index) => {
+        const tabItem = document.createElement('div');
+        tabItem.className = 'terminal-vertical-tab';
+        if (index === 0) tabItem.classList.add('active');
+        tabItem.dataset.zoneKey = zoneKey;
+
+        const emoji = document.createElement('div');
+        emoji.className = 'terminal-vertical-tab-emoji';
+        emoji.textContent = zone.icon || '🏠';
+
+        const label = document.createElement('div');
+        label.className = 'terminal-vertical-tab-label';
+        label.textContent = zone.name;
+
+        tabItem.appendChild(emoji);
+        tabItem.appendChild(label);
+
+        tabItem.addEventListener('click', () => {
+            switchTerminalShipVerticalTab(zoneKey);
+        });
+
+        sidebar.appendChild(tabItem);
+    });
+
+    // Mostrar la primera habitación
+    if (zones.length > 0) {
+        showTerminalShipRoom(zones[0][0]);
+    }
+}
+
+function switchTerminalShipVerticalTab(zoneKey) {
+    // Actualizar tabs activos
+    document.querySelectorAll('#terminal-ship-tabs .terminal-vertical-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.zoneKey === zoneKey) {
+            tab.classList.add('active');
+        }
+    });
+
+    // Mostrar información de la habitación
+    showTerminalShipRoom(zoneKey);
+}
+
+function showTerminalShipRoom(zoneKey) {
+    const content = document.getElementById('terminal-ship-content');
+    if (!content || typeof shipMapSystem === 'undefined') return;
+
+    const zone = shipMapSystem.zones[zoneKey];
+    if (!zone) return;
+
+    const percentage = Math.round(zone.integrity);
+    let colorClass = 'good';
+    if (percentage < 20) colorClass = 'critical';
+    else if (percentage < 50) colorClass = 'warning';
+
+    // Crear contenido con acciones específicas según la habitación
+    let actionsHTML = getRoomActionsHTML(zoneKey, zone);
+
+    let html = `
+        <div class="terminal-room-view">
+            <div class="terminal-room-header">
+                <span class="terminal-room-icon">${zone.icon}</span>
+                <h2 class="terminal-room-title">${zone.name}</h2>
+            </div>
+
+            <div class="terminal-room-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Integridad:</span>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar ${colorClass}" style="width: ${percentage}%"></div>
+                    </div>
+                    <span class="stat-value">${percentage}%</span>
+                </div>
+                ${zone.isBroken ? '<div class="room-alert">💥 AVERIADA - No funcional</div>' : ''}
+                ${zone.beingRepaired ? '<div class="room-info">🔧 Siendo reparada</div>' : ''}
+            </div>
+
+            ${actionsHTML}
+
+            <div class="terminal-room-crew">
+                <h3>Tripulantes en esta zona</h3>
+                <div class="crew-in-room">
+                    ${getCrewInZoneHTML(zoneKey)}
+                </div>
+            </div>
+        </div>
+    `;
+
+    content.innerHTML = html;
+}
+
+function getRoomActionsHTML(zoneKey, zone) {
+    let html = '<div class="terminal-room-actions"><h3>Acciones disponibles</h3>';
+
+    // Acciones específicas por tipo de habitación
+    switch(zoneKey) {
+        case 'kitchen':
+            html += getKitchenActionsHTML(zone);
+            break;
+        case 'medbay':
+            html += getMedbayActionsHTML(zone);
+            break;
+        case 'greenhouse':
+            html += getGreenhouseActionsHTML(zone);
+            break;
+        case 'bridge':
+            html += getBridgeActionsHTML(zone);
+            break;
+        default:
+            html += '<p class="action-info">No hay acciones especiales disponibles</p>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+function getKitchenActionsHTML(zone) {
+    const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
+    const rations = zone.rations || 0;
+    const maxRations = zone.maxRations || 20;
+    const cooldown = zone.cookCooldown || 0;
+    const canCook = chef && !zone.isBroken && cooldown === 0;
+
+    return `
+        <div class="room-action-panel">
+            <div class="action-status">
+                <span>🍽️ Raciones: ${rations}/${maxRations}</span>
+                ${cooldown > 0 ? `<span>⏳ Cooldown: ${cooldown} ticks</span>` : ''}
+            </div>
+            <button class="room-action-btn ${!canCook ? 'disabled' : ''}"
+                    onclick="${canCook ? `chefCook('${chef.id}')` : ''}"
+                    ${!canCook ? 'disabled' : ''}>
+                🍳 Cocinar ${chef ? `(${chef.name})` : '(Chef necesario)'}
+            </button>
+        </div>
+    `;
+}
+
+function getMedbayActionsHTML(zone) {
+    const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
+    const injuredCrew = crewMembers.filter(c => c.isAlive && c.healthNeed < 80);
+
+    let html = '<div class="room-action-panel">';
+
+    if (injuredCrew.length === 0) {
+        html += '<p class="action-info">✅ Toda la tripulación está sana</p>';
+    } else if (doctor) {
+        html += '<h4>Tripulantes heridos:</h4>';
+        injuredCrew.forEach(crew => {
+            html += `
+                <button class="room-action-btn ${zone.isBroken ? 'disabled' : ''}"
+                        onclick="${!zone.isBroken ? `doctorHeal('${doctor.id}', '${crew.id}')` : ''}"
+                        ${zone.isBroken ? 'disabled' : ''}>
+                    ❤️ Curar a ${crew.name} (${Math.round(crew.healthNeed)}%)
+                </button>
+            `;
+        });
+    } else {
+        html += '<p class="action-info">⚠️ Doctor necesario para curar</p>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+function getGreenhouseActionsHTML(zone) {
+    const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
+    const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
+    const cooldownPercent = zone.cooldownProgress || 0;
+    const isReady = zone.isReady && cooldownPercent >= 100;
+
+    return `
+        <div class="room-action-panel">
+            <div class="action-status">
+                <span>Estado: ${isReady ? '✅ Listo' : `⏳ ${Math.round(cooldownPercent)}%`}</span>
+            </div>
+            <button class="room-action-btn ${!isReady || !chef || zone.isBroken ? 'disabled' : ''}"
+                    onclick="${isReady && chef && !zone.isBroken ? `chefHarvestFood('${chef.id}')` : ''}"
+                    ${!isReady || !chef || zone.isBroken ? 'disabled' : ''}>
+                🍕 Cosechar Alimentos ${chef ? `(${chef.name})` : '(Chef necesario)'}
+            </button>
+            <button class="room-action-btn ${!isReady || !doctor || zone.isBroken ? 'disabled' : ''}"
+                    onclick="${isReady && doctor && !zone.isBroken ? `doctorHarvestMedicine('${doctor.id}')` : ''}"
+                    ${!isReady || !doctor || zone.isBroken ? 'disabled' : ''}>
+                ❤️ Cosechar Medicina ${doctor ? `(${doctor.name})` : '(Doctor necesario)'}
+            </button>
+        </div>
+    `;
+}
+
+function getBridgeActionsHTML(zone) {
+    const captain = crewMembers.find(c => c.role === 'captain' && c.isAlive && c.state === 'Despierto');
+
+    return `
+        <div class="room-action-panel">
+            <p class="action-info">Centro de comando de la nave</p>
+            <button class="room-action-btn ${!captain || zone.isBroken ? 'disabled' : ''}"
+                    onclick="${captain && !zone.isBroken ? `sendCrewToBridge('${captain.id}')` : ''}"
+                    ${!captain || zone.isBroken ? 'disabled' : ''}>
+                🎮 Ir a Control ${captain ? `(${captain.name})` : '(Capitán necesario)'}
+            </button>
+        </div>
+    `;
+}
+
+function getCrewInZoneHTML(zoneKey) {
+    if (typeof shipMapSystem === 'undefined') return '<p class="empty-crew">No hay tripulantes aquí</p>';
+
+    const crewInZone = [];
+    crewMembers.forEach(crew => {
+        const crewPos = shipMapSystem.crewLocations[crew.id];
+        if (crewPos) {
+            const cellType = shipMapSystem.grid[crewPos.row]?.[crewPos.col];
+            const crewZone = shipMapSystem.getCellTypeToZoneName(cellType, crewPos.row, crewPos.col);
+            if (crewZone === zoneKey) {
+                crewInZone.push(crew);
+            }
+        }
+    });
+
+    if (crewInZone.length === 0) {
+        return '<p class="empty-crew">No hay tripulantes en esta zona</p>';
+    }
+
+    return crewInZone.map(crew => {
+        return `<div class="crew-mini-badge">${crew.emoji} ${crew.name}</div>`;
+    }).join('');
 }
 
 /* === INICIALIZACIÓN === */
