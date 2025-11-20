@@ -7,27 +7,32 @@ const ROLE_CONFIG = {
     captain: {
         emoji: '👨‍✈️',
         label: 'CPT',
-        name: 'Capitán/a'
+        name: 'Capitán/a',
+        purpose: 'Líder de la tripulación. Coordina operaciones y toma decisiones estratégicas.'
     },
     doctor: {
         emoji: '👩‍⚕️',
         label: 'MED',
-        name: 'Doctor/a'
+        name: 'Doctor/a',
+        purpose: 'Responsable de la salud de la tripulación. Investiga y produce medicina.'
     },
     engineer: {
         emoji: '👨‍🔧',
         label: 'ENG',
-        name: 'Ingeniero/a'
+        name: 'Ingeniero/a',
+        purpose: 'Mantiene la integridad de la nave. Repara sistemas dañados.'
     },
     navigator: {
         emoji: '👨‍🚀',
         label: 'NAV',
-        name: 'Navegante'
+        name: 'Navegante',
+        purpose: 'Experto en navegación espacial. Puede acelerar la nave con PUSH.'
     },
     cook: {
         emoji: '👨‍🍳',
         label: 'CHEF',
-        name: 'Chef'
+        name: 'Chef',
+        purpose: 'Gestiona los recursos alimenticios. Prepara comida y cosecha del invernadero.'
     }
 };
 

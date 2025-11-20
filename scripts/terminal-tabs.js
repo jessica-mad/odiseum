@@ -141,55 +141,66 @@ function createFullCrewProfile(crew) {
     }
 
     // Información básica
-    const roleLabel = crew.getRoleLabel ? crew.getRoleLabel() : '👤';
+    const roleConfig = ROLE_CONFIG[crew.role] || {};
+    const emoji = roleConfig.emoji || '👤';
+    const roleName = roleConfig.label || crew.role.toUpperCase();
     const age = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
     const location = crew.getCurrentLocation ? crew.getCurrentLocation() : 'Nave';
     const activity = crew.currentActivity || 'Sin actividad';
-    const thought = crew.getCurrentThought ? crew.getCurrentThought() : '💭 ...';
+    const purpose = roleConfig.purpose || 'Miembro de la tripulación';
 
-    // Generar HTML del perfil reorganizado
+    // Generar HTML del perfil reorganizado según nuevo diseño
     container.innerHTML = `
-        <!-- HEADER: Emoji, Rol, Nombre, Edad, Pensamiento (marquesina), Estado -->
+        <!-- HEADER: Emoji + ROL {Nombre} - XXaños -->
         <div class="crew-compact-header">
-            <span class="crew-compact-name">${roleLabel} ${crew.name} (${age}a)</span>
+            <span class="crew-compact-emoji">${emoji}</span>
+            <span class="crew-compact-name">${roleName} {${crew.name}} - ${age} años</span>
             <span class="crew-compact-status" data-crew-status>${statusIcon}</span>
         </div>
 
-        <!-- PENSAMIENTO: texto completo con marquesina -->
-        <div class="crew-compact-thought" data-crew-thought>
-            ${thought}
+        <div class="crew-section-divider"></div>
+
+        <!-- PROPÓSITO DEL TRIPULANTE -->
+        <div class="crew-purpose-section">
+            <span class="crew-purpose-text">{Propósito del tripulante}</span>
+            <p class="crew-purpose-description">${purpose}</p>
         </div>
 
         <div class="crew-section-divider"></div>
 
-        <!-- ACTIVIDAD Y LOCALIZACIÓN -->
-        <div class="crew-activity-location" data-crew-info>
-            <div class="activity-item">⚙️ ${activity}</div>
-            <div class="location-item">📍 ${location}</div>
+        <!-- HABILIDADES: Actividad actual -->
+        <div class="crew-skills-section">
+            <h3 class="section-title">HABILIDADES</h3>
+            <div class="crew-current-activity" data-crew-activity>
+                <span class="activity-label">{Actividad} en {Ubicación}</span>
+                <p class="activity-value">⚙️ ${activity} en 📍 ${location}</p>
+            </div>
         </div>
 
         <div class="crew-section-divider"></div>
 
-        <!-- GESTOR DE TAREAS Y ACCIONES (2 COLUMNAS EN DESKTOP) -->
+        <!-- DOS COLUMNAS: NECESIDADES Y ACCIONES DE ROL -->
         <div class="crew-task-grid">
-            <!-- COLUMNA 1: Tareas de supervivencia + Necesidades -->
+            <!-- COLUMNA 1: NECESIDADES -->
             <div class="task-grid-column">
-                <h3 class="task-column-title">📋 Tareas de Supervivencia</h3>
-                ${createSurvivalTasksSection(crew)}
-                ${crew.isAlive ? createCompactCrewNeeds(crew) : ''}
+                <h3 class="task-column-title">NECESIDADES</h3>
+                ${crew.isAlive ? createCompactCrewNeeds(crew) : '<div class="crew-dead-message">Tripulante fallecido</div>'}
             </div>
 
-            <!-- COLUMNA 2: Acciones del rol -->
+            <!-- COLUMNA 2: ACCIONES DE ROL -->
             <div class="task-grid-column">
-                <h3 class="task-column-title">⚡ Acciones de Rol</h3>
+                <h3 class="task-column-title">ACCIONES DE ROL</h3>
                 ${createRoleActionsSection(crew)}
             </div>
         </div>
 
         <div class="crew-section-divider"></div>
 
-        <!-- LOG PERSONAL -->
-        ${createCrewPersonalLog(crew)}
+        <!-- ENTRADAS: Log personal -->
+        <div class="crew-entries-section">
+            <h3 class="section-title">ENTRADAS</h3>
+            ${createCrewPersonalLog(crew)}
+        </div>
     `;
 
     return container;
@@ -569,13 +580,9 @@ function updateCrewProfileSelective(container, crew) {
     const statusEl = container.querySelector('[data-crew-status]');
     if (statusEl) statusEl.textContent = statusIcon;
 
-    // Actualizar info
-    const infoEl = container.querySelector('[data-crew-info]');
-    if (infoEl) infoEl.textContent = `${roleLabel} ! ${crew.initialAge}a ! ${age}a ! ${activity} ! 📍 ${location}`;
-
-    // Actualizar pensamiento
-    const thoughtEl = container.querySelector('[data-crew-thought]');
-    if (thoughtEl) thoughtEl.textContent = thought;
+    // Actualizar actividad
+    const activityEl = container.querySelector('[data-crew-activity] .activity-value');
+    if (activityEl) activityEl.textContent = `⚙️ ${activity} en 📍 ${location}`;
 
     // Actualizar barras de necesidades (solo si está vivo)
     if (crew.isAlive) {
