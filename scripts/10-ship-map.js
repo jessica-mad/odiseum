@@ -72,7 +72,17 @@ class ShipMapSystem {
             kitchen: {
                 name: 'Cocina', icon: '🍳', tiles: this.findTiles('k'), color: '#ff8844',
                 integrity: 100, maxIntegrity: 100, degradationRate: 3.6, isBroken: false,
-                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                // Sistema de raciones
+                rations: 0, // Raciones preparadas disponibles
+                maxRations: 20, // Máximo de raciones que puede almacenar
+                cookCooldown: 0, // Cooldown actual en ticks
+                cookCooldownDuration: 5, // 5 ticks de cooldown entre cocciones
+                chefCookCost: 20, // Coste de Food cuando cocina el chef
+                chefRationsCreated: 6, // Raciones creadas cuando cocina el chef
+                selfCookCost: 12, // Coste de Food cuando tripulante cocina solo
+                selfRationsCreated: 1, // Raciones creadas cuando cocina individualmente
+                eatingQueue: [] // Cola de tripulantes esperando comer
             },
             greenhouse: {
                 name: 'Invernadero', icon: '🌱', tiles: this.findTiles('n'), color: '#44ff44',
@@ -283,8 +293,45 @@ class ShipMapSystem {
                 crewActivityHTML = 'Sin tripulantes';
             }
 
+            // COCINA: diseño especial con raciones
+            if (zoneKey === 'kitchen') {
+                const rations = zone.rations || 0;
+                const maxRations = zone.maxRations || 20;
+                const rationsPercent = (rations / maxRations) * 100;
+                const cooldown = zone.cookCooldown || 0;
+
+                // Determinar color de las raciones
+                let rationsClass = 'good';
+                if (rationsPercent < 20) rationsClass = 'critical';
+                else if (rationsPercent < 50) rationsClass = 'warning';
+
+                html += `
+                    <div class="room-card-compact ${zone.isBroken ? 'broken' : ''}" data-zone="${zoneKey}">
+                        <div class="room-card-header">
+                            <span>${zone.icon} ${zone.name}</span>
+                        </div>
+                        <div class="room-card-status">
+                            <div class="room-status-row">
+                                <div class="kitchen-rations-display" title="Raciones disponibles">
+                                    🍽️ ${rations}/${maxRations}
+                                </div>
+                                <div class="room-status-bar-inline">
+                                    <div class="room-status-fill ${statusClass}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="room-percentage">${percentage}%</span>
+                            </div>
+                            ${cooldown > 0 ? `<div class="kitchen-cooldown-mini">⏳ Cooldown: ${cooldown} ticks</div>` : '<div class="kitchen-cooldown-mini">✅ Listo para cocinar</div>'}
+                        </div>
+                        <div class="room-card-crew">
+                            ${crewActivityHTML}
+                        </div>
+                        ${zone.isBroken ? '<div class="room-card-alert">⚠️ AVERIADA - No se puede cocinar</div>' : ''}
+                        ${engineerAvailable && percentage < 100 ? (zone.beingRepaired ? '<div class="room-card-alert repairing" onclick="shipMapSystem.startRepair(\''+zoneKey+'\')">❌ Cancelar</div>' : '<div class="room-card-alert repair" onclick="shipMapSystem.startRepair(\''+zoneKey+'\')">⚙️ Reparar</div>') : ''}
+                    </div>
+                `;
+            }
             // INVERNADERO: diseño especial
-            if (zoneKey === 'greenhouse') {
+            else if (zoneKey === 'greenhouse') {
                 const cooldownPercent = zone.cooldownProgress || 0;
                 const isReady = zone.isReady || cooldownPercent >= 100;
 
@@ -1757,6 +1804,109 @@ class ShipMapSystem {
 
         medbay.isOccupied = false;
         medbay.currentPatient = null;
+    }
+
+    /**
+     * Sistema de cocina - Los tripulantes deben ir a la cocina para comer
+     * Pueden consumir raciones preparadas o cocinar individualmente
+     */
+    processKitchenQueue() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
+        const kitchen = this.zones.kitchen;
+        if (!kitchen) return;
+
+        // Verificar si la cocina está averiada
+        if (kitchen.isBroken) {
+            console.warn('🍳 Cocina averiada - No se puede cocinar ni comer');
+            return;
+        }
+
+        // Actualizar cooldown de cocina
+        if (kitchen.cookCooldown > 0) {
+            kitchen.cookCooldown--;
+        }
+
+        // Encontrar al chef
+        const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
+
+        // Verificar si el chef está físicamente en la cocina
+        kitchen.chefPresent = false;
+        if (chef) {
+            const chefPos = this.crewLocations[chef.id];
+            if (chefPos) {
+                const cellType = this.grid[chefPos.row]?.[chefPos.col];
+                const chefZone = this.getCellTypeToZoneName(cellType, chefPos.row, chefPos.col);
+                kitchen.chefPresent = (chefZone === 'kitchen');
+            }
+        }
+
+        // Encontrar tripulantes con hambre en la cocina
+        const hungryCrewInKitchen = crewMembers.filter(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto') return false;
+            if (crew.foodNeed >= 70) return false; // No tiene tanta hambre
+
+            // Verificar que está físicamente en la cocina
+            const pos = this.crewLocations[crew.id];
+            if (!pos) return false;
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === 'kitchen';
+        });
+
+        // Procesar cada tripulante hambriento en la cocina
+        hungryCrewInKitchen.forEach(crew => {
+            // Si hay raciones disponibles, consumir una
+            if (kitchen.rations > 0) {
+                // Consumir ración
+                kitchen.rations--;
+                crew.foodNeed = Math.min(100, crew.foodNeed + 35); // Las raciones dan +35 foodNeed
+                crew.currentActivity = 'eating';
+                crew.addToPersonalLog(`Comí una ración preparada en la cocina`);
+                console.log(`🍽️ ${crew.name} consumió una ración. Raciones restantes: ${kitchen.rations}`);
+
+            } else {
+                // No hay raciones, intentar cocinar individualmente
+                if (kitchen.cookCooldown === 0 && typeof Food !== 'undefined') {
+                    // Verificar si hay suficiente Food
+                    const cookCost = kitchen.selfCookCost; // Más caro sin chef
+
+                    if (Food.quantity >= cookCost) {
+                        // Cocinar individualmente
+                        Food.consume(cookCost);
+                        const rationsCreated = kitchen.selfRationsCreated; // Solo 1 ración
+                        kitchen.rations = Math.min(kitchen.maxRations, kitchen.rations + rationsCreated);
+                        kitchen.cookCooldown = kitchen.cookCooldownDuration;
+
+                        crew.currentActivity = 'cooking';
+                        crew.addToPersonalLog(`Cociné mi propia comida (${cookCost} Food → ${rationsCreated} ración)`);
+                        console.log(`🍳 ${crew.name} cocinó individualmente: ${cookCost} Food → ${rationsCreated} ración`);
+
+                        // Consumir la ración que acabó de crear
+                        if (kitchen.rations > 0) {
+                            kitchen.rations--;
+                            crew.foodNeed = Math.min(100, crew.foodNeed + 30); // Menos eficiente
+                            console.log(`🍽️ ${crew.name} comió la ración que preparó`);
+                        }
+                    } else {
+                        crew.currentActivity = '⚠️ Sin alimentos para cocinar';
+                        console.warn(`⚠️ ${crew.name} no puede cocinar: Food insuficiente (${Food.quantity}/${cookCost})`);
+                    }
+                } else if (kitchen.cookCooldown > 0) {
+                    crew.currentActivity = '⏳ Esperando poder cocinar';
+                } else {
+                    crew.currentActivity = '⚠️ Sin recursos ni raciones';
+                }
+            }
+        });
+
+        // Actualizar UI de recursos
+        if (typeof Food !== 'undefined') {
+            Food.updateResourceUI();
+        }
     }
 
     /**

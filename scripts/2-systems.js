@@ -545,6 +545,11 @@ class GameLoop {
             shipMapSystem.processMedbayQueue();
         }
 
+        // Procesar cola de la cocina (FIFO) - Cada 500ms para comer más rápido
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processKitchenQueue();
+        }
+
         // Procesar recolección del invernadero - Cada 500ms para detectar cuando llegan
         if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
             shipMapSystem.processGreenhouseHarvest();

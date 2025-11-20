@@ -368,24 +368,9 @@ class Crew {
         // Solo los despiertos pueden auto-gestionar (no los descansando)
         if (this.state !== CREW_STATES.AWAKE) return;
 
-        // Auto-gestionar comida
-        if (this.foodNeed < AUTO_MANAGE_CONFIG.food.threshold && Food.quantity >= AUTO_MANAGE_CONFIG.food.cost) {
-            // Calcular cuánto realmente necesita para llegar a 100
-            const needed = 100 - this.foodNeed;
-            const baseRecovery = AUTO_MANAGE_CONFIG.food.recovery * efficiencyMultiplier;
-            const actualRecovery = Math.min(needed, baseRecovery);
-
-            // Consumir recursos proporcionalmente (regla de 3)
-            const resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.food.cost);
-            const resourcesToUse = Math.min(resourcesNeeded, Food.quantity);
-
-            if (resourcesToUse > 0) {
-                Food.consume(resourcesToUse);
-                this.foodNeed = Math.min(100, this.foodNeed + actualRecovery);
-                autoManageActions.push('comió');
-                this.currentActivity = 'eating';
-            }
-        }
+        // ALIMENTACIÓN YA NO SE AUTO-GESTIONA - Los tripulantes deben ir a la cocina
+        // La gestión de comida ahora se realiza en el sistema de cocina (shipMapSystem.processKitchenQueue)
+        // Deben consumir raciones preparadas o cocinar individualmente
 
         // SALUD YA NO SE AUTO-GESTIONA - Los tripulantes deben ir a la enfermería
         // La gestión de salud ahora se realiza en el sistema de enfermería (shipMapSystem.processMedbayQueue)

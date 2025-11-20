@@ -505,6 +505,37 @@
     text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
 }
 
+/* === COCINA - RACIONES === */
+.kitchen-rations-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
+    font-family: var(--font-monaco);
+    font-size: 11px;
+    color: var(--color-terminal-green);
+    font-weight: bold;
+    white-space: nowrap;
+    margin-right: 6px;
+}
+
+.kitchen-cooldown-mini {
+    display: flex;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: var(--color-terminal-bg-light);
+    border: 1px solid var(--color-terminal-green-dark);
+    border-radius: 3px;
+    font-family: var(--font-monaco);
+    font-size: 9px;
+    color: var(--color-terminal-green);
+    text-align: center;
+    justify-content: center;
+}
+
 /* === CELDAS DE LA GRILLA === */
 .grid-cell {
     position: relative;

@@ -909,24 +909,51 @@ function chefCook(crewId) {
             const currentZone = shipMapSystem.getCellTypeToZoneName(cellType, pos.row, pos.col);
 
             if (currentZone === 'kitchen') {
+                const kitchen = shipMapSystem.zones.kitchen;
+
+                // Verificar si la cocina está averiada
+                if (kitchen.isBroken) {
+                    new Notification('La cocina está averiada. No se puede cocinar', 'ALERT');
+                    return;
+                }
+
+                // Verificar cooldown de la cocina
+                if (kitchen.cookCooldown > 0) {
+                    new Notification(`Cocina en cooldown: ${kitchen.cookCooldown} ticks restantes`, 'ALERT');
+                    return;
+                }
+
+                // Calcular coste según bonificación del chef
+                let cookCost = kitchen.chefCookCost; // Base: 20 Food
+                let rationsCreated = kitchen.chefRationsCreated; // Base: 6 raciones
+
+                // Aplicar bonificaciones del chef si está despierto
+                if (crew.configStats && crew.configStats.foodConsumption) {
+                    cookCost = Math.ceil(cookCost * crew.configStats.foodConsumption);
+                    // Chef eficiente crea más raciones
+                    if (crew.configStats.foodConsumption < 1.0) {
+                        rationsCreated = Math.ceil(rationsCreated * 1.2); // +20% más raciones
+                    }
+                }
+
                 // Verificar si hay suficiente comida en recursos
-                if (typeof Food !== 'undefined' && Food.quantity >= 20) {
-                    Food.consume(20);
+                if (typeof Food !== 'undefined' && Food.quantity >= cookCost) {
+                    Food.consume(cookCost);
 
-                    // Crear raciones (por ahora, mantener la comida en recursos)
-                    // TODO: Crear sistema de raciones en la cocina
-                    const portionsCreated = 5;
-                    Food.add(portionsCreated);
+                    // Crear raciones en la cocina
+                    kitchen.rations = Math.min(kitchen.maxRations, kitchen.rations + rationsCreated);
+                    kitchen.cookCooldown = kitchen.cookCooldownDuration;
 
-                    console.log(`🍳 ${crew.name} cocinó ${portionsCreated} raciones`);
-                    crew.addToPersonalLog(`Cociné ${portionsCreated} raciones de alimento`);
-                    new Notification(`${crew.name} cocinó ${portionsCreated} raciones`, 'SUCCESS');
+                    console.log(`🍳 ${crew.name} cocinó ${rationsCreated} raciones (${cookCost} Food). Total: ${kitchen.rations}/${kitchen.maxRations}`);
+                    crew.addToPersonalLog(`Cociné ${rationsCreated} raciones (${cookCost} Food)`);
+                    new Notification(`${crew.name} cocinó ${rationsCreated} raciones. Disponibles: ${kitchen.rations}`, 'SUCCESS');
 
-                    // Establecer cooldown
+                    // Establecer cooldown personal del chef
                     crew.actionCooldowns.cook = ROLE_ACTION_COOLDOWNS.cook;
                     updateActiveProfiles(); // Actualizar UI
+                    Food.updateResourceUI();
                 } else {
-                    new Notification('No hay suficiente comida para cocinar (mínimo 20)', 'ALERT');
+                    new Notification(`No hay suficiente comida para cocinar (mínimo ${cookCost})`, 'ALERT');
                 }
             } else {
                 console.warn('El chef debe estar en la cocina para cocinar');
