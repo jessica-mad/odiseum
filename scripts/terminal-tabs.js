@@ -144,50 +144,57 @@ function createFullCrewProfile(crew) {
     const roleConfig = ROLE_CONFIG[crew.role] || {};
     const emoji = roleConfig.emoji || '👤';
     const roleName = roleConfig.label || crew.role.toUpperCase();
-    const age = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
+    const initialAge = crew.initialAge;
+    const yearsAwake = crew.yearsAwake ? crew.yearsAwake.toFixed(1) : '0.0';
+    const biologicalAge = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
     const location = crew.getCurrentLocation ? crew.getCurrentLocation() : 'Nave';
     const activity = crew.currentActivity || 'Sin actividad';
-    const purpose = roleConfig.purpose || 'Miembro de la tripulación';
+    const thought = crew.getCurrentThought ? crew.getCurrentThought() : '💭 ...';
 
     // Generar HTML del perfil reorganizado según nuevo diseño
     container.innerHTML = `
-        <!-- HEADER: Emoji + ROL {Nombre} - XXaños -->
-        <div class="crew-compact-header">
-            <span class="crew-compact-emoji">${emoji}</span>
-            <span class="crew-compact-name">${roleName} {${crew.name}} - ${age} años</span>
-            <span class="crew-compact-status" data-crew-status>${statusIcon}</span>
-        </div>
+        <!-- BLOQUE 1: EMOJI + INFORMACIÓN BÁSICA (2 columnas: 1/3 + 2/3) -->
+        <div class="crew-header-block">
+            <!-- Columna 1: Emoji (1/3) -->
+            <div class="crew-emoji-column">
+                <span class="crew-main-emoji">${emoji}</span>
+                <span class="crew-status-icon" data-crew-status>${statusIcon}</span>
+            </div>
 
-        <div class="crew-section-divider"></div>
+            <!-- Columna 2: Información (2/3) -->
+            <div class="crew-info-column">
+                <!-- Línea 1: ROL Nombre - XX años + YY años despierto = ZZ biológicos -->
+                <div class="crew-info-line-1" data-crew-header>
+                    <strong>${roleName}</strong> ${crew.name} - ${initialAge}a + ${yearsAwake}a despierto = ${biologicalAge}a biológicos
+                </div>
 
-        <!-- PROPÓSITO DEL TRIPULANTE -->
-        <div class="crew-purpose-section">
-            <span class="crew-purpose-text">{Propósito del tripulante}</span>
-            <p class="crew-purpose-description">${purpose}</p>
-        </div>
+                <div class="crew-section-divider"></div>
 
-        <div class="crew-section-divider"></div>
+                <!-- Línea 2: Pensamiento en marquesina -->
+                <div class="crew-thought-marquee" data-crew-thought>
+                    ${thought}
+                </div>
 
-        <!-- HABILIDADES: Actividad actual -->
-        <div class="crew-skills-section">
-            <h3 class="section-title">HABILIDADES</h3>
-            <div class="crew-current-activity" data-crew-activity>
-                <span class="activity-label">{Actividad} en {Ubicación}</span>
-                <p class="activity-value">⚙️ ${activity} en 📍 ${location}</p>
+                <div class="crew-section-divider"></div>
+
+                <!-- Línea 3: Actividad en ubicación -->
+                <div class="crew-activity-line" data-crew-activity>
+                    ${activity} en ${location}
+                </div>
             </div>
         </div>
 
         <div class="crew-section-divider"></div>
 
-        <!-- DOS COLUMNAS: NECESIDADES Y ACCIONES DE ROL -->
+        <!-- BLOQUE 2: NECESIDADES Y ACCIONES (2 columnas: 1/2 + 1/2) -->
         <div class="crew-task-grid">
-            <!-- COLUMNA 1: NECESIDADES -->
+            <!-- Columna 1: NECESIDADES (1/2) -->
             <div class="task-grid-column">
                 <h3 class="task-column-title">NECESIDADES</h3>
                 ${crew.isAlive ? createCompactCrewNeeds(crew) : '<div class="crew-dead-message">Tripulante fallecido</div>'}
             </div>
 
-            <!-- COLUMNA 2: ACCIONES DE ROL -->
+            <!-- Columna 2: ACCIONES DE ROL (1/2) -->
             <div class="task-grid-column">
                 <h3 class="task-column-title">ACCIONES DE ROL</h3>
                 ${createRoleActionsSection(crew)}
@@ -196,7 +203,7 @@ function createFullCrewProfile(crew) {
 
         <div class="crew-section-divider"></div>
 
-        <!-- ENTRADAS: Log personal -->
+        <!-- BLOQUE 3: LOG DE ACTIVIDAD (1/1) -->
         <div class="crew-entries-section">
             <h3 class="section-title">ENTRADAS</h3>
             ${createCrewPersonalLog(crew)}
@@ -570,8 +577,11 @@ function updateCrewProfileSelective(container, crew) {
     }
 
     // Información básica
-    const roleLabel = crew.getRoleLabel ? crew.getRoleLabel() : '👤';
-    const age = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
+    const roleConfig = ROLE_CONFIG[crew.role] || {};
+    const roleName = roleConfig.label || crew.role.toUpperCase();
+    const initialAge = crew.initialAge;
+    const yearsAwake = crew.yearsAwake ? crew.yearsAwake.toFixed(1) : '0.0';
+    const biologicalAge = crew.biologicalAge ? crew.biologicalAge.toFixed(0) : crew.initialAge;
     const location = crew.getCurrentLocation ? crew.getCurrentLocation() : 'Nave';
     const activity = crew.currentActivity || 'Sin actividad';
     const thought = crew.getCurrentThought ? crew.getCurrentThought() : '💭 ...';
@@ -580,9 +590,17 @@ function updateCrewProfileSelective(container, crew) {
     const statusEl = container.querySelector('[data-crew-status]');
     if (statusEl) statusEl.textContent = statusIcon;
 
+    // Actualizar header (línea 1)
+    const headerEl = container.querySelector('[data-crew-header]');
+    if (headerEl) headerEl.innerHTML = `<strong>${roleName}</strong> ${crew.name} - ${initialAge}a + ${yearsAwake}a despierto = ${biologicalAge}a biológicos`;
+
+    // Actualizar pensamiento
+    const thoughtEl = container.querySelector('[data-crew-thought]');
+    if (thoughtEl) thoughtEl.textContent = thought;
+
     // Actualizar actividad
-    const activityEl = container.querySelector('[data-crew-activity] .activity-value');
-    if (activityEl) activityEl.textContent = `⚙️ ${activity} en 📍 ${location}`;
+    const activityEl = container.querySelector('[data-crew-activity]');
+    if (activityEl) activityEl.textContent = `${activity} en ${location}`;
 
     // Actualizar barras de necesidades (solo si está vivo)
     if (crew.isAlive) {

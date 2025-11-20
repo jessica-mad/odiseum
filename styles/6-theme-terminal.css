@@ -2630,61 +2630,82 @@
    NUEVO DISEÑO DE FICHA DE TRIPULANTE
    ======================================== */
 
-/* Header del perfil */
-.crew-compact-emoji {
-    font-size: 24px;
-    margin-right: 8px;
-}
-
-.crew-compact-header {
-    display: flex;
-    align-items: center;
+/* BLOQUE 1: Header con 2 columnas (1/3 emoji + 2/3 info) */
+.crew-header-block {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
     padding: 12px;
     background: var(--color-terminal-bg);
     border-bottom: 2px solid var(--color-terminal-green-dark);
+}
+
+/* Columna 1: Emoji (1/3) */
+.crew-emoji-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.crew-main-emoji {
+    font-size: 64px;
+    line-height: 1;
+}
+
+.crew-status-icon {
+    font-size: 24px;
+}
+
+/* Columna 2: Información (2/3) */
+.crew-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     font-family: var(--font-monaco);
 }
 
-.crew-compact-name {
-    font-size: var(--font-size-md);
-    color: var(--color-terminal-green);
-    font-weight: bold;
-    flex: 1;
-}
-
-.crew-compact-status {
-    font-size: 20px;
-}
-
-/* Sección de propósito del tripulante */
-.crew-purpose-section {
-    padding: 12px;
-    background: var(--color-terminal-bg-light);
-    border-bottom: 1px solid var(--color-terminal-green-dark);
-}
-
-.crew-purpose-text {
-    display: block;
-    font-size: var(--font-size-xs);
-    color: var(--color-terminal-green-dim);
-    font-style: italic;
-    margin-bottom: 6px;
-    font-family: var(--font-monaco);
-}
-
-.crew-purpose-description {
+.crew-info-line-1 {
     font-size: var(--font-size-sm);
     color: var(--color-terminal-green);
-    margin: 0;
+    padding: 8px 0;
     line-height: 1.4;
-    font-family: var(--font-monaco);
 }
 
-/* Sección de habilidades */
-.crew-skills-section {
+.crew-info-line-1 strong {
+    color: var(--color-terminal-green);
+    font-weight: bold;
+}
+
+.crew-thought-marquee {
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+}
+
+.crew-thought-marquee:hover {
+    animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+.crew-activity-line {
+    font-size: var(--font-size-xs);
+    color: var(--color-terminal-green-dim);
+    padding: 8px 0;
+}
+
+/* BLOQUE 3: Sección de entradas (log personal) */
+.crew-entries-section {
     padding: 12px;
     background: var(--color-terminal-bg);
-    border-bottom: 1px solid var(--color-terminal-green-dark);
 }
 
 .section-title {
@@ -2697,39 +2718,6 @@
     letter-spacing: 1px;
 }
 
-.crew-current-activity {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 10px;
-    border-left: 3px solid var(--color-terminal-green-dark);
-    border-radius: 2px;
-}
-
-.activity-label {
-    display: block;
-    font-size: var(--font-size-xs);
-    color: var(--color-terminal-green-dim);
-    font-style: italic;
-    margin-bottom: 6px;
-    font-family: var(--font-monaco);
-}
-
-.activity-value {
-    font-size: var(--font-size-sm);
-    color: var(--color-terminal-green);
-    margin: 0;
-    font-family: var(--font-monaco);
-}
-
-/* Sección de entradas (log personal) */
-.crew-entries-section {
-    padding: 12px;
-    background: var(--color-terminal-bg);
-}
-
-.crew-entries-section .section-title {
-    margin-bottom: 10px;
-}
-
 .crew-entries-section .crew-log-container {
     max-height: 300px;
     overflow-y: auto;
@@ -2738,6 +2726,7 @@
     border: none;
 }
 
+/* Mensaje cuando el tripulante está muerto */
 .crew-dead-message {
     padding: 12px;
     text-align: center;
@@ -2747,7 +2736,7 @@
     border-radius: 2px;
 }
 
-/* Ajustar títulos de columnas */
+/* Ajustar títulos de columnas del bloque 2 */
 .task-column-title {
     font-size: var(--font-size-sm);
     color: var(--color-terminal-green);
@@ -2762,28 +2751,33 @@
 
 /* Responsive para nuevo diseño */
 @media (max-width: 768px) {
-    .crew-compact-emoji {
-        font-size: 20px;
-        margin-right: 6px;
-    }
-
-    .crew-compact-header {
+    .crew-header-block {
+        grid-template-columns: 80px 1fr;
+        gap: 10px;
         padding: 10px;
     }
 
-    .crew-compact-name {
-        font-size: var(--font-size-sm);
+    .crew-main-emoji {
+        font-size: 48px;
     }
 
-    .crew-purpose-section,
-    .crew-skills-section,
+    .crew-status-icon {
+        font-size: 20px;
+    }
+
+    .crew-info-line-1 {
+        font-size: var(--font-size-xs);
+        padding: 6px 0;
+    }
+
+    .crew-thought-marquee,
+    .crew-activity-line {
+        font-size: 10px;
+        padding: 4px 0;
+    }
+
     .crew-entries-section {
         padding: 10px;
-    }
-
-    .crew-purpose-description,
-    .activity-value {
-        font-size: var(--font-size-xs);
     }
 
     .section-title,
