@@ -382,86 +382,9 @@ class Crew {
             }
         }
 
-        // Auto-gestionar salud (medicina)
-        // SOLO EL DOCTOR PUEDE ADMINISTRAR MEDICINA
-        // El doctor trata a tripulantes con healthNeed < 100 (incluyéndose a sí mismo)
-        if (this.role === 'doctor' && this.healthNeed < 100 && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // El doctor se auto-trata
-            const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
-
-            // Recuperación base con stats del doctor
-            let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
-            if (this.configStats && this.configStats.healingRate) {
-                baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * this.configStats.healingRate * efficiencyMultiplier;
-            } else {
-                baseRecovery *= 1.5; // Bonus por ser doctor
-            }
-
-            // Calcular cuánto realmente necesita para llegar a 100
-            const needed = 100 - this.healthNeed;
-            const actualRecovery = Math.min(needed, baseRecovery);
-
-            // Consumir recursos proporcionalmente (regla de 3)
-            let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
-
-            // Aplicar modificador de consumo de medicina si el doctor lo tiene
-            if (this.configStats && this.configStats.medicineUsage) {
-                resourcesNeeded = Math.ceil(resourcesNeeded * this.configStats.medicineUsage);
-            }
-
-            const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
-
-            if (resourcesToUse > 0) {
-                Medicine.consume(resourcesToUse);
-                this.healthNeed = Math.min(100, this.healthNeed + actualRecovery);
-                autoManageActions.push('se auto-trató');
-                this.currentActivity = 'resting';
-            }
-        } else if (this.role === 'doctor' && Medicine.quantity >= AUTO_MANAGE_CONFIG.medicine.cost) {
-            // El doctor busca tripulantes heridos para tratar
-            if (typeof crewMembers !== 'undefined' && crewMembers) {
-                const injured = crewMembers.filter(c =>
-                    c.isAlive &&
-                    c.state === 'Despierto' &&
-                    c.healthNeed < 100 &&
-                    c.id !== this.id
-                ).sort((a, b) => a.healthNeed - b.healthNeed); // Tratar al más herido primero
-
-                if (injured.length > 0) {
-                    const patient = injured[0];
-                    const efficiencyMultiplier = this.getEffectiveSkillMultiplier();
-
-                    // Recuperación base con stats del doctor
-                    let baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * efficiencyMultiplier;
-                    if (this.configStats && this.configStats.healingRate) {
-                        baseRecovery = AUTO_MANAGE_CONFIG.medicine.recovery * this.configStats.healingRate * efficiencyMultiplier;
-                    } else {
-                        baseRecovery *= 1.5; // Bonus por ser doctor
-                    }
-
-                    // Calcular cuánto realmente necesita el paciente para llegar a 100
-                    const needed = 100 - patient.healthNeed;
-                    const actualRecovery = Math.min(needed, baseRecovery);
-
-                    // Consumir recursos proporcionalmente (regla de 3)
-                    let resourcesNeeded = Math.ceil((actualRecovery / baseRecovery) * AUTO_MANAGE_CONFIG.medicine.cost);
-
-                    // Aplicar modificador de consumo de medicina si el doctor lo tiene
-                    if (this.configStats && this.configStats.medicineUsage) {
-                        resourcesNeeded = Math.ceil(resourcesNeeded * this.configStats.medicineUsage);
-                    }
-
-                    const resourcesToUse = Math.min(resourcesNeeded, Medicine.quantity);
-
-                    if (resourcesToUse > 0) {
-                        Medicine.consume(resourcesToUse);
-                        patient.healthNeed = Math.min(100, patient.healthNeed + actualRecovery);
-                        autoManageActions.push(`trató a ${patient.name.split(' ')[0]}`);
-                        this.currentActivity = 'treating';
-                    }
-                }
-            }
-        }
+        // SALUD YA NO SE AUTO-GESTIONA - Los tripulantes deben ir a la enfermería
+        // La gestión de salud ahora se realiza en el sistema de enfermería (shipMapSystem.processMedbayQueue)
+        // El doctor debe estar presente en la enfermería para curar a los pacientes
 
         // HIGIENE YA NO SE AUTO-GESTIONA - Los tripulantes deben viajar al baño
         // La gestión de higiene ahora se realiza en el sistema de baños (shipMapSystem.processBathroomQueue)

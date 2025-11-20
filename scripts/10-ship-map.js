@@ -60,7 +60,9 @@ class ShipMapSystem {
             medbay: {
                 name: 'Enfermería', icon: '🏥', tiles: this.findTiles('e'), color: '#ff4444',
                 integrity: 100, maxIntegrity: 100, degradationRate: 2.4, isBroken: false,
-                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0
+                repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
+                // Sistema de cola de curación (similar al baño)
+                isOccupied: false, currentPatient: null, queue: [], arrivalOrder: {}, doctorPresent: false
             },
             engineering: {
                 name: 'Ingeniería', icon: '⚙️', tiles: this.findTiles('g'), color: '#ffaa00',
@@ -791,8 +793,28 @@ class ShipMapSystem {
                 return this.getNearestBathroom(crew.id);
             }
 
-            // PRIORIDAD 2: Salud (healthNeed < 50%) - ir a enfermería
-            if (crew.healthNeed < 50) {
+            // PRIORIDAD 2: Salud (healthNeed < 40%) - ir a enfermería
+            const needsHealing = crew.healthNeed < 40;
+
+            // LIMPIAR tareas de curación si ya no las necesita (healthNeed >= 70)
+            if (crew.healthNeed >= 70 && crew.role !== 'doctor') {
+                // Cancelar tarea actual de curación si existe
+                if (crew.currentTask?.type === 'healing') {
+                    crew.completeCurrentTask();
+                }
+                // Limpiar todas las tareas de curación de la cola
+                crew.taskQueue = crew.taskQueue.filter(t => t.type !== 'healing');
+            }
+
+            if (needsHealing && crew.role !== 'doctor') {
+                // Agregar tarea de curación si no está en la lista
+                const hasHealingTask = crew.currentTask?.type === 'healing' ||
+                                       crew.taskQueue.some(t => t.type === 'healing');
+                if (!hasHealingTask) {
+                    crew.pauseCurrentTask();  // Pausar tarea actual
+                    crew.addTask('healing', '🏥 Ir a enfermería', 9);  // Alta prioridad (menos que baño)
+                    crew.currentTask = crew.taskQueue.shift();  // Iniciar tarea de curación inmediatamente
+                }
                 return 'medbay';
             }
 
@@ -824,7 +846,20 @@ class ShipMapSystem {
             }
 
             // Doctor -> Enfermería (medbay)
+            // PRIORIDAD: Si hay pacientes esperando en medbay, el doctor debe ir allí
             if (role === 'doctor') {
+                const medbay = this.zones.medbay;
+                const patientsWaiting = typeof crewMembers !== 'undefined' ?
+                    crewMembers.filter(c =>
+                        c.isAlive &&
+                        c.state === 'Despierto' &&
+                        c.role !== 'doctor' &&
+                        (c.currentTask?.type === 'healing' || this.crewTargets[c.id] === 'medbay')
+                    ).length : 0;
+
+                if (patientsWaiting > 0) {
+                    console.log(`👩‍⚕️ Doctor necesita ir a enfermería - ${patientsWaiting} paciente(s) esperando`);
+                }
                 return 'medbay';
             }
 
@@ -1455,6 +1490,216 @@ class ShipMapSystem {
 
         bathroom.isOccupied = false;
         bathroom.currentUser = null;
+    }
+
+    /**
+     * Sistema de cola de enfermería - FIFO: Primero en llegar, primero en ser atendido
+     * El doctor debe estar presente para curar
+     */
+    processMedbayQueue() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
+            return;
+        }
+
+        const medbay = this.zones.medbay;
+        if (!medbay) return;
+
+        // Encontrar al doctor
+        const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
+
+        // Verificar si el doctor está físicamente en la enfermería
+        if (doctor) {
+            const doctorPos = this.crewLocations[doctor.id];
+            if (doctorPos) {
+                const cellType = this.grid[doctorPos.row]?.[doctorPos.col];
+                const doctorZone = this.getCellTypeToZoneName(cellType, doctorPos.row, doctorPos.col);
+                medbay.doctorPresent = (doctorZone === 'medbay');
+            } else {
+                medbay.doctorPresent = false;
+            }
+        } else {
+            medbay.doctorPresent = false;
+        }
+
+        // Obtener pacientes (tripulantes no-doctor) que están en la cola de enfermería
+        const patientsInMedbay = crewMembers.filter(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto' || crew.role === 'doctor') return false;
+
+            // SIEMPRE incluir al paciente actual (aunque su target haya cambiado)
+            if (medbay.currentPatient === crew.id) return true;
+
+            // Incluir tripulantes que tienen enfermería como objetivo
+            const target = this.crewTargets[crew.id];
+            if (target === 'medbay') return true;
+
+            // También incluir a los que están físicamente en la enfermería
+            const pos = this.crewLocations[crew.id];
+            if (!pos) return false;
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === 'medbay';
+        });
+
+        // Registrar tick de llegada para nuevos pacientes
+        const currentTick = timeSystem.globalTickCounter;
+        patientsInMedbay.forEach(patient => {
+            if (!medbay.arrivalOrder[patient.id]) {
+                medbay.arrivalOrder[patient.id] = currentTick;
+            }
+        });
+
+        // Limpiar pacientes que ya no están en la enfermería
+        Object.keys(medbay.arrivalOrder).forEach(crewId => {
+            if (!patientsInMedbay.find(c => c.id == crewId)) {
+                delete medbay.arrivalOrder[crewId];
+            }
+        });
+
+        // Si hay un paciente siendo atendido, procesar curación
+        if (medbay.isOccupied && medbay.currentPatient) {
+            const patient = crewMembers.find(c => c.id === medbay.currentPatient);
+            if (patient && patient.isAlive && patient.state === 'Despierto') {
+                // Verificar que el paciente sigue en la enfermería
+                const stillInMedbay = patientsInMedbay.find(c => c.id === patient.id);
+                if (stillInMedbay) {
+                    // SOLO CURAR si el doctor está presente
+                    if (medbay.doctorPresent && typeof Medicine !== 'undefined' && Medicine.quantity >= 1.0) {
+                        // Curar al paciente (5 puntos por fast tick - cada 500ms)
+                        // Consumir medicina proporcionalmente (1.0 de medicina por cada 5 de healthNeed recuperado)
+                        Medicine.consume(1.0);
+
+                        // Aplicar bonus del doctor si existe
+                        let healingRate = 5;
+                        if (doctor && doctor.configStats && doctor.configStats.healingRate) {
+                            healingRate = 5 * doctor.configStats.healingRate;
+                        }
+
+                        patient.healthNeed = Math.min(100, patient.healthNeed + healingRate);
+                        patient.currentActivity = '💊 Siendo curado';
+                        if (doctor) {
+                            doctor.currentActivity = '👩‍⚕️ Curando paciente';
+                        }
+
+                        // Si ya terminó (healthNeed >= 70), liberar enfermería
+                        if (patient.healthNeed >= 70) {
+                            // Completar tarea de curación y reanudar tarea pausada
+                            if (patient.currentTask?.type === 'healing') {
+                                patient.completeCurrentTask();
+                                patient.resumePausedTask();
+                            }
+
+                            // LIMPIAR TODAS las tareas de curación de la cola (evitar duplicados)
+                            patient.taskQueue = patient.taskQueue.filter(t => t.type !== 'healing');
+
+                            // Liberar enfermería
+                            this.releaseMedbay();
+
+                            // El paciente puede volver a su workspace
+                            patient.returningFromBathroom = false; // Usar el mismo sistema
+                            patient.currentActivity = 'working';
+                            console.log(`🏥✅ ${patient.name} fue curado, healthNeed: ${patient.healthNeed}`);
+                        }
+                    } else if (!medbay.doctorPresent) {
+                        // Sin doctor, no se puede curar
+                        patient.currentActivity = '⏳ Esperando al doctor';
+                        if (doctor) {
+                            doctor.currentActivity = 'working';
+                        }
+                    } else {
+                        // Sin medicina, no se puede curar
+                        patient.currentActivity = '⚠️ Sin medicina';
+                        if (doctor) {
+                            doctor.currentActivity = '⚠️ Sin medicina';
+                        }
+                    }
+                } else {
+                    // Paciente salió de la enfermería, liberar
+                    this.releaseMedbay();
+                }
+            } else {
+                // Paciente ya no es válido, liberar enfermería
+                this.releaseMedbay();
+            }
+        }
+
+        // Si la enfermería no está ocupada, asignar al PRIMERO EN LLEGAR (solo si está físicamente)
+        if (!medbay.isOccupied && patientsInMedbay.length > 0) {
+            // FILTRAR: Solo pacientes que YA ESTÁN FÍSICAMENTE en la enfermería
+            const patientsPhysicallyInMedbay = patientsInMedbay.filter(patient => {
+                const pos = this.crewLocations[patient.id];
+                if (!pos) return false;
+                const cellType = this.grid[pos.row]?.[pos.col];
+                const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                return currentZone === 'medbay';
+            });
+
+            // Solo asignar si hay alguien físicamente en la enfermería
+            if (patientsPhysicallyInMedbay.length > 0) {
+                // Ordenar por tick de llegada (FIFO)
+                const sortedByArrival = patientsPhysicallyInMedbay.sort((a, b) => {
+                    const timeA = medbay.arrivalOrder[a.id] || 999999;
+                    const timeB = medbay.arrivalOrder[b.id] || 999999;
+                    return timeA - timeB;
+                });
+
+                const nextPatient = sortedByArrival[0];
+                medbay.isOccupied = true;
+                medbay.currentPatient = nextPatient.id;
+                console.log(`🏥 ${nextPatient.name} comenzó a ser atendido en enfermería`);
+
+                // Si el doctor está presente, iniciar curación inmediatamente
+                if (medbay.doctorPresent) {
+                    nextPatient.currentActivity = '💊 Siendo curado';
+                    if (doctor) {
+                        doctor.currentActivity = '👩‍⚕️ Curando paciente';
+                    }
+                } else {
+                    nextPatient.currentActivity = '⏳ Esperando al doctor';
+                }
+            }
+        }
+
+        // Actualizar cola visual (pacientes esperando)
+        medbay.queue = patientsInMedbay
+            .filter(c => c.id !== medbay.currentPatient)
+            .map(c => c.id);
+
+        // Actualizar actividad de los que esperan
+        medbay.queue.forEach(crewId => {
+            const crew = crewMembers.find(c => c.id === crewId);
+            if (crew) {
+                // Verificar si está físicamente en la enfermería o en camino
+                const pos = this.crewLocations[crew.id];
+                if (pos) {
+                    const cellType = this.grid[pos.row]?.[pos.col];
+                    const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                    if (currentZone === 'medbay') {
+                        crew.currentActivity = `⏳ Esperando turno enfermería`;
+                    } else {
+                        crew.currentActivity = `🚶 Yendo a enfermería`;
+                    }
+                } else {
+                    crew.currentActivity = `🚶 Yendo a enfermería`;
+                }
+            }
+        });
+    }
+
+    /**
+     * Libera la enfermería para el siguiente paciente
+     */
+    releaseMedbay() {
+        const medbay = this.zones.medbay;
+        if (!medbay) return;
+
+        const patient = crewMembers.find(c => c.id === medbay.currentPatient);
+        if (patient) {
+            patient.currentActivity = 'working';
+        }
+
+        medbay.isOccupied = false;
+        medbay.currentPatient = null;
     }
 
     /**

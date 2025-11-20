@@ -532,6 +532,11 @@ class GameLoop {
             shipMapSystem.processBathroomQueue();
         }
 
+        // Procesar cola de la enfermería (FIFO) - Cada 500ms para curar más rápido
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processMedbayQueue();
+        }
+
         // Actualizar popup de tripulante si está abierto (UI más responsive)
         this.updateCrewPopupIfOpen();
 
