@@ -1018,37 +1018,33 @@ function chefHarvestFood(crewId) {
     }
 }
 
-/* === POBLAR TAB DE TRIPULACIÓN (TABS VERTICALES) === */
+/* === POBLAR TAB DE TRIPULACIÓN (TABS HORIZONTALES) === */
 function populateTerminalCrewTab() {
-    const sidebar = document.getElementById('terminal-crew-tabs');
+    const tabsContainer = document.getElementById('terminal-crew-tabs');
     const content = document.getElementById('terminal-crew-content');
 
-    if (!sidebar || !content) return;
+    if (!tabsContainer || !content) return;
 
-    sidebar.innerHTML = '';
+    tabsContainer.innerHTML = '';
 
     crewMembers.forEach((crew, index) => {
         const tabItem = document.createElement('div');
-        tabItem.className = 'terminal-vertical-tab';
+        tabItem.className = 'terminal-horizontal-tab';
         if (index === 0) tabItem.classList.add('active');
         tabItem.dataset.crewId = crew.id;
+        tabItem.title = crew.name; // Tooltip con el nombre
 
         const emoji = document.createElement('div');
-        emoji.className = 'terminal-vertical-tab-emoji';
+        emoji.className = 'terminal-horizontal-tab-emoji';
         emoji.textContent = crew.emoji || '👤';
 
-        const label = document.createElement('div');
-        label.className = 'terminal-vertical-tab-label';
-        label.textContent = crew.name;
-
         tabItem.appendChild(emoji);
-        tabItem.appendChild(label);
 
         tabItem.addEventListener('click', () => {
-            switchTerminalCrewVerticalTab(crew.id);
+            switchTerminalCrewHorizontalTab(crew.id);
         });
 
-        sidebar.appendChild(tabItem);
+        tabsContainer.appendChild(tabItem);
     });
 
     // Mostrar la ficha del primer tripulante
@@ -1057,9 +1053,9 @@ function populateTerminalCrewTab() {
     }
 }
 
-function switchTerminalCrewVerticalTab(crewId) {
+function switchTerminalCrewHorizontalTab(crewId) {
     // Actualizar tabs activos
-    document.querySelectorAll('#terminal-crew-tabs .terminal-vertical-tab').forEach(tab => {
+    document.querySelectorAll('#terminal-crew-tabs .terminal-horizontal-tab').forEach(tab => {
         tab.classList.remove('active');
         if (parseInt(tab.dataset.crewId) === parseInt(crewId)) {
             tab.classList.add('active');
@@ -1083,38 +1079,34 @@ function showTerminalCrewProfile(crewId) {
     content.appendChild(profileHTML);
 }
 
-/* === POBLAR TAB DE NAVE (TABS VERTICALES CON ACCIONES) === */
+/* === POBLAR TAB DE NAVE (TABS HORIZONTALES CON ACCIONES) === */
 function populateTerminalShipTab() {
-    const sidebar = document.getElementById('terminal-ship-tabs');
+    const tabsContainer = document.getElementById('terminal-ship-tabs');
     const content = document.getElementById('terminal-ship-content');
 
-    if (!sidebar || !content || typeof shipMapSystem === 'undefined') return;
+    if (!tabsContainer || !content || typeof shipMapSystem === 'undefined') return;
 
-    sidebar.innerHTML = '';
+    tabsContainer.innerHTML = '';
 
     const zones = Object.entries(shipMapSystem.zones);
     zones.forEach(([zoneKey, zone], index) => {
         const tabItem = document.createElement('div');
-        tabItem.className = 'terminal-vertical-tab';
+        tabItem.className = 'terminal-horizontal-tab';
         if (index === 0) tabItem.classList.add('active');
         tabItem.dataset.zoneKey = zoneKey;
+        tabItem.title = zone.name; // Tooltip con el nombre
 
         const emoji = document.createElement('div');
-        emoji.className = 'terminal-vertical-tab-emoji';
+        emoji.className = 'terminal-horizontal-tab-emoji';
         emoji.textContent = zone.icon || '🏠';
 
-        const label = document.createElement('div');
-        label.className = 'terminal-vertical-tab-label';
-        label.textContent = zone.name;
-
         tabItem.appendChild(emoji);
-        tabItem.appendChild(label);
 
         tabItem.addEventListener('click', () => {
-            switchTerminalShipVerticalTab(zoneKey);
+            switchTerminalShipHorizontalTab(zoneKey);
         });
 
-        sidebar.appendChild(tabItem);
+        tabsContainer.appendChild(tabItem);
     });
 
     // Mostrar la primera habitación
@@ -1123,9 +1115,9 @@ function populateTerminalShipTab() {
     }
 }
 
-function switchTerminalShipVerticalTab(zoneKey) {
+function switchTerminalShipHorizontalTab(zoneKey) {
     // Actualizar tabs activos
-    document.querySelectorAll('#terminal-ship-tabs .terminal-vertical-tab').forEach(tab => {
+    document.querySelectorAll('#terminal-ship-tabs .terminal-horizontal-tab').forEach(tab => {
         tab.classList.remove('active');
         if (tab.dataset.zoneKey === zoneKey) {
             tab.classList.add('active');
