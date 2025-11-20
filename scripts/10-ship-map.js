@@ -758,6 +758,16 @@ class ShipMapSystem {
             const ticksSinceLastBathroom = timeSystem.globalTickCounter - (crew.lastBathroomTick || 0);
             const needsBathroom = crew.wasteNeed >= 70 || (crew.wasteNeed >= 50 && ticksSinceLastBathroom >= 30);
 
+            // LIMPIAR tareas de baño si ya no las necesita (wasteNeed < 40)
+            if (crew.wasteNeed < 40) {
+                // Cancelar tarea actual de baño si existe
+                if (crew.currentTask?.type === 'bathroom') {
+                    crew.completeCurrentTask();
+                }
+                // Limpiar todas las tareas de baño de la cola
+                crew.taskQueue = crew.taskQueue.filter(t => t.type !== 'bathroom');
+            }
+
             if (needsBathroom) {
                 // Agregar tarea de baño si no está en la lista
                 const hasBathroomTask = crew.currentTask?.type === 'bathroom' ||
@@ -1305,6 +1315,9 @@ class ShipMapSystem {
                                 user.completeCurrentTask();
                                 user.resumePausedTask();
                             }
+
+                            // LIMPIAR TODAS las tareas de baño de la cola (evitar duplicados)
+                            user.taskQueue = user.taskQueue.filter(t => t.type !== 'bathroom');
 
                             // Liberar baño
                             this.releaseBathroom(bathroomKey);
