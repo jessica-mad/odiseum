@@ -537,6 +537,11 @@ class GameLoop {
             shipMapSystem.processMedbayQueue();
         }
 
+        // Procesar recolección del invernadero - Cada 500ms para detectar cuando llegan
+        if (typeof shipMapSystem !== 'undefined' && shipMapSystem) {
+            shipMapSystem.processGreenhouseHarvest();
+        }
+
         // Actualizar popup de tripulante si está abierto (UI más responsive)
         this.updateCrewPopupIfOpen();
 

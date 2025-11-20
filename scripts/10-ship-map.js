@@ -80,10 +80,12 @@ class ShipMapSystem {
                 repairProgress: 0, beingRepaired: false, repairTimeNeeded: 0,
                 // Sistema de cooldown para cosecha
                 cooldownProgress: 100, // 0-100, cuando llega a 100 está listo para cosechar
-                cooldownDuration: 150, // 150 ticks = 5 tramos (30 ticks por tramo)
+                cooldownDuration: 10, // 10 ticks para estar listo
                 waterConsumptionPerTick: 0.5, // Agua consumida por tick durante cooldown
                 isReady: true, // Inicia listo para cosechar
-                lastHarvestType: null // 'food' o 'medicine'
+                lastHarvestType: null, // 'food' o 'medicine'
+                harvestingNow: false, // Si alguien está recolectando ahora
+                currentHarvester: null // ID del tripulante recolectando
             },
             capsules: {
                 name: 'Cápsulas Sueño', icon: '🛏️', tiles: this.findTiles('d'), color: '#4488ff',
@@ -818,22 +820,19 @@ class ShipMapSystem {
                 return 'medbay';
             }
 
-            // PRIORIDAD 3: Alimentación (foodNeed entre 45-70%)
+            // PRIORIDAD 3: Cosecha del invernadero (tarea de harvest)
+            if (crew.currentTask?.type === 'harvest' && crew.harvestType) {
+                return 'greenhouse';
+            }
+
+            // PRIORIDAD 4: Alimentación (foodNeed entre 45-70%)
             if (crew.foodNeed >= 45 && crew.foodNeed < 70) {
                 return 'kitchen';
             }
 
             // Mapeo de ROLES a zonas de trabajo
-
-            // Chef necesita ir al invernadero por provisiones de alimentos (cuando foodNeed > 80%)
-            if (role === 'cook' && crew.foodNeed > 80) {
-                return 'greenhouse';
-            }
-
-            // Doctor necesita ir al invernadero por medicina (cuando healthNeed > 80%)
-            if (role === 'doctor' && crew.healthNeed > 80) {
-                return 'greenhouse';
-            }
+            // NOTA: Los roles ya NO van automáticamente al invernadero
+            // Deben recibir una orden explícita para cosechar
 
             // Navigator/Navegante -> Puente de Mando (bridge)
             if (role === 'navigator') {
@@ -2107,63 +2106,136 @@ class ShipMapSystem {
     /**
      * Cosechar recursos del invernadero
      */
+    /**
+     * Envía al tripulante al invernadero para cosechar
+     * (Ya no cosecha directamente, el tripulante debe ir físicamente)
+     */
     harvestGreenhouse(type) {
         const greenhouse = this.zones.greenhouse;
         if (!greenhouse || !greenhouse.isReady || greenhouse.cooldownProgress < 100) {
             console.warn('🌱 Invernadero no está listo para cosechar');
+            new Notification('Invernadero no está listo para cosechar', 'ALERT');
             return;
         }
 
-        // Verificar que hay tripulante apropiado despierto
+        // Encontrar al tripulante apropiado
         const doctor = crewMembers.find(c => c.role === 'doctor' && c.isAlive && c.state === 'Despierto');
         const chef = crewMembers.find(c => c.role === 'cook' && c.isAlive && c.state === 'Despierto');
 
-        if (type === 'food' && !chef) {
-            console.warn('🌱 No hay chef despierto para cosechar alimentos');
+        let harvester = null;
+        if (type === 'food' && chef) {
+            harvester = chef;
+        } else if (type === 'medicine' && doctor) {
+            harvester = doctor;
+        }
+
+        if (!harvester) {
+            console.warn(`🌱 No hay ${type === 'food' ? 'chef' : 'doctor'} disponible para cosechar`);
+            new Notification(`No hay ${type === 'food' ? 'chef' : 'doctor'} disponible`, 'ALERT');
             return;
         }
 
-        if (type === 'medicine' && !doctor) {
-            console.warn('🌱 No hay doctor despierto para cosechar medicina');
+        // Crear tarea de cosecha para el tripulante
+        harvester.pauseCurrentTask();
+        harvester.addTask('harvest', `🌱 Ir a cosechar ${type === 'food' ? 'alimentos' : 'medicina'}`, 8);
+        harvester.currentTask = harvester.taskQueue.shift();
+        harvester.harvestType = type; // Marcar qué tipo va a cosechar
+
+        console.log(`🌱 ${harvester.name} va al invernadero a cosechar ${type === 'food' ? 'alimentos' : 'medicina'}`);
+    }
+
+    /**
+     * Procesa la recolección del invernadero cuando el tripulante está físicamente allí
+     */
+    processGreenhouseHarvest() {
+        // Solo procesar si el tramo está activo
+        if (typeof gameLoop !== 'undefined' && gameLoop && gameLoop.gameState !== GAME_STATES.IN_TRANCHE) {
             return;
         }
 
-        // Obtener bonus del tripulante si tiene
-        let bonus = 0;
-        let baseCantidad = 0;
-
-        if (type === 'food') {
-            baseCantidad = 50;
-            if (chef && chef.configStats && chef.configStats.greenhouseBonus) {
-                bonus = chef.configStats.greenhouseBonus;
-            }
-        } else if (type === 'medicine') {
-            baseCantidad = 30;
-            if (doctor && doctor.configStats && doctor.configStats.greenhouseBonus) {
-                bonus = doctor.configStats.greenhouseBonus;
-            }
+        const greenhouse = this.zones.greenhouse;
+        if (!greenhouse || !greenhouse.isReady || greenhouse.cooldownProgress < 100) {
+            return;
         }
 
-        const cantidad = Math.round(baseCantidad * (1 + bonus));
+        // Buscar tripulantes con tarea de harvest que estén en el invernadero
+        const harvesters = crewMembers.filter(crew => {
+            if (!crew.isAlive || crew.state !== 'Despierto') return false;
+            if (!crew.currentTask || crew.currentTask.type !== 'harvest') return false;
+            if (!crew.harvestType) return false;
 
-        // Añadir recursos
-        if (typeof resourcesManager !== 'undefined') {
-            if (type === 'food') {
-                resourcesManager.addResource('food', cantidad);
-                console.log(`🌱 Chef cosechó ${cantidad} de alimentos del invernadero`);
-            } else if (type === 'medicine') {
-                resourcesManager.addResource('medicine', cantidad);
-                console.log(`🌱 Doctor cosechó ${cantidad} de medicina del invernadero`);
+            // Verificar si está físicamente en el invernadero
+            const pos = this.crewLocations[crew.id];
+            if (!pos) return false;
+            const cellType = this.grid[pos.row]?.[pos.col];
+            const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+            return currentZone === 'greenhouse';
+        });
+
+        // Si hay alguien esperando para cosechar, procesarlo
+        if (harvesters.length > 0) {
+            const harvester = harvesters[0]; // El primero que llegó
+            const type = harvester.harvestType;
+
+            // Calcular cantidad con bonus
+            let baseCantidad = 50; // Ahora ambos dan 50 unidades
+            let bonus = 0;
+
+            if (harvester.configStats && harvester.configStats.greenhouseBonus) {
+                bonus = harvester.configStats.greenhouseBonus;
             }
+
+            const cantidad = Math.round(baseCantidad * (1 + bonus));
+
+            // Añadir recursos
+            if (typeof resourcesManager !== 'undefined') {
+                if (type === 'food') {
+                    resourcesManager.addResource('food', cantidad);
+                    console.log(`🌱 ${harvester.name} cosechó ${cantidad} de alimentos del invernadero`);
+                    harvester.addToPersonalLog(`Coseché ${cantidad} de alimentos del invernadero`);
+                    harvester.currentActivity = '🌱 Cosechando alimentos';
+                } else if (type === 'medicine') {
+                    resourcesManager.addResource('medicine', cantidad);
+                    console.log(`🌱 ${harvester.name} cosechó ${cantidad} de medicina del invernadero`);
+                    harvester.addToPersonalLog(`Coseché ${cantidad} de medicina del invernadero`);
+                    harvester.currentActivity = '🌱 Cosechando medicina';
+                }
+            }
+
+            // Reiniciar cooldown
+            greenhouse.cooldownProgress = 0;
+            greenhouse.isReady = false;
+            greenhouse.lastHarvestType = type;
+
+            // Completar tarea de harvest y reanudar tarea pausada
+            if (harvester.currentTask?.type === 'harvest') {
+                harvester.completeCurrentTask();
+                harvester.resumePausedTask();
+            }
+
+            // Limpiar todas las tareas de harvest de la cola
+            harvester.taskQueue = harvester.taskQueue.filter(t => t.type !== 'harvest');
+            delete harvester.harvestType;
+
+            // Actualizar UI
+            this.updateRoomsStatus();
+
+            console.log(`🌱✅ ${harvester.name} completó la cosecha, cooldown reiniciado`);
+        } else {
+            // Actualizar actividad de tripulantes que van hacia el invernadero
+            crewMembers.forEach(crew => {
+                if (crew.currentTask?.type === 'harvest' && crew.harvestType) {
+                    const pos = this.crewLocations[crew.id];
+                    if (pos) {
+                        const cellType = this.grid[pos.row]?.[pos.col];
+                        const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                        if (currentZone !== 'greenhouse') {
+                            crew.currentActivity = `🚶 Yendo al invernadero`;
+                        }
+                    }
+                }
+            });
         }
-
-        // Reiniciar cooldown
-        greenhouse.cooldownProgress = 0;
-        greenhouse.isReady = false;
-        greenhouse.lastHarvestType = type;
-
-        // Actualizar UI
-        this.updateRoomsStatus();
     }
 
     /**
