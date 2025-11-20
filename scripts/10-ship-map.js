@@ -1522,6 +1522,51 @@ class ShipMapSystem {
             medbay.doctorPresent = false;
         }
 
+        // AUTO-CURACIÓN DEL DOCTOR: El doctor puede curarse a sí mismo en la enfermería
+        // Solo cuando healthNeed < 38% y está físicamente presente
+        if (doctor && medbay.doctorPresent && doctor.healthNeed < 38 && typeof Medicine !== 'undefined' && Medicine.quantity >= 1.0) {
+            // Curar al doctor (5 puntos por fast tick - cada 500ms)
+            Medicine.consume(1.0);
+
+            // Aplicar bonus del doctor si existe
+            let healingRate = 5;
+            if (doctor.configStats && doctor.configStats.healingRate) {
+                healingRate = 5 * doctor.configStats.healingRate;
+            }
+
+            doctor.healthNeed = Math.min(100, doctor.healthNeed + healingRate);
+            doctor.currentActivity = '💊 Auto-curándose';
+            console.log(`👩‍⚕️ Doctor auto-curación: healthNeed = ${doctor.healthNeed.toFixed(1)}`);
+
+            // Si se curó lo suficiente (>= 70%), puede volver a sus tareas
+            if (doctor.healthNeed >= 70) {
+                doctor.currentActivity = 'working';
+                console.log(`👩‍⚕️✅ Doctor se curó completamente`);
+            }
+
+            // Si el doctor se está auto-curando, no puede atender pacientes en este tick
+            // Actualizar los pacientes para que sepan que el doctor está ocupado
+            const patientsInMedbay = crewMembers.filter(crew => {
+                if (!crew.isAlive || crew.state !== 'Despierto' || crew.role === 'doctor') return false;
+                const target = this.crewTargets[crew.id];
+                if (target === 'medbay') return true;
+                const pos = this.crewLocations[crew.id];
+                if (!pos) return false;
+                const cellType = this.grid[pos.row]?.[pos.col];
+                const currentZone = this.getCellTypeToZoneName(cellType, pos.row, pos.col);
+                return currentZone === 'medbay';
+            });
+
+            patientsInMedbay.forEach(patient => {
+                if (patient.currentActivity !== '💊 Siendo curado') {
+                    patient.currentActivity = '⏳ Doctor ocupado auto-curándose';
+                }
+            });
+
+            // Retornar temprano - el doctor está ocupado curándose
+            return;
+        }
+
         // Obtener pacientes (tripulantes no-doctor) que están en la cola de enfermería
         const patientsInMedbay = crewMembers.filter(crew => {
             if (!crew.isAlive || crew.state !== 'Despierto' || crew.role === 'doctor') return false;
