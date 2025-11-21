@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="styles/8-ship-map.css">
     <link rel="stylesheet" href="styles/9-mobile-panels.css">
     <link rel="stylesheet" href="styles/10-configurator.css">
+    <link rel="stylesheet" href="styles/11-interface-enhancements.css">
 </head>
 <body>
     <!-- Pantalla de Inicio / Login -->
@@ -259,6 +260,51 @@
             <div class="resource-chip" id="resource-chip-fuel">
                 <span class="resource-label">Combustible:</span>
                 <span class="resource-value" id="resource-strip-fuel">0/0</span>
+            </div>
+        </div>
+
+        <!-- Panel de mando compacto para navegación rápida -->
+        <div class="interface-dashboard desktop-only">
+            <div class="command-toolbar">
+                <div class="toolbar-title">PANEL PRINCIPAL</div>
+                <div class="toolbar-actions">
+                    <button class="toolbar-btn" onclick="panelManager.openPanel('map')">🗺️ MAPA</button>
+                    <button class="toolbar-btn" onclick="panelManager.openPanel('crew')">🚀 TRIPULACIÓN</button>
+                    <button class="toolbar-btn" onclick="panelManager.openPanel('control')">⚡ CONTROL DE VIAJE</button>
+                    <button class="toolbar-btn" onclick="openResourcesPopup()">📦 RECURSOS</button>
+                    <button class="toolbar-btn" onclick="openLogbookPopup()">📖 BITÁCORA</button>
+                </div>
+            </div>
+
+            <div class="status-grid">
+                <div class="status-card">
+                    <p class="status-label">TIEMPO DE MISIÓN</p>
+                    <div class="status-value" id="summary-terminal-time">00:00:00</div>
+                    <p class="status-helper">Cronómetro sincronizado con la consola</p>
+                </div>
+
+                <div class="status-card">
+                    <p class="status-label">PROGRESO DEL VIAJE</p>
+                    <div class="status-progress">
+                        <div class="status-progress-bar">
+                            <span id="overview-progress-fill"></span>
+                        </div>
+                        <div class="status-progress-meta">
+                            <span id="overview-distance-readout">0 / 0 UA</span>
+                            <span id="overview-progress-percent">0%</span>
+                        </div>
+                    </div>
+                    <p class="status-helper">Distancia recorrida y porcentaje actualizado</p>
+                </div>
+
+                <div class="status-card">
+                    <p class="status-label">TRIPULACIÓN OPERATIVA</p>
+                    <div class="status-badges">
+                        <span class="status-pill awake">Despiertos <strong id="overview-crew-awake">0</strong></span>
+                        <span class="status-pill asleep">Encapsulados <strong id="overview-crew-asleep">0</strong></span>
+                    </div>
+                    <p class="status-helper">Cambia estados desde los controles laterales</p>
+                </div>
             </div>
         </div>
 

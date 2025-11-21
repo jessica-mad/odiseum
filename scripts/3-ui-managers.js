@@ -1546,7 +1546,37 @@ function updateVoyageVisualizer() {
         distanceTotal.textContent = TOTAL_MISSION_DISTANCE;
     }
 
+    updateOverviewProgress(progressPercent);
     updateVoyageForecastDisplay();
+}
+
+function updateOverviewProgress(progressPercent) {
+    const overviewFill = document.getElementById('overview-progress-fill');
+    if (overviewFill) {
+        overviewFill.style.width = `${Math.round(progressPercent)}%`;
+    }
+
+    const overviewPercent = document.getElementById('overview-progress-percent');
+    if (overviewPercent) {
+        overviewPercent.textContent = `${Math.round(progressPercent)}%`;
+    }
+
+    const distanceReadout = document.getElementById('overview-distance-readout');
+    if (distanceReadout) {
+        distanceReadout.textContent = `${Math.round(distanceTraveled)} / ${TOTAL_MISSION_DISTANCE} UA`;
+    }
+}
+
+function updateCrewOverview(awakeCount = 0, asleepCount = 0) {
+    const awakeBadge = document.getElementById('overview-crew-awake');
+    if (awakeBadge) {
+        awakeBadge.textContent = awakeCount;
+    }
+
+    const asleepBadge = document.getElementById('overview-crew-asleep');
+    if (asleepBadge) {
+        asleepBadge.textContent = asleepCount;
+    }
 }
 
 /* === CONTROLES RÁPIDOS DE TRIPULACIÓN === */
