@@ -389,6 +389,8 @@ class PanelManager {
 
         console.log(`📊 Despiertos: ${awakeCount}, Encapsulados: ${asleepCount}`);
 
+        updateCrewOverview(awakeCount, asleepCount);
+
         // Configurar drag & drop en los contenedores
         this.setupDragAndDrop(awakeContainer, asleepContainer);
     }

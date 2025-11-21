@@ -18,7 +18,13 @@ class TerminalNotificationSystem {
         const hours = Math.floor(elapsed / 3600);
         const minutes = Math.floor((elapsed % 3600) / 60);
         const seconds = elapsed % 60;
-        this.terminalTime.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        this.terminalTime.textContent = timeString;
+
+        const summaryClock = document.getElementById('summary-terminal-time');
+        if (summaryClock) {
+            summaryClock.textContent = timeString;
+        }
     }
 
     addLine(message, type = 'info') {

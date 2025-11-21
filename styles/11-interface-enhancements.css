@@ -1,0 +1,173 @@
+/* ============================================
+   INTERFACE ENHANCEMENTS - ODISEUM V2.0
+   Controles rápidos y resúmenes compactos
+   ============================================ */
+
+
+.interface-dashboard {
+    position: sticky;
+    top: calc(var(--title-bar-height) + var(--resource-strip-height, 40px));
+    z-index: calc(var(--z-desktop) + 1);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    background: var(--color-terminal-bg);
+    border-top: 1px solid var(--color-terminal-green-dark);
+    border-bottom: 1px solid var(--color-terminal-green-dark);
+}
+
+.command-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
+}
+
+.toolbar-title {
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-lg);
+    color: var(--color-terminal-green);
+    letter-spacing: 0.12em;
+}
+
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.toolbar-btn {
+    background: transparent;
+    color: var(--color-terminal-green);
+    border: 1px solid var(--color-terminal-green);
+    padding: 8px 12px;
+    font-family: var(--font-monaco);
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toolbar-btn:hover {
+    background: rgba(0, 255, 65, 0.08);
+    border-color: var(--color-terminal-green);
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.status-card {
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--color-terminal-green);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    border-left: 3px solid var(--color-terminal-green-dark);
+    background: transparent;
+}
+
+.status-label {
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-terminal-green-dim);
+    margin: 0;
+}
+
+.status-value {
+    font-size: var(--font-size-hero);
+    letter-spacing: 0.06em;
+    margin: 0;
+}
+
+.status-helper {
+    margin: 0;
+    color: var(--color-terminal-green-dim);
+    font-size: var(--font-size-xs);
+}
+
+.status-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.status-progress-bar {
+    height: 10px;
+    background: var(--color-terminal-bg);
+    border: 1px solid var(--color-terminal-green-dark);
+    position: relative;
+    overflow: hidden;
+}
+
+.status-progress-bar span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #00ff41, #66ff9b);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.35);
+    transition: width 0.4s ease;
+}
+
+.status-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+    color: var(--color-terminal-green);
+}
+
+.status-badges {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.status-pill {
+    border: 1px solid var(--color-terminal-green-dark);
+    padding: 6px 10px;
+    background: transparent;
+    letter-spacing: 0.08em;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.status-pill strong {
+    font-size: var(--font-size-lg);
+}
+
+
+.status-pill.awake {
+    border-color: #64ff98;
+    color: #64ff98;
+}
+
+.status-pill.asleep {
+    border-color: #7ee0ff;
+    color: #7ee0ff;
+}
+
+@media (max-width: 1024px) {
+    .interface-dashboard {
+        padding: var(--spacing-md);
+    }
+
+    .command-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .toolbar-actions {
+        width: 100%;
+    }
+}

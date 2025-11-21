@@ -347,9 +347,15 @@ function initializeGame(config) {
 
     // Generar lista de tripulación (tabla completa)
     crewMembers.forEach(crew => crew.addRow());
-    
+
     // Inicializar relaciones entre tripulantes
     crewMembers.forEach(crew => crew.initializeRelationships(crewMembers));
+
+    // Sincronizar el resumen rápido de tripulación
+    updateCrewOverview(
+        crewMembers.filter(c => c.state === 'Despierto').length,
+        crewMembers.filter(c => c.state !== 'Despierto').length
+    );
 
     // Las mini-cards se generan automáticamente cuando se abre el panel de tripulación
     // No necesitamos llenar el contenedor aquí
